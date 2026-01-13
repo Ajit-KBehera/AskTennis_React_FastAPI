@@ -1,166 +1,94 @@
-:root {
-  --primary-color: #007bff;
-  --primary-hover: #0069d9;
-  --secondary-color: #6c757d;
-  --bg-color: #f8f9fa;
-  --text-color: #212529;
-  --text-secondary: #6c757d;
-  --border-color: #dee2e6;
-  --card-bg: #ffffff;
+@import "tailwindcss";
+
+@theme {
+  --color-tennis-green: #dcfce7;
+  --color-tennis-clay: #f97316;
+  --color-tennis-court: #1e40af;
 }
 
-* {
-  box-sizing: border-box;
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  line-height: 1.5;
+  font-family: var(--font-inter);
+  @apply bg-slate-50 text-slate-900 antialiased;
 }
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.main-content {
-  flex-grow: 1;
-  padding: 4rem 2rem;
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
 }
 
-header {
-  text-align: center;
-  margin-bottom: 3rem;
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
 }
 
-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
+/* Markdown Typography */
+.prose h1 {
+  @apply text-3xl font-black mb-6 text-slate-900;
 }
 
-header .subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
+.prose h2 {
+  @apply text-2xl font-bold mt-8 mb-4 text-slate-800;
 }
 
-.card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+.prose h3 {
+  @apply text-xl font-bold mt-6 mb-3 text-slate-800;
 }
 
-.search-container {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 3rem;
-  position: sticky;
-  top: 1rem;
-  z-index: 10;
-  background-color: var(--bg-color);
-  padding: 1rem 0;
+.prose p {
+  @apply text-slate-600 leading-relaxed mb-4;
 }
 
-.search-input {
-  flex-grow: 1;
-  padding: 1rem 1.5rem;
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  font-size: 1.1rem;
-  transition: border-color 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.prose ul {
+  @apply list-disc pl-6 mb-4 space-y-2 text-slate-600;
 }
 
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
+.prose ol {
+  @apply list-decimal pl-6 mb-4 space-y-2 text-slate-600;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+.prose li {
+  @apply pl-1;
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-  min-width: 60px;
+.prose strong {
+  @apply font-bold text-slate-900;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-hover);
+.prose code {
+  @apply bg-slate-100 text-emerald-600 px-1.5 py-0.5 rounded font-mono text-sm;
 }
 
-.welcome-container {
-  text-align: center;
-  margin-top: 2rem;
+.prose pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto my-6 border border-slate-800;
 }
 
-.example-queries {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1rem;
+.prose pre code {
+  @apply bg-transparent text-inherit p-0 rounded-none;
 }
 
-.example-queries button {
-  background: white;
-  border: 1px solid var(--border-color);
-  padding: 0.75rem 1.25rem;
-  border-radius: 20px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all 0.2s;
+.prose blockquote {
+  @apply border-l-4 border-emerald-500 pl-4 italic text-slate-500 my-6;
 }
 
-.example-queries button:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+.prose table {
+  @apply w-full border-collapse my-6;
 }
 
-.answer-content {
-  font-size: 1.1rem;
-  line-height: 1.6;
+.prose th {
+  @apply bg-slate-50 text-slate-900 font-bold p-3 text-left border-b-2 border-slate-200;
 }
 
-pre {
-  background-color: #f1f3f5;
-  padding: 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-size: 0.9rem;
+.prose td {
+  @apply p-3 border-b border-slate-100 text-slate-600;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+.prose tr:hover td {
+  @apply bg-slate-50/50;
 }

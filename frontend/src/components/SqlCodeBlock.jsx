@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check } from 'lucide-react';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Copy, Check, Terminal } from 'lucide-react';
 
 const SqlCodeBlock = ({ code }) => {
     const [copied, setCopied] = useState(false);
@@ -17,23 +17,38 @@ const SqlCodeBlock = ({ code }) => {
     };
 
     return (
-        <div className="sql-code-wrapper">
-            <div className="sql-header">
-                <span>SQL</span>
-                <button onClick={copyToClipboard} className="copy-btn">
-                    {copied ? <Check size={16} /> : <Copy size={16} />}
-                    {copied ? 'Copied!' : 'Copy'}
+        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-lg my-4 group">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                <div className="flex items-center gap-2 text-slate-400 font-mono text-xs font-bold uppercase tracking-wider">
+                    <Terminal className="w-4 h-4 text-emerald-500" />
+                    <span>PostgreSQL</span>
+                </div>
+                <button
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-1.5 py-1 px-2.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 text-xs font-semibold"
+                >
+                    {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
             </div>
-            <SyntaxHighlighter
-                language="sql"
-                style={oneDark}
-                customStyle={{ margin: 0, borderRadius: '0 0 8px 8px' }}
-            >
-                {code}
-            </SyntaxHighlighter>
+            <div className="p-1">
+                <SyntaxHighlighter
+                    language="sql"
+                    style={vscDarkPlus}
+                    customStyle={{
+                        margin: 0,
+                        background: 'transparent',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                        padding: '1rem'
+                    }}
+                >
+                    {code}
+                </SyntaxHighlighter>
+            </div>
         </div>
     );
 };
 
 export default SqlCodeBlock;
+
