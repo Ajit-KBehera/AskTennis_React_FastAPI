@@ -62,7 +62,6 @@ export const StatsChart: React.FC<PlotlyChartProps> = ({ data, title }) => {
       </div>
     );
   } catch (error) {
-    console.error('Error rendering Plotly chart:', error);
     return (
       <div className="flex items-center justify-center h-64 bg-yellow-50 rounded-lg border border-yellow-200">
         <p className="text-yellow-600">Failed to render chart</p>

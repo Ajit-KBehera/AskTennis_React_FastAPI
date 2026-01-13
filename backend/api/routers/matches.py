@@ -4,13 +4,11 @@ Endpoint: POST /api/matches
 """
 
 from fastapi import APIRouter, HTTPException
-import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+import pandas as pd
 
 from services.database_service import DatabaseService
 from api.models import StatsRequest, MatchesResponse, Match
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,11 +16,10 @@ router = APIRouter()
 try:
     db_service = DatabaseService()
 except Exception as e:
-    logger.error(f"Failed to initialize DatabaseService: {e}")
     db_service = None
 
 
-def parse_year_filter(year_str: str) -> Any:
+def parse_year_filter(year_str: Optional[str]) -> Any:
     """
     Parse year filter string into appropriate format for DatabaseService.
     
@@ -41,14 +38,12 @@ def parse_year_filter(year_str: str) -> Any:
             start, end = year_str.split("-")
             return (int(start.strip()), int(end.strip()))
         except ValueError:
-            logger.warning(f"Invalid year range format: {year_str}")
             return None
     
     # Single year
     try:
         return int(year_str)
     except ValueError:
-        logger.warning(f"Invalid year format: {year_str}")
         return None
 
 
@@ -67,15 +62,14 @@ async def get_matches(request: StatsRequest):
         raise HTTPException(status_code=500, detail="Database service not initialized")
     
     try:
-        # Parse filter values
-        player = request.player_name if request.player_name != DatabaseService.ALL_PLAYERS else None
-        opponent = request.opponent if request.opponent and request.opponent != DatabaseService.ALL_OPPONENTS else None
-        tournament = request.tournament if request.tournament and request.tournament != DatabaseService.ALL_TOURNAMENTS else None
+        # Parse filter values - match the logic used in serve/return stats endpoints
+        player = request.player_name
+        # Handle opponent: if None or "All Opponents", set to None
+        opponent = None if (request.opponent is None or request.opponent == DatabaseService.ALL_OPPONENTS) else request.opponent
+        # Handle tournament: if None or "All Tournaments", set to None
+        tournament = None if (request.tournament is None or request.tournament == DatabaseService.ALL_TOURNAMENTS) else request.tournament
         surfaces = request.surface if request.surface and len(request.surface) > 0 else None
         year = parse_year_filter(request.year) if request.year else None
-        
-        logger.info(f"Fetching matches: player={player}, opponent={opponent}, "
-                   f"tournament={tournament}, surfaces={surfaces}, year={year}")
         
         # Get matches from database
         df = db_service.get_matches_with_filters(
@@ -89,11 +83,25 @@ async def get_matches(request: StatsRequest):
         
         # Convert DataFrame to list of Match models
         matches: List[Match] = []
-        for _, row in df.iterrows():
-            match_dict = row.to_dict()
-            matches.append(Match(**match_dict))
-        
-        logger.info(f"Found {len(matches)} matches")
+        if not df.empty:
+            for idx, row in df.iterrows():
+                try:
+                    # Convert row to dict and handle NaN values
+                    match_dict = row.to_dict()
+                    # Ensure required fields are present and handle NaN
+                    match_data = {
+                        'event_year': int(match_dict.get('event_year', 0)) if pd.notna(match_dict.get('event_year')) else 0,
+                        'tourney_date': str(match_dict.get('tourney_date', '')) if pd.notna(match_dict.get('tourney_date')) else '',
+                        'tourney_name': str(match_dict.get('tourney_name', '')) if pd.notna(match_dict.get('tourney_name')) else '',
+                        'round': str(match_dict.get('round', '')) if pd.notna(match_dict.get('round')) else '',
+                        'winner_name': str(match_dict.get('winner_name', '')) if pd.notna(match_dict.get('winner_name')) else '',
+                        'loser_name': str(match_dict.get('loser_name', '')) if pd.notna(match_dict.get('loser_name')) else '',
+                        'surface': str(match_dict.get('surface', '')) if pd.notna(match_dict.get('surface')) else '',
+                        'score': str(match_dict.get('score', '')) if pd.notna(match_dict.get('score')) else '',
+                    }
+                    matches.append(Match(**match_data))
+                except Exception as e:
+                    continue
         
         return MatchesResponse(
             matches=matches,
@@ -101,10 +109,8 @@ async def get_matches(request: StatsRequest):
         )
     
     except Exception as e:
-        logger.error(f"Error fetching matches: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch matches: {str(e)}"
         )
+

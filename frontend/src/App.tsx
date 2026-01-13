@@ -26,7 +26,6 @@ function App() {
     const [serveCharts, setServeCharts] = useState<any>(null);
     const [returnCharts, setReturnCharts] = useState<any>(null);
     const [rankingChart, setRankingChart] = useState<any>(null);
-    const [rawData, setRawData] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<string>('All Players');
     const [hasGeneratedAnalysis, setHasGeneratedAnalysis] = useState(false);
@@ -46,8 +45,6 @@ function App() {
         surface?: string[];
         year?: string;
     }) => {
-        console.log('Filter changed:', newFilters);
-
         // Update filters state
         setFilters({
             player_name: newFilters.player_name,
@@ -61,35 +58,36 @@ function App() {
 
         // Don't fetch if "All Players" is selected
         if (!newFilters.player_name || newFilters.player_name === 'All Players') {
-            console.log('All Players selected, skipping data fetch');
             setMatches([]);
             setServeCharts(null);
             setReturnCharts(null);
             setRankingChart(null);
-            setRawData([]);
             setHasGeneratedAnalysis(false);
             return;
         }
+
+        // Clear AI response when filter analysis is generated (so analysis replaces AI response)
+        setAiResponse('');
+        setAiSqlQueries([]);
+        setAiData([]);
+        setAiError('');
 
         setLoading(true);
         setHasGeneratedAnalysis(true); // Mark that analysis has been generated
 
         try {
             // Fetch matches
-            console.log('Fetching matches...');
-            const matchesRes = await apiClient.post<MatchesResponse>(endpoints.getMatches, {
+            const matchesRequest = {
                 player_name: newFilters.player_name,
                 opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
                 tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
                 surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
                 year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
-            });
-            console.log(`Fetched ${matchesRes.data.matches.length} matches`);
-            setMatches(matchesRes.data.matches);
-            setRawData(matchesRes.data.matches);
+            };
+            const matchesRes = await apiClient.post<MatchesResponse>(endpoints.getMatches, matchesRequest);
+            setMatches(matchesRes.data.matches || []);
 
             // Fetch serve statistics
-            console.log('Fetching serve stats...');
             const serveRes = await apiClient.post<ServeStatsResponse>(endpoints.getServeStats, {
                 player_name: newFilters.player_name,
                 opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
@@ -97,11 +95,9 @@ function App() {
                 surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
                 year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
             });
-            console.log('Serve stats fetched:', serveRes.data.error || 'success');
             setServeCharts(serveRes.data);
 
             // Fetch return statistics
-            console.log('Fetching return stats...');
             const returnRes = await apiClient.post<ReturnStatsResponse>(endpoints.getReturnStats, {
                 player_name: newFilters.player_name,
                 opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
@@ -109,26 +105,21 @@ function App() {
                 surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
                 year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
             });
-            console.log('Return stats fetched:', returnRes.data.error || 'success');
             setReturnCharts(returnRes.data);
 
             // Fetch ranking statistics
-            console.log('Fetching ranking stats...');
             const rankingRes = await apiClient.post<RankingStatsResponse>(endpoints.getRankingStats, {
                 player_name: newFilters.player_name,
                 year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
             });
-            console.log('Ranking stats fetched:', rankingRes.data.error || 'success');
             setRankingChart(rankingRes.data);
 
-        } catch (error) {
-            console.error('Error fetching data:', error);
+        } catch (error: any) {
             // Reset data on error
             setMatches([]);
             setServeCharts(null);
             setReturnCharts(null);
             setRankingChart(null);
-            setRawData([]);
         } finally {
             setLoading(false);
         }
@@ -136,11 +127,16 @@ function App() {
 
     // Handle AI query submission - using full /api/query endpoint for detailed response
     const handleQuerySubmit = async (query: string) => {
-        console.log('Query submitted:', query);
-
         if (!query.trim()) {
             return;
         }
+
+        // Clear filter analysis when AI query is submitted (so AI response replaces it)
+        setHasGeneratedAnalysis(false);
+        setMatches([]);
+        setServeCharts(null);
+        setReturnCharts(null);
+        setRankingChart(null);
 
         setAiLoading(true);
         setAiError('');
@@ -154,12 +150,10 @@ function App() {
                 query: query.trim()
             });
 
-            console.log('AI Response received:', response.data);
             setAiResponse(response.data.answer || '');
             setAiSqlQueries(response.data.sql_queries || []);
             setAiData(response.data.data || []);
         } catch (error: any) {
-            console.error('Error fetching AI response:', error);
             setAiError(error.response?.data?.detail || 'Failed to get AI response. Please try again.');
         } finally {
             setAiLoading(false);
@@ -168,12 +162,10 @@ function App() {
 
     // Handle clear action
     const handleClear = () => {
-        console.log('Clearing data');
         setMatches([]);
         setServeCharts(null);
         setReturnCharts(null);
         setRankingChart(null);
-        setRawData([]);
         setFilters({
             player_name: 'All Players',
             opponent: 'All Opponents',
@@ -235,7 +227,8 @@ function App() {
                     </div>
                 )}
 
-                {aiResponse && (
+                {/* Show AI Response OR Dashboard Tabs (not both) */}
+                {!hasGeneratedAnalysis && !aiLoading && aiResponse && (
                     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
                         {/* Answer Card with ReactMarkdown */}
                         <div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
@@ -271,7 +264,7 @@ function App() {
                     </div>
                 )}
 
-                {/* Dashboard Tabs - Only show if analysis has been generated */}
+                {/* Dashboard Tabs - Only show if analysis has been generated (replaces AI response) */}
                 {hasGeneratedAnalysis && (
                     <div>
                         <div className="flex items-center gap-2 mb-4 text-blue-600 font-semibold">
@@ -283,7 +276,6 @@ function App() {
                             returnCharts={returnCharts}
                             rankingChart={rankingChart}
                             matches={matches}
-                            rawData={rawData}
                             loading={loading}
                             selectedPlayer={selectedPlayer}
                             filters={filters}

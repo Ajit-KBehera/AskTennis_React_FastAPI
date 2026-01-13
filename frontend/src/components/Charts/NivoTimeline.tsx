@@ -162,9 +162,7 @@ export const NivoTimeline: React.FC<NivoTimelineProps> = ({
     const p = point as { data?: { x: number; y: number | null; matchData?: RawServeMatch } };
     if (p.data?.matchData) {
       const matchData = p.data.matchData;
-      console.log('Clicked match:', matchData);
       // You can add custom click behavior here, e.g., open a modal, navigate, etc.
-      // For now, just log to console
     }
   }, []);
 
@@ -211,7 +209,6 @@ export const NivoTimeline: React.FC<NivoTimelineProps> = ({
         return size;
       }
     } catch (e) {
-      console.warn('Error getting point size:', e);
     }
     // Fallback to a visible default size if not found or invalid
     return 10;

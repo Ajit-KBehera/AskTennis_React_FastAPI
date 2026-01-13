@@ -8,7 +8,6 @@ Endpoints:
 """
 
 from fastapi import APIRouter, HTTPException
-import logging
 import json
 from typing import Optional, Dict, Any
 
@@ -31,15 +30,12 @@ from serve_tab.combined_serve_charts import create_combined_serve_charts
 from return_tab.combined_return_charts import create_combined_return_charts
 from rankings_tab.ranking_timeline_chart import create_ranking_timeline_chart
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/stats")
 
 # Initialize database service
 try:
     db_service = DatabaseService()
 except Exception as e:
-    logger.error(f"Failed to initialize DatabaseService: {e}")
     db_service = None
 
 
@@ -67,7 +63,6 @@ def plotly_fig_to_dict(fig) -> Optional[Dict[str, Any]]:
             config=fig_dict.get('config')
         )
     except Exception as e:
-        logger.error(f"Error converting Plotly figure to dict: {e}")
         return None
 
 
@@ -90,14 +85,12 @@ def parse_year_filter(year_str: Optional[str]) -> Any:
             start, end = year_str.split("-")
             return (int(start.strip()), int(end.strip()))
         except ValueError:
-            logger.warning(f"Invalid year range format: {year_str}")
             return None
     
     # Single year
     try:
         return int(year_str)
     except ValueError:
-        logger.warning(f"Invalid year format: {year_str}")
         return None
 
 
@@ -127,9 +120,6 @@ async def get_serve_stats(request: ServeStatsRequest):
         tournament = request.tournament if request.tournament != DatabaseService.ALL_TOURNAMENTS else None
         surfaces = request.surface if request.surface and len(request.surface) > 0 else None
         year = parse_year_filter(request.year) if request.year else None
-        
-        logger.info(f"Generating serve stats: player={player}, opponent={opponent}, "
-                   f"tournament={tournament}, surfaces={surfaces}, year={year}")
         
         # Get matches from database
         df = db_service.get_matches_with_filters(
@@ -165,9 +155,6 @@ async def get_serve_stats(request: ServeStatsRequest):
         )
         
     except Exception as e:
-        logger.error(f"Error generating serve stats: {e}")
-        import traceback
-        traceback.print_exc()
         return ServeStatsResponse(
             error=f"Failed to generate serve statistics: {str(e)}"
         )
@@ -199,8 +186,6 @@ async def get_raw_serve_stats(request: ServeStatsRequest):
         tournament = request.tournament if request.tournament != DatabaseService.ALL_TOURNAMENTS else None
         surfaces = request.surface if request.surface and len(request.surface) > 0 else None
         year = parse_year_filter(request.year) if request.year else None
-        
-        logger.info(f"Fetching raw serve data: player={player}")
         
         # Get matches with all columns
         df = db_service.get_matches_with_filters(
@@ -271,8 +256,6 @@ async def get_raw_serve_stats(request: ServeStatsRequest):
             )
             matches.append(match_data)
         
-        logger.info(f"Returning {len(matches)} raw serve matches")
-        
         return RawServeStatsResponse(
             matches=matches,
             player_name=player,
@@ -285,9 +268,6 @@ async def get_raw_serve_stats(request: ServeStatsRequest):
         )
         
     except Exception as e:
-        logger.error(f"Error fetching raw serve data: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch raw serve data: {str(e)}"
@@ -319,8 +299,6 @@ async def get_return_stats(request: ReturnStatsRequest):
         tournament = request.tournament if request.tournament != DatabaseService.ALL_TOURNAMENTS else None
         surfaces = request.surface if request.surface and len(request.surface) > 0 else None
         year = parse_year_filter(request.year) if request.year else None
-        
-        logger.info(f"Generating return stats: player={player}")
         
         # Get matches from database
         df = db_service.get_matches_with_filters(
@@ -355,9 +333,6 @@ async def get_return_stats(request: ReturnStatsRequest):
         )
         
     except Exception as e:
-        logger.error(f"Error generating return stats: {e}")
-        import traceback
-        traceback.print_exc()
         return ReturnStatsResponse(
             error=f"Failed to generate return statistics: {str(e)}"
         )
@@ -382,8 +357,6 @@ async def get_ranking_stats(request: RankingStatsRequest):
     try:
         player = request.player_name
         year = parse_year_filter(request.year) if request.year else None
-        
-        logger.info(f"Generating ranking timeline: player={player}, year={year}")
         
         # Get ranking data from database
         ranking_df = db_service.get_player_ranking_timeline(
@@ -424,12 +397,9 @@ async def get_ranking_stats(request: RankingStatsRequest):
         )
         
     except Exception as e:
-        logger.error(f"Error generating ranking stats: {e}")
-        import traceback
-        traceback.print_exc()
         return RankingStatsResponse(
             error=f"Failed to generate ranking statistics: {str(e)}",
-            reasons=["Internal server error - check logs for details"]
+            reasons=["Internal server error"]
         )
 
 

@@ -5,12 +5,8 @@ Provides dynamic data for dropdowns and analysis
 
 import pandas as pd
 from typing import List, Optional, Union, Tuple
-import logging
 import functools
 from sqlalchemy import Engine, text
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 from config.database.base import DatabaseConfig
 from config.database.database_factory import DatabaseFactory
@@ -166,8 +162,6 @@ class DatabaseService:
                     if result and result[0]:
                         return 'unified'
         except Exception as e:
-            # Log error but continue with detection
-            logger.warning(f"Error detecting schema type: {e}. Defaulting to 'separate'.")
             # Default to separate for new databases
             return 'separate'
         # Default to separate for new databases (most common case)
@@ -245,7 +239,6 @@ class DatabaseService:
                 return [DatabaseService.ALL_PLAYERS]
             return [DatabaseService.ALL_PLAYERS] + df['player_name'].tolist()
         except Exception as e:
-            logger.error(f"Error fetching players: {e}")
             return [DatabaseService.ALL_PLAYERS, "Roger Federer", "Rafael Nadal", "Novak Djokovic"]
     
     @functools.lru_cache(maxsize=128)
@@ -291,7 +284,6 @@ class DatabaseService:
                     return [DatabaseService.ALL_TOURNAMENTS]
                 return [DatabaseService.ALL_TOURNAMENTS] + df['tourney_name'].tolist()
             except Exception as e:
-                logger.error(f"Error fetching tournaments: {e}")
                 return [DatabaseService.ALL_TOURNAMENTS, "Wimbledon", "French Open", "US Open", "Australian Open"]
         
         # Filter tournaments for specific player
@@ -331,7 +323,6 @@ class DatabaseService:
                 return [DatabaseService.ALL_TOURNAMENTS]
             return [DatabaseService.ALL_TOURNAMENTS] + df['tourney_name'].tolist()
         except Exception as e:
-            logger.error(f"Error fetching tournaments for player: {e}")
             # Fallback to all tournaments on error
             try:
                 schema_type = _self._detect_schema_type()
@@ -418,7 +409,6 @@ class DatabaseService:
             
             return (min_year, max_year)
         except Exception as e:
-            logger.warning(f"Error fetching year range for player: {e}")
             return (1968, 2024)  # Default range on error
     
     @functools.lru_cache(maxsize=128)
@@ -483,7 +473,6 @@ class DatabaseService:
             filtered_surfaces = [s for s in all_surfaces if s in player_surfaces]
             return filtered_surfaces if filtered_surfaces else all_surfaces
         except Exception as e:
-            logger.error(f"Error fetching surfaces for player: {e}")
             return all_surfaces  # Fallback to all surfaces on error
     
     @functools.lru_cache(maxsize=128)
@@ -542,7 +531,6 @@ class DatabaseService:
                 return [DatabaseService.ALL_OPPONENTS]
             return [DatabaseService.ALL_OPPONENTS] + df['opponent_name'].tolist()
         except Exception as e:
-            logger.error(f"Error fetching opponents: {e}")
             return _self.get_all_players()
     
     def get_matches_with_filters(self, player: Optional[str] = None, 
@@ -566,8 +554,6 @@ class DatabaseService:
                 year_display = f"{year[0]}-{year[1]}"
             elif isinstance(year, list):
                 year_display = f"{min(year)}-{max(year)}" if len(year) > 1 else str(year[0])
-            logger.info(f"🔍 Querying: player='{player}', year={year_display}, tournament='{tournament}', surfaces='{surfaces}'")
-            
             # Build WHERE clause
             where_conditions = []
             params = []
@@ -607,8 +593,6 @@ class DatabaseService:
                             self.MIN_YEAR <= end_year <= self.MAX_YEAR):
                             where_conditions.append("event_year BETWEEN ? AND ?")
                             params.extend([start_year, end_year])
-                        else:
-                            logger.warning(f"Invalid year range: {start_year}-{end_year}. Skipping year filter.")
                     
                     # Handle list (multiple specific years) - use IN
                     elif isinstance(year, list) and len(year) > 0:
@@ -626,16 +610,12 @@ class DatabaseService:
                                 placeholders = ','.join(['?' for _ in valid_years])
                                 where_conditions.append(f"event_year IN ({placeholders})")
                                 params.extend(valid_years)
-                        else:
-                            logger.warning(f"Invalid year values in list. Skipping year filter.")
                     
                     # Handle single integer year
                     elif isinstance(year, int):
                         if self.MIN_YEAR <= year <= self.MAX_YEAR:
                             where_conditions.append("event_year = ?")
                             params.append(year)
-                        else:
-                            logger.warning(f"Invalid year range: {year}. Skipping year filter.")
                     
                     # Handle string (backward compatibility)
                     elif isinstance(year, str):
@@ -643,13 +623,9 @@ class DatabaseService:
                         if self.MIN_YEAR <= year_int <= self.MAX_YEAR:
                             where_conditions.append("event_year = ?")
                             params.append(year_int)
-                        else:
-                            logger.warning(f"Invalid year range: {year_int}. Skipping year filter.")
-                    else:
-                        logger.warning(f"Invalid year format: {type(year)}. Expected int, tuple, list, or str. Skipping year filter.")
                         
                 except (ValueError, TypeError) as e:
-                    logger.warning(f"Invalid year format: {year}. Error: {e}. Skipping year filter.")
+                    pass
             
             if surfaces:
                 # Filter and validate surfaces: remove empty strings, None values, and strip whitespace
@@ -663,9 +639,6 @@ class DatabaseService:
                     placeholders = ','.join(['?' for _ in valid_surfaces])
                     where_conditions.append(f"surface IN ({placeholders})")
                     params.extend(valid_surfaces)
-                elif len(surfaces) > 0:
-                    # User provided surfaces but all were invalid
-                    logger.warning(f"Invalid surface values provided. Skipping surface filter.")
             
             where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
             
@@ -697,6 +670,7 @@ class DatabaseService:
                     """
             else:
                 # Return selected columns for table display
+                # Note: match_num is included in SELECT so it can be used in ORDER BY
                 if schema_type == 'unified':
                     query = f"""
                     SELECT
@@ -707,7 +681,8 @@ class DatabaseService:
                         winner_name,
                         loser_name,
                         surface,
-                        score
+                        score,
+                        match_num
                     FROM matches 
                     WHERE {where_clause}
                     ORDER BY tourney_date ASC, match_num ASC
@@ -716,6 +691,7 @@ class DatabaseService:
                 else:
                     # New schema: use UNION ALL for both tours
                     # Ensure column order and types match
+                    # Note: match_num is included in SELECT so it can be used in ORDER BY
                     query = f"""
                     SELECT
                         event_year,
@@ -725,7 +701,8 @@ class DatabaseService:
                         winner_name,
                         loser_name,
                         surface,
-                        score
+                        score,
+                        match_num
                     FROM (
                         SELECT
                             event_year,
@@ -735,7 +712,8 @@ class DatabaseService:
                             winner_name,
                             loser_name,
                             surface,
-                            score
+                            score,
+                            match_num
                         FROM atp_matches 
                         WHERE {where_clause}
                         UNION ALL
@@ -747,7 +725,8 @@ class DatabaseService:
                             winner_name,
                             loser_name,
                             surface,
-                            score
+                            score,
+                            match_num
                         FROM wta_matches 
                         WHERE {where_clause}
                     )
@@ -766,12 +745,6 @@ class DatabaseService:
             
             with self._get_connection() as conn:
                 df = pd.read_sql_query(query, conn, params=tuple(self._format_params(params)))
-            
-            # Debug logging
-            logger.info(f"📊 Found {len(df)} matches")
-            if len(df) == 0:
-                logger.info(f"❌ No matches found. Query: {query}")
-                logger.info(f"🔧 Parameters: {params}")
             
             return df
             
@@ -915,5 +888,4 @@ class DatabaseService:
                 return combined_df
                 
         except Exception as e:
-            logger.warning(f"Error fetching ranking timeline for {player_name}: {e}")
             return pd.DataFrame()

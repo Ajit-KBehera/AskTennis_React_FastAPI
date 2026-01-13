@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StatsChart } from '../Charts/StatsChart';
 import { MatchesTable } from './MatchesTable';
-import { RawDataView } from './RawDataView';
 import { ServeStatsView } from './ServeStatsView';
 import type { ServeStatsRequest } from '../../types';
 
@@ -10,7 +9,6 @@ interface TabsProps {
   returnCharts?: any;
   rankingChart?: any;
   matches?: any[];
-  rawData?: any[];
   loading?: boolean;
   selectedPlayer?: string;
   filters?: ServeStatsRequest; // Add filters prop
@@ -21,12 +19,11 @@ export const Tabs: React.FC<TabsProps> = ({
   returnCharts,
   rankingChart,
   matches,
-  rawData,
   loading,
   selectedPlayer,
   filters
 }) => {
-  const [activeTab, setActiveTab] = useState<'matches' | 'serve' | 'return' | 'ranking' | 'raw'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'serve' | 'return' | 'ranking'>('matches');
   const [useRecharts, setUseRecharts] = useState(true); // Toggle for new visualization
 
   const tabs = [
@@ -34,7 +31,6 @@ export const Tabs: React.FC<TabsProps> = ({
     { id: 'serve' as const, label: '🎾 Serve', icon: '🎾' },
     { id: 'return' as const, label: '🏓 Return', icon: '🏓' },
     { id: 'ranking' as const, label: '📈 Ranking', icon: '📈' },
-    { id: 'raw' as const, label: '📋 Raw', icon: '📋' },
   ];
 
   return (
@@ -177,9 +173,6 @@ export const Tabs: React.FC<TabsProps> = ({
           </div>
         )}
 
-        {!loading && activeTab === 'raw' && (
-          <RawDataView data={rawData || []} />
-        )}
       </div>
     </div>
   );

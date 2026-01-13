@@ -16,7 +16,7 @@ const SqlCodeBlock: React.FC<SqlCodeBlockProps> = ({ code }) => {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            console.error('Failed to copy text: ', err);
+            // Copy failed silently
         }
     };
 

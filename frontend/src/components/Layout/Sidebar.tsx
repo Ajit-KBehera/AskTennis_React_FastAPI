@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
           setSelectedSurfaces(res.data.surfaces);
         }
       } catch (err) {
-        console.error("Failed to load filters", err);
+        // Failed to load filters
       } finally {
         setLoading(false);
       }
@@ -114,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
           setOptions(prev => ({ ...prev, tournaments: res.data.tournaments }));
         }
       } catch (err) {
-        console.error("Failed to load player-specific filters", err);
+        // Failed to load player-specific filters
       }
     };
     fetchPlayerOptions();

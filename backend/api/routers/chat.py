@@ -6,13 +6,10 @@ Wraps the existing QueryProcessor to provide chat-style responses.
 """
 
 from fastapi import APIRouter, HTTPException
-import logging
 import uuid
 
 from services.query_service import QueryProcessor
 from api.models import ChatRequest, ChatResponse
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -55,8 +52,6 @@ async def chat(request: ChatRequest):
         # Generate session ID if not provided
         session_id = request.session_id or str(uuid.uuid4())[:8]
         
-        logger.info(f"Processing chat query: '{request.query[:50]}...' (session: {session_id})")
-        
         # Use existing QueryProcessor (same as /query endpoint)
         results = query_processor.handle_user_query(
             user_question=request.query,
@@ -80,9 +75,6 @@ async def chat(request: ChatRequest):
         )
     
     except Exception as e:
-        logger.error(f"Error processing chat query: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(
             status_code=500, 
             detail=f"Failed to process chat query: {str(e)}"

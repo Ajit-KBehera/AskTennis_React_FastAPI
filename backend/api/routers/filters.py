@@ -5,12 +5,9 @@ Endpoint: GET /api/filters
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
-import logging
 
 from services.database_service import DatabaseService
 from api.models import FilterOptionsResponse, YearRange
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,7 +15,6 @@ router = APIRouter()
 try:
     db_service = DatabaseService()
 except Exception as e:
-    logger.error(f"Failed to initialize DatabaseService: {e}")
     db_service = None
 
 
@@ -50,8 +46,6 @@ async def get_filters(player_name: Optional[str] = Query(None, description="Play
         
         # If specific player selected, get filtered options
         if player_name and player_name != DatabaseService.ALL_PLAYERS:
-            logger.info(f"Fetching filter options for player: {player_name}")
-            
             # Get player-specific options
             opponents = db_service.get_opponents_for_player(player_name)
             tournaments = db_service.get_all_tournaments(player_name)
@@ -67,7 +61,6 @@ async def get_filters(player_name: Optional[str] = Query(None, description="Play
             )
         else:
             # Return all options
-            logger.info("Fetching all filter options")
             all_tournaments = db_service.get_all_tournaments()
             default_surfaces = ["Hard", "Clay", "Grass", "Carpet"]
             
@@ -80,5 +73,4 @@ async def get_filters(player_name: Optional[str] = Query(None, description="Play
             )
     
     except Exception as e:
-        logger.error(f"Error fetching filter options: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch filter options: {str(e)}")

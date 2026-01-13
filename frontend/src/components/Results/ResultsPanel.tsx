@@ -94,7 +94,6 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
           returnCharts={returnCharts}
           rankingChart={rankingChart}
           matches={matches}
-          rawData={matches}
           loading={loading}
           selectedPlayer={selectedPlayer}
           filters={filters || undefined}
