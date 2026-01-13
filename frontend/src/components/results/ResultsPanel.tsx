@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Tabs } from '../Dashboard/Tabs';
+import { Tabs } from '../analysis/Tabs';
 import { Bot, Info, AlertCircle } from 'lucide-react';
 import type { Match, ServeStatsRequest } from '../../api/client';
 

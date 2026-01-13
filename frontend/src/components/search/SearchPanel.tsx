@@ -3,7 +3,6 @@ import { Search, Loader2 } from 'lucide-react';
 
 interface SearchPanelProps {
   onQuerySubmit: (query: string) => void;
-  onClear: () => void;
   disabled?: boolean;
   value: string;
   onChange: (value: string) => void;
@@ -11,7 +10,6 @@ interface SearchPanelProps {
 
 export const SearchPanel: React.FC<SearchPanelProps> = ({
   onQuerySubmit,
-  onClear,
   disabled = false,
   value,
   onChange

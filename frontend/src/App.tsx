@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Layout } from './components/Layout/Layout';
-import { Header } from './components/Layout/Header';
-import { SearchPanel } from './components/Search/SearchPanel';
-import { QuickInsights } from './components/Dashboard/QuickInsights';
-import { AiResponseSection } from './components/Dashboard/AiResponseSection';
-import { Tabs } from './components/Dashboard/Tabs';
+import { Layout } from './components/layout/Layout';
+import { Header } from './components/layout/Header';
+import { SearchPanel } from './components/search/SearchPanel';
+import { QuickInsights } from './components/search/QuickInsights';
+import { AiResponseSection } from './components/results/AiResponseSection';
+import { Tabs } from './components/analysis/Tabs';
 import { apiClient, endpoints } from './api/client';
 import type { ServeStatsRequest, MatchesResponse, ServeStatsResponse, ReturnStatsResponse, RankingStatsResponse } from './types';
 import { TrendingUp } from 'lucide-react';
@@ -176,7 +176,6 @@ function App() {
 
                 <SearchPanel
                     onQuerySubmit={handleQuerySubmit}
-                    onClear={handleClear}
                     disabled={aiLoading}
                     value={query}
                     onChange={setQuery}

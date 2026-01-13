@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatsChart } from '../Charts/StatsChart';
+import { StatsChart } from '../charts/StatsChart';
 import { MatchesTable } from './MatchesTable';
 import { ServeStatsView } from './ServeStatsView';
 import type { ServeStatsRequest } from '../../types';
@@ -44,8 +44,8 @@ export const Tabs: React.FC<TabsProps> = ({
               onClick={() => setActiveTab(tab.id)}
               type="button"
               className={`px-6 py-3 rounded-lg font-semibold transition-all border cursor-pointer ${activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-lg border-blue-700 hover:bg-blue-700'
-                  : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-200 hover:border-blue-200'
+                ? 'bg-blue-600 text-white shadow-lg border-blue-700 hover:bg-blue-700'
+                : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-200 hover:border-blue-200'
                 }`}
             >
               {tab.label}

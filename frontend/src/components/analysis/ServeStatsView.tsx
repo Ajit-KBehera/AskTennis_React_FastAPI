@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 // import { NivoTimeline } from '../Charts/NivoTimeline'; // Disabled for now
-import { D3ServeTimeline } from '../Charts/D3ServeTimeline';
-import { D3AceDFTimeline } from '../Charts/D3AceDFTimeline';
-import { D3RadarChart } from '../Charts/D3RadarChart';
+import { D3ServeTimeline } from '../charts/D3ServeTimeline';
+import { D3AceDFTimeline } from '../charts/D3AceDFTimeline';
+import { D3RadarChart } from '../charts/D3RadarChart';
 import { api } from '../../api/client';
-import type { ServeStatsRequest, RawServeStatsResponse } from '../../types';
+import type { ServeStatsRequest, RawServeStatsResponse, RawServeMatch } from '../../types';
 
 interface ServeStatsViewProps {
   filters: ServeStatsRequest | null | undefined;

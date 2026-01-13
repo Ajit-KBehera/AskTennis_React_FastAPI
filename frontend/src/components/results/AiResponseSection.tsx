@@ -2,9 +2,9 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Lightbulb } from 'lucide-react';
-import SqlCodeBlock from '../SqlCodeBlock';
-import Expander from '../Expander';
-import { DataTable } from '../DataTable';
+import SqlCodeBlock from '../ui/SqlCodeBlock';
+import Expander from '../ui/Expander';
+import { DataTable } from '../ui/DataTable';
 
 interface AiResponseSectionProps {
     aiResponse: string;
