@@ -3,7 +3,11 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, Terminal } from 'lucide-react';
 
-const SqlCodeBlock = ({ code }) => {
+interface SqlCodeBlockProps {
+    code: string;
+}
+
+const SqlCodeBlock: React.FC<SqlCodeBlockProps> = ({ code }) => {
     const [copied, setCopied] = useState(false);
 
     const copyToClipboard = async () => {
@@ -51,4 +55,3 @@ const SqlCodeBlock = ({ code }) => {
 };
 
 export default SqlCodeBlock;
-

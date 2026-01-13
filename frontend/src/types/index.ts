@@ -1,0 +1,157 @@
+/**
+ * TypeScript types matching backend Pydantic models
+ * These types should stay in sync with backend/main.py models
+ * 
+ * To auto-generate from OpenAPI schema, run:
+ * npm run generate:types
+ */
+
+// ============================================================================
+// Request Types (matching backend Pydantic models)
+// ============================================================================
+
+export interface ChatRequest {
+  query: string;
+  session_id?: string | null;
+}
+
+export interface StatsRequest {
+  player_name: string;
+  opponent?: string | null;
+  tournament?: string | null;
+  surface?: string[] | null;
+  year?: string | null;
+}
+
+export interface ServeStatsRequest extends StatsRequest {
+  // Inherits all fields from StatsRequest
+}
+
+export interface ReturnStatsRequest extends StatsRequest {
+  // Inherits all fields from StatsRequest
+}
+
+export interface RankingStatsRequest {
+  player_name: string;
+  opponent?: string | null;
+  tournament?: string | null;
+  surface?: string[] | null;
+  year?: string | null;
+}
+
+// ============================================================================
+// Response Types (matching backend Pydantic models)
+// ============================================================================
+
+export interface FilterOptionsResponse {
+  players: string[];
+  tournaments: string[];
+  opponents?: string[] | null;
+  surfaces?: string[] | null;
+  year_range?: { min: number; max: number } | null;
+}
+
+export interface ChatResponse {
+  answer: string;
+  session_id: string;
+  summary?: string | null;
+  sql_debug?: string | null;
+}
+
+// Plotly chart data structure (from json.loads(fig.to_json()))
+export interface PlotlyChartData {
+  data: any[];
+  layout: any;
+  config?: any;
+}
+
+export interface ServeStatsResponse {
+  timeline_chart?: PlotlyChartData;
+  ace_df_chart?: PlotlyChartData;
+  bp_chart?: PlotlyChartData;
+  radar_chart?: PlotlyChartData;
+  error?: string;
+}
+
+// Raw match-level data for frontend visualization
+export interface RawServeMatch {
+  match_index: number;
+  year: string;
+  tourney_name: string;
+  round: string;
+  opponent: string;
+  opponent_rank: number | null;
+  result: string;
+  surface: string;
+  tourney_date: string;
+  player_1stIn: number | null;
+  player_1stWon: number | null;
+  player_2ndWon: number | null;
+  player_ace_rate: number | null;
+  player_df_rate: number | null;
+  player_bpFaced: number | null;
+  player_bpSaved: number | null;
+  player_bpSavePct: number | null;
+  opponent_1stIn: number | null;
+  opponent_1stWon: number | null;
+  opponent_2ndWon: number | null;
+  opponent_ace_rate: number | null;
+  opponent_df_rate: number | null;
+}
+
+export interface RawServeStatsResponse {
+  matches: RawServeMatch[];
+  player_name: string;
+  filters: {
+    opponent?: string | null;
+    tournament?: string | null;
+    year?: string | null;
+    surface?: string[] | null;
+  };
+}
+
+export interface ReturnStatsResponse {
+  return_points_chart?: PlotlyChartData;
+  bp_conversion_chart?: PlotlyChartData;
+  radar_chart?: PlotlyChartData;
+  error?: string;
+}
+
+export interface RankingStatsResponse {
+  ranking_chart?: PlotlyChartData;
+  error?: string;
+  reasons?: string[];
+}
+
+export interface Match {
+  event_year: number;
+  tourney_date: string;
+  tourney_name: string;
+  round: string;
+  winner_name: string;
+  loser_name: string;
+  surface: string;
+  score: string;
+  [key: string]: any; // Allow additional fields
+}
+
+export interface MatchesResponse {
+  matches: Match[];
+  count: number;
+}
+
+// ============================================================================
+// Frontend-specific types
+// ============================================================================
+
+export interface StatsFilters {
+  player_name: string;
+  opponent?: string;
+  tournament?: string;
+  surface?: string[];
+  year?: string;
+}
+
+// Re-export for backward compatibility
+export type FilterOptions = FilterOptionsResponse;
+

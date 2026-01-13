@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-const Expander = ({ label, children, defaultExpanded = false }) => {
+interface ExpanderProps {
+    label: string;
+    children: ReactNode;
+    defaultExpanded?: boolean;
+}
+
+const Expander: React.FC<ExpanderProps> = ({ label, children, defaultExpanded = false }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
     return (
@@ -34,4 +40,3 @@ const Expander = ({ label, children, defaultExpanded = false }) => {
 };
 
 export default Expander;
-

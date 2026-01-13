@@ -1,0 +1,298 @@
+import React, { useState } from 'react';
+import { Layout } from './components/Layout/Layout';
+import { SearchPanel } from './components/Search/SearchPanel';
+import { Tabs } from './components/Dashboard/Tabs';
+import { apiClient, endpoints } from './api/client';
+import type { ServeStatsRequest, MatchesResponse, ServeStatsResponse, ReturnStatsResponse, RankingStatsResponse, ChatResponse } from './types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import SqlCodeBlock from './components/SqlCodeBlock';
+import Expander from './components/Expander';
+import { DataTable } from './components/DataTable';
+import { Lightbulb, TrendingUp } from 'lucide-react';
+
+function App() {
+    // Filter state
+    const [filters, setFilters] = useState<ServeStatsRequest>({
+        player_name: 'All Players',
+        opponent: 'All Opponents',
+        tournament: 'All Tournaments',
+        surface: [],
+        year: 'All Years',
+    });
+
+    // Data state
+    const [matches, setMatches] = useState<any[]>([]);
+    const [serveCharts, setServeCharts] = useState<any>(null);
+    const [returnCharts, setReturnCharts] = useState<any>(null);
+    const [rankingChart, setRankingChart] = useState<any>(null);
+    const [rawData, setRawData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState<string>('All Players');
+    const [hasGeneratedAnalysis, setHasGeneratedAnalysis] = useState(false);
+
+    // AI Query state
+    const [aiResponse, setAiResponse] = useState<string>('');
+    const [aiSqlQueries, setAiSqlQueries] = useState<string[]>([]);
+    const [aiData, setAiData] = useState<any[]>([]);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState<string>('');
+
+    // Handle filter changes from sidebar
+    const handleFilterChange = async (newFilters: {
+        player_name: string;
+        opponent?: string;
+        tournament?: string;
+        surface?: string[];
+        year?: string;
+    }) => {
+        console.log('Filter changed:', newFilters);
+
+        // Update filters state
+        setFilters({
+            player_name: newFilters.player_name,
+            opponent: newFilters.opponent || 'All Opponents',
+            tournament: newFilters.tournament || 'All Tournaments',
+            surface: newFilters.surface || [],
+            year: newFilters.year || 'All Years',
+        });
+
+        setSelectedPlayer(newFilters.player_name);
+
+        // Don't fetch if "All Players" is selected
+        if (!newFilters.player_name || newFilters.player_name === 'All Players') {
+            console.log('All Players selected, skipping data fetch');
+            setMatches([]);
+            setServeCharts(null);
+            setReturnCharts(null);
+            setRankingChart(null);
+            setRawData([]);
+            setHasGeneratedAnalysis(false);
+            return;
+        }
+
+        setLoading(true);
+        setHasGeneratedAnalysis(true); // Mark that analysis has been generated
+
+        try {
+            // Fetch matches
+            console.log('Fetching matches...');
+            const matchesRes = await apiClient.post<MatchesResponse>(endpoints.getMatches, {
+                player_name: newFilters.player_name,
+                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
+                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
+                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
+                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
+            });
+            console.log(`Fetched ${matchesRes.data.matches.length} matches`);
+            setMatches(matchesRes.data.matches);
+            setRawData(matchesRes.data.matches);
+
+            // Fetch serve statistics
+            console.log('Fetching serve stats...');
+            const serveRes = await apiClient.post<ServeStatsResponse>(endpoints.getServeStats, {
+                player_name: newFilters.player_name,
+                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
+                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
+                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
+                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
+            });
+            console.log('Serve stats fetched:', serveRes.data.error || 'success');
+            setServeCharts(serveRes.data);
+
+            // Fetch return statistics
+            console.log('Fetching return stats...');
+            const returnRes = await apiClient.post<ReturnStatsResponse>(endpoints.getReturnStats, {
+                player_name: newFilters.player_name,
+                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
+                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
+                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
+                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
+            });
+            console.log('Return stats fetched:', returnRes.data.error || 'success');
+            setReturnCharts(returnRes.data);
+
+            // Fetch ranking statistics
+            console.log('Fetching ranking stats...');
+            const rankingRes = await apiClient.post<RankingStatsResponse>(endpoints.getRankingStats, {
+                player_name: newFilters.player_name,
+                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
+            });
+            console.log('Ranking stats fetched:', rankingRes.data.error || 'success');
+            setRankingChart(rankingRes.data);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            // Reset data on error
+            setMatches([]);
+            setServeCharts(null);
+            setReturnCharts(null);
+            setRankingChart(null);
+            setRawData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle AI query submission - using full /api/query endpoint for detailed response
+    const handleQuerySubmit = async (query: string) => {
+        console.log('Query submitted:', query);
+
+        if (!query.trim()) {
+            return;
+        }
+
+        setAiLoading(true);
+        setAiError('');
+        setAiResponse('');
+        setAiSqlQueries([]);
+        setAiData([]);
+
+        try {
+            // Use the full /api/query endpoint to get SQL queries and data
+            const response = await apiClient.post(endpoints.query, {
+                query: query.trim()
+            });
+
+            console.log('AI Response received:', response.data);
+            setAiResponse(response.data.answer || '');
+            setAiSqlQueries(response.data.sql_queries || []);
+            setAiData(response.data.data || []);
+        } catch (error: any) {
+            console.error('Error fetching AI response:', error);
+            setAiError(error.response?.data?.detail || 'Failed to get AI response. Please try again.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    // Handle clear action
+    const handleClear = () => {
+        console.log('Clearing data');
+        setMatches([]);
+        setServeCharts(null);
+        setReturnCharts(null);
+        setRankingChart(null);
+        setRawData([]);
+        setFilters({
+            player_name: 'All Players',
+            opponent: 'All Opponents',
+            tournament: 'All Tournaments',
+            surface: [],
+            year: 'All Years',
+        });
+        setSelectedPlayer('All Players');
+        setHasGeneratedAnalysis(false);
+        setAiResponse('');
+        setAiSqlQueries([]);
+        setAiData([]);
+        setAiError('');
+    };
+
+    return (
+        <Layout onFilterChange={handleFilterChange}>
+            {/* Main content area */}
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                            <span className="text-white text-2xl">🎾</span>
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">AskTennis Analytics</h1>
+                            <p className="text-sm text-gray-500">Advanced tennis statistics and AI-powered insights</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search Panel (for AI queries) */}
+                <SearchPanel
+                    onQuerySubmit={handleQuerySubmit}
+                    onClear={handleClear}
+                    disabled={aiLoading}
+                />
+
+                {/* AI Response Display with ReactMarkdown */}
+                {aiLoading && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center gap-3">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <p className="text-gray-600">Analyzing tennis data...</p>
+                        </div>
+                    </div>
+                )}
+
+                {aiError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                        <div className="flex items-start gap-3">
+                            <div className="text-red-600 text-2xl">❌</div>
+                            <div>
+                                <h3 className="font-semibold text-red-900 mb-1">Error</h3>
+                                <p className="text-red-800 text-sm">{aiError}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {aiResponse && (
+                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                        {/* Answer Card with ReactMarkdown */}
+                        <div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-2 mb-6 text-emerald-600 font-bold uppercase tracking-wider text-sm">
+                                <Lightbulb className="w-4 h-4" />
+                                <span>AI Insight</span>
+                            </div>
+                            <div className="prose prose-slate max-w-none prose-headings:font-black prose-a:text-emerald-600 prose-strong:text-slate-900">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
+                            </div>
+                        </div>
+
+                        {/* SQL Queries Expander */}
+                        {aiSqlQueries && aiSqlQueries.length > 0 && (
+                            <Expander label="Technical Reasoning (SQL)">
+                                <div className="space-y-4 mt-4">
+                                    {aiSqlQueries.map((sql, i) => (
+                                        <SqlCodeBlock key={i} code={sql} />
+                                    ))}
+                                </div>
+                            </Expander>
+                        )}
+
+                        {/* Data Expander */}
+                        {/* Data Table */}
+                        {aiData && aiData.length > 0 && (
+                            <Expander label={`Query Results (${aiData.length} rows)`}>
+                                <div className="mt-4">
+                                    <DataTable data={aiData} maxHeight={400} />
+                                </div>
+                            </Expander>
+                        )}
+                    </div>
+                )}
+
+                {/* Dashboard Tabs - Only show if analysis has been generated */}
+                {hasGeneratedAnalysis && (
+                    <div>
+                        <div className="flex items-center gap-2 mb-4 text-blue-600 font-semibold">
+                            <TrendingUp className="w-5 h-5" />
+                            <span>Statistical Analysis Dashboard</span>
+                        </div>
+                        <Tabs
+                            serveCharts={serveCharts}
+                            returnCharts={returnCharts}
+                            rankingChart={rankingChart}
+                            matches={matches}
+                            rawData={rawData}
+                            loading={loading}
+                            selectedPlayer={selectedPlayer}
+                            filters={filters}
+                        />
+                    </div>
+                )}
+            </div>
+        </Layout>
+    );
+}
+
+export default App;
