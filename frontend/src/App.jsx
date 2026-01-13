@@ -4,6 +4,7 @@ import { Search, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import SqlCodeBlock from './components/SqlCodeBlock';
+import Expander from './components/Expander';
 import './App.css';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -61,11 +62,12 @@ function App() {
             </div>
 
             {results.sql_queries && results.sql_queries.length > 0 && (
-              <div className="card">
-                <h3>SQL Queries</h3>
-                {results.sql_queries.map((sql, i) => (
-                  <SqlCodeBlock key={i} code={sql} />
-                ))}
+              <div className="section-container">
+                <Expander label="SQL Queries">
+                  {results.sql_queries.map((sql, i) => (
+                    <SqlCodeBlock key={i} code={sql} />
+                  ))}
+                </Expander>
               </div>
             )}
 
