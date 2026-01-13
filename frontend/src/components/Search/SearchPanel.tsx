@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Search, Loader2 } from 'lucide-react';
 
 interface SearchPanelProps {
   onQuerySubmit: (query: string) => void;
   onClear: () => void;
   disabled?: boolean;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export const SearchPanel: React.FC<SearchPanelProps> = ({
   onQuerySubmit,
   onClear,
-  disabled = false
+  disabled = false,
+  value,
+  onChange
 }) => {
-  const [query, setQuery] = useState('');
-
   const handleSubmit = () => {
-    if (query.trim() && !disabled) {
-      onQuerySubmit(query.trim());
-      // Don't clear on submit - let user see what they asked
-      // setQuery('');
+    if (value.trim() && !disabled) {
+      onQuerySubmit(value.trim());
     }
   };
 
@@ -32,8 +32,8 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           className="w-full py-5 px-6 bg-transparent text-lg focus:outline-none placeholder:text-slate-400"
           type="text"
           placeholder="Who has the most aces? Federer vs Nadal stats..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
           disabled={disabled}
         />
@@ -41,7 +41,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           <button
             className="bg-slate-900 hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 group shadow-lg shadow-slate-900/10"
             onClick={handleSubmit}
-            disabled={disabled || !query.trim()}
+            disabled={disabled || !value.trim()}
           >
             {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Analyze</span>}
           </button>

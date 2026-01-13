@@ -9,7 +9,7 @@ import remarkGfm from 'remark-gfm';
 import SqlCodeBlock from './components/SqlCodeBlock';
 import Expander from './components/Expander';
 import { DataTable } from './components/DataTable';
-import { Lightbulb, TrendingUp } from 'lucide-react';
+import { Lightbulb, TrendingUp, Info } from 'lucide-react';
 
 function App() {
     // Filter state
@@ -36,6 +36,9 @@ function App() {
     const [aiData, setAiData] = useState<any[]>([]);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState<string>('');
+
+    // Shared Query State
+    const [query, setQuery] = useState('');
 
     // Handle filter changes from sidebar
     const handleFilterChange = async (newFilters: {
@@ -179,6 +182,7 @@ function App() {
         setAiSqlQueries([]);
         setAiData([]);
         setAiError('');
+        setQuery('');
     };
 
     return (
@@ -203,7 +207,34 @@ function App() {
                     onQuerySubmit={handleQuerySubmit}
                     onClear={handleClear}
                     disabled={aiLoading}
+                    value={query}
+                    onChange={setQuery}
                 />
+
+                {/* Quick Insights - Only show when no analysis is active */}
+                {!loading && !aiLoading && !hasGeneratedAnalysis && !aiResponse && (
+                    <div className="grid md:grid-cols-1 gap-8 animate-in fade-in delay-300 duration-1000 mb-8">
+                        <div className="text-center space-y-6">
+                            <h3 className="text-slate-400 font-semibold uppercase tracking-widest text-xs">Try an insight:</h3>
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {[
+                                    "Who has the most aces in a single match?",
+                                    "Federer vs Nadal head to head on clay",
+                                    "Top 10 players in 2023",
+                                ].map((q) => (
+                                    <button
+                                        key={q}
+                                        onClick={() => { setQuery(q); handleQuerySubmit(q); }}
+                                        className="px-6 py-3 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-600 hover:border-emerald-500 hover:text-emerald-600 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 flex items-center gap-2"
+                                    >
+                                        <Info className="w-4 h-4 opacity-50" />
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* AI Response Display with ReactMarkdown */}
                 {aiLoading && (
