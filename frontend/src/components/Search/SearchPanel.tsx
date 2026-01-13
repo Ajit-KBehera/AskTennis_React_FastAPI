@@ -23,7 +23,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   };
 
   return (
-    <div className="relative mb-6 animate-in fade-in fill-mode-both delay-150 duration-700">
+    <div className="sticky top-0 z-30 -mx-8 px-8 pt-8 pb-4 -mt-8 bg-gray-100 mb-6 animate-in fade-in fill-mode-both delay-150 duration-700 shadow-sm shadow-gray-200/50">
       <div className="group relative flex items-center bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500/50 transition-all duration-300">
         <div className="pl-6 pointer-events-none text-slate-400">
           <Search className="w-5 h-5 group-focus-within:text-emerald-500 transition-colors" />
