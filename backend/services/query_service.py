@@ -33,8 +33,9 @@ class QueryProcessor:
             }
             response = agent_graph.invoke(
                 initial_state,
-                config=config
-            )
+                config=config,
+                recursion_limit=100
+            ) 
 
             conversation_messages = response.get("messages", [])
             sql_queries = response.get("sql_queries", [])
