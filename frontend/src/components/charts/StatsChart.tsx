@@ -64,6 +64,11 @@ export const StatsChart: React.FC<PlotlyChartProps> = ({ data, title }) => {
         font: { color: '#e2e8f0' },
         bgcolor: 'rgba(0,0,0,0)'
       },
+      hoverlabel: {
+        bgcolor: '#1e293b', // slate-800
+        bordercolor: '#334155', // slate-700
+        font: { color: '#f8fafc' } // slate-50
+      },
       autosize: true,
       responsive: true,
       margin: data.layout?.margin || { l: 40, r: 20, t: 40, b: 40 }
