@@ -59,49 +59,23 @@ class QueryResponse(BaseModel):
 # Root endpoint
 @app.get("/")
 async def root():
+    # Dynamically generate endpoint list
+    endpoints = []
+    for route in app.routes:
+        if hasattr(route, "path") and route.path.startswith("/api"):
+            methods = [m for m in route.methods if m not in ["OPTIONS", "HEAD"]] if hasattr(route, "methods") else []
+            endpoints.append({
+                "path": route.path,
+                "methods": methods,
+                "name": route.name
+            })
+            
     return {
         "message": "Welcome to AskTennis API",
         "version": "1.0.0",
-        "endpoints": {
-            "legacy": ["/query"],
-            "api": [
-                "/api/filters",
-
-                "/api/matches",
-                "/api/query",
-                "/api/stats/serve",
-                "/api/stats/return",
-                "/api/stats/ranking"
-            ]
-        }
+        "docs_url": "/docs",
+        "endpoints": endpoints
     }
-
-# Legacy /query endpoint (preserved for backward compatibility)
-@app.post("/query", response_model=QueryResponse)
-async def process_query_legacy(request: QueryRequest):
-    """
-    Legacy query endpoint (preserved for backward compatibility).
-    Use /api/query or /api/chat for new integrations.
-    """
-    if query_processor is None or agent_graph is None:
-        raise HTTPException(status_code=500, detail="Services not initialized")
-    
-    try:
-        results = query_processor.handle_user_query(
-            request.query, 
-            agent_graph
-        )
-        
-        return {
-            "answer": results["answer"],
-            "sql_queries": results["sql_queries"],
-            "data": results["data"],
-            "conversation_flow": results["conversation_flow"]
-        }
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
 # New /api/query endpoint (same as legacy, but under /api prefix)
 @api_router.post("/query", response_model=QueryResponse)
