@@ -57,6 +57,15 @@ npm run dev
 # App running at http://localhost:5173
 ```
 
+## 🤖 CI/CD
+
+This project uses **GitHub Actions** for Continuous Integration.
+
+- **Frontend**: Automatically lints (`eslint`) and builds (`vite build`) on push/PR.
+- **Backend**: automatically installs dependencies and lints with `flake8`.
+
+Workflows are defined in `.github/workflows/ci.yml`.
+
 ## 📂 Project Structure
 
 ```
