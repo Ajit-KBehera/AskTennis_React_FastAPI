@@ -3,9 +3,13 @@ Database Service for Enhanced UI
 Provides dynamic data for dropdowns and analysis
 """
 
+import os
+import duckdb
 import pandas as pd
-from typing import List, Optional, Union, Tuple
-import functools
+from typing import List, Optional, Tuple, Union
+import glob
+from pathlib import Path
+from functools import lru_cache
 from sqlalchemy import Engine, text
 
 from config.database.base import DatabaseConfig
@@ -191,7 +195,7 @@ class DatabaseService:
         self.get_opponents_for_player.cache_clear()
         self.get_player_ranking_timeline.cache_clear()
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_all_players(_self) -> List[str]:
         """Get all unique players from database who have played matches."""
         try:
@@ -241,7 +245,7 @@ class DatabaseService:
         except Exception as e:
             return [DatabaseService.ALL_PLAYERS, "Roger Federer", "Rafael Nadal", "Novak Djokovic"]
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_all_tournaments(_self, player_name: Optional[str] = None) -> List[str]:
         """Get tournaments from database, optionally filtered by player.
         
@@ -352,7 +356,7 @@ class DatabaseService:
             except Exception:
                 return [DatabaseService.ALL_TOURNAMENTS, "Wimbledon", "French Open", "US Open", "Australian Open"]
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_player_year_range(_self, player_name: str) -> Tuple[int, int]:
         """Get the year range (min and max event_year) for a specific player.
         
@@ -411,7 +415,7 @@ class DatabaseService:
         except Exception as e:
             return (1968, 2024)  # Default range on error
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_surfaces_for_player(_self, player_name: Optional[str] = None) -> List[str]:
         """Get surfaces from database, optionally filtered by player.
         
@@ -475,7 +479,7 @@ class DatabaseService:
         except Exception as e:
             return all_surfaces  # Fallback to all surfaces on error
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_opponents_for_player(_self, player_name: str) -> List[str]:
         """Get opponents for a specific player."""
         # Sanitize input: trim whitespace and handle empty strings
@@ -533,27 +537,16 @@ class DatabaseService:
         except Exception as e:
             return _self.get_all_players()
     
-    def get_matches_with_filters(self, player: Optional[str] = None, 
+    @lru_cache(maxsize=32)
+    def _get_matches_internal(self, player: Optional[str] = None, 
                                 opponent: Optional[str] = None, 
                                 tournament: Optional[str] = None, 
-                                year: Optional[Union[int, str, Tuple[int, int], List[int]]] = None, 
-                                surfaces: Optional[List[str]] = None,
+                                year: Optional[Union[int, str, Tuple[int, int], Tuple[int, ...]]] = None, 
+                                surfaces: Optional[Tuple[str, ...]] = None,
                                 return_all_columns: bool = False,
-                                _cache_bust: int = 0) -> pd.DataFrame:
-        """Get matches based on filters."""
+                                year_is_range: bool = True) -> pd.DataFrame:
+        """Internal cached method for getting matches."""
         try:
-            # Sanitize string inputs: trim whitespace and handle None/empty strings
-            player = self._sanitize_string(player)
-            opponent = self._sanitize_string(opponent)
-            tournament = self._sanitize_string(tournament)
-            # Don't sanitize year - it can be int, tuple, list, or str
-            
-            # Debug logging - format year for display
-            year_display = year
-            if isinstance(year, tuple):
-                year_display = f"{year[0]}-{year[1]}"
-            elif isinstance(year, list):
-                year_display = f"{min(year)}-{max(year)}" if len(year) > 1 else str(year[0])
             # Build WHERE clause
             where_conditions = []
             params = []
@@ -578,11 +571,13 @@ class DatabaseService:
                 where_conditions.append("tourney_name = ?")
                 params.append(tournament)
             
-            # Handle year filtering: supports None, int, tuple (range), or list
+            # Handle year filtering
             if year is not None and year != self.ALL_YEARS:
                 try:
-                    # Handle tuple (year range) - use BETWEEN for efficiency
-                    if isinstance(year, tuple) and len(year) == 2:
+                    # Handle tuple (could be range or converted list)
+
+                    # Handle valid range (tuple with year_is_range=True)
+                    if year_is_range and isinstance(year, tuple) and len(year) == 2:
                         start_year, end_year = int(year[0]), int(year[1])
                         # Ensure start <= end
                         if start_year > end_year:
@@ -594,8 +589,8 @@ class DatabaseService:
                             where_conditions.append("event_year BETWEEN ? AND ?")
                             params.extend([start_year, end_year])
                     
-                    # Handle list (multiple specific years) - use IN
-                    elif isinstance(year, list) and len(year) > 0:
+                    # Handle multiple specific years (tuple with year_is_range=False)
+                    elif not year_is_range and isinstance(year, tuple) and len(year) > 0:
                         year_list = [int(y) for y in year if isinstance(y, (int, str)) and str(y).isdigit()]
                         # Validate all years
                         valid_years = [y for y in year_list if self.MIN_YEAR <= y <= self.MAX_YEAR]
@@ -629,6 +624,7 @@ class DatabaseService:
             
             if surfaces:
                 # Filter and validate surfaces: remove empty strings, None values, and strip whitespace
+                # Since surfaces is now a tuple, we iterate over it directly
                 valid_surfaces = [
                     s.strip() for s in surfaces 
                     if s and isinstance(s, str) and s.strip()
@@ -749,10 +745,55 @@ class DatabaseService:
             return df
             
         except Exception as e:
-            logger.error(f"Error fetching matches: {e}")
+            # logger.error(f"Error fetching matches: {e}") # logger not defined in this scope based on provided snippets
+            print(f"Error fetching matches: {e}")
             return pd.DataFrame()
+
+    def get_matches_with_filters(self, player: Optional[str] = None, 
+                                opponent: Optional[str] = None, 
+                                tournament: Optional[str] = None, 
+                                year: Optional[Union[int, str, Tuple[int, int], List[int]]] = None, 
+                                surfaces: Optional[List[str]] = None,
+                                return_all_columns: bool = False,
+                                _cache_bust: int = 0) -> pd.DataFrame:
+        """
+        Public wrapper for getting matches with caching.
+        Converts mutable arguments (lists) to immutable types (tuples) for lru_cache.
+        """
+        # Sanitize string inputs before caching to ensure consistency
+        player = self._sanitize_string(player)
+        opponent = self._sanitize_string(opponent)
+        tournament = self._sanitize_string(tournament)
+        
+        # Convert surfaces list to tuple
+        surfaces_tuple = tuple(surfaces) if surfaces else None
+        
+        # Handle year conversion
+        year_val = year
+        year_is_range = True  # Default assumption for tuple
+        
+        if isinstance(year, list):
+            year_val = tuple(year)
+            year_is_range = False # List converted to tuple is explicitly NOT a range
+        elif isinstance(year, tuple):
+            year_is_range = True # Original tuple is valid range
+            
+        # Call internal cached method
+        # We assume result is immutable (don't modify in place inside internal), 
+        # but we return a copy to the caller so they can modify it safely.
+        cached_df = self._get_matches_internal(
+            player=player,
+            opponent=opponent,
+            tournament=tournament,
+            year=year_val,
+            surfaces=surfaces_tuple,
+            return_all_columns=return_all_columns,
+            year_is_range=year_is_range
+        )
+        
+        return cached_df.copy()
     
-    @functools.lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)
     def get_player_ranking_timeline(_self, player_name: str, year: Optional[Union[int, str, Tuple[int, int], List[int]]] = None) -> pd.DataFrame:
         """
         Get ranking timeline data for a specific player from both ATP and WTA rankings.
