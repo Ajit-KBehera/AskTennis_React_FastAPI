@@ -114,11 +114,7 @@ async def get_serve_stats(request: ServeStatsRequest):
         
         # Calculate raw statistics for frontend
         from utils.df_utils import add_player_match_columns
-        # We work on a copy to avoid SettingWithCopy warnings if df is a view
-        stats_df = df.copy()
-        
-        if 'is_winner' not in stats_df.columns:
-            stats_df = add_player_match_columns(stats_df, player)
+        stats_df = add_player_match_columns(df, player)
             
         matches_with_stats = calculate_match_serve_stats(stats_df)
         serve_stats = calculate_aggregated_player_serve_stats(matches_with_stats, player_name=player)
@@ -191,10 +187,7 @@ async def get_return_stats(request: ReturnStatsRequest):
         
         # Calculate raw statistics
         from utils.df_utils import add_player_match_columns
-        stats_df = df.copy()
-        
-        if 'is_winner' not in stats_df.columns:
-            stats_df = add_player_match_columns(stats_df, player)
+        stats_df = add_player_match_columns(df, player)
             
         matches_with_stats = calculate_match_return_stats(stats_df)
         return_stats = calculate_aggregated_player_return_stats(matches_with_stats, player_name=player)
