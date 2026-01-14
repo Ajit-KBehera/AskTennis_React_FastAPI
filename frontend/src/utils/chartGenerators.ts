@@ -22,22 +22,17 @@ const filterNulls = (dates: any[], values: any[]) => {
 };
 
 export const createServeTimelineChart = (matches: any[], playerName: string): ChartConfig => {
-    // Sort matches by date
-    const sortedMatches = [...matches].sort((a, b) =>
-        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
-    );
+    const indices = matches.map((_, i) => i);
+    const firstServeIn = matches.map(m => m.player_1stIn);
+    const firstServeWon = matches.map(m => m.player_1stWon);
 
-    const dates = sortedMatches.map(m => m.tourney_date);
-    const firstServeIn = sortedMatches.map(m => m.player_1stIn);
-    const firstServeWon = sortedMatches.map(m => m.player_1stWon);
-
-    const cleanIn = filterNulls(dates, firstServeIn);
-    const cleanWon = filterNulls(dates, firstServeWon);
+    const cleanIn = filterNulls(indices, firstServeIn);
+    const cleanWon = filterNulls(indices, firstServeWon);
 
     return {
         data: [
             {
-                x: cleanIn.dates,
+                x: cleanIn.dates, // dates is actually indices here
                 y: cleanIn.values,
                 type: 'scatter',
                 mode: 'markers',
@@ -56,8 +51,8 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
             }
         ],
         layout: {
-            title: { text: 'Serve Performance Over Time' },
-            xaxis: { title: { text: 'Date' } },
+            title: { text: 'Serve Performance' },
+            xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
             legend: { orientation: 'h', y: -0.2 },
             hovermode: 'x unified'
@@ -66,16 +61,12 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
 };
 
 export const createAceDfChart = (matches: any[], playerName: string): ChartConfig => {
-    const sortedMatches = [...matches].sort((a, b) =>
-        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
-    );
+    const indices = matches.map((_, i) => i);
+    const aceRate = matches.map(m => m.player_ace_rate);
+    const dfRate = matches.map(m => m.player_df_rate);
 
-    const dates = sortedMatches.map(m => m.tourney_date);
-    const aceRate = sortedMatches.map(m => m.player_ace_rate);
-    const dfRate = sortedMatches.map(m => m.player_df_rate);
-
-    const cleanAce = filterNulls(dates, aceRate);
-    const cleanDf = filterNulls(dates, dfRate);
+    const cleanAce = filterNulls(indices, aceRate);
+    const cleanDf = filterNulls(indices, dfRate);
 
     return {
         data: [
@@ -102,7 +93,7 @@ export const createAceDfChart = (matches: any[], playerName: string): ChartConfi
         ],
         layout: {
             title: { text: 'Ace vs Double Fault Rate' },
-            xaxis: { title: { text: 'Date' } },
+            xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Rate (%)' } },
             legend: { orientation: 'h', y: -0.2 },
             hovermode: 'x unified'
@@ -164,14 +155,10 @@ export const createRadarChart = (
 };
 
 export const createReturnPointsChart = (matches: any[], playerName: string): ChartConfig => {
-    const sortedMatches = [...matches].sort((a, b) =>
-        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
-    );
+    const indices = matches.map((_, i) => i);
+    const returnPointsWon = matches.map(m => m.player_return_points_won_pct);
 
-    const dates = sortedMatches.map(m => m.tourney_date);
-    const returnPointsWon = sortedMatches.map(m => m.player_return_points_won_pct);
-
-    const cleanData = filterNulls(dates, returnPointsWon);
+    const cleanData = filterNulls(indices, returnPointsWon);
 
     return {
         data: [
@@ -186,8 +173,8 @@ export const createReturnPointsChart = (matches: any[], playerName: string): Cha
             }
         ],
         layout: {
-            title: { text: 'Return Points Won Over Time' },
-            xaxis: { title: { text: 'Date' } },
+            title: { text: 'Return Points Won' },
+            xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
             hovermode: 'x unified'
         }
@@ -195,14 +182,10 @@ export const createReturnPointsChart = (matches: any[], playerName: string): Cha
 };
 
 export const createBpConversionChart = (matches: any[], playerName: string): ChartConfig => {
-    const sortedMatches = [...matches].sort((a, b) =>
-        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
-    );
+    const indices = matches.map((_, i) => i);
+    const bpConversion = matches.map(m => m.player_bpConversion_pct);
 
-    const dates = sortedMatches.map(m => m.tourney_date);
-    const bpConversion = sortedMatches.map(m => m.player_bpConversion_pct);
-
-    const cleanData = filterNulls(dates, bpConversion);
+    const cleanData = filterNulls(indices, bpConversion);
 
     return {
         data: [
@@ -218,7 +201,7 @@ export const createBpConversionChart = (matches: any[], playerName: string): Cha
         ],
         layout: {
             title: { text: 'Break Point Conversion Rate' },
-            xaxis: { title: { text: 'Date' } },
+            xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
             hovermode: 'x unified'
         }
@@ -262,16 +245,12 @@ export const createRankingChart = (rankingData: any[], playerName: string): Char
     };
 };
 export const createBpSavedChart = (matches: any[], playerName: string): ChartConfig => {
-    const sortedMatches = [...matches].sort((a, b) =>
-        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
-    );
+    const indices = matches.map((_, i) => i);
+    const bpFaced = matches.map(m => m.player_bpFaced);
+    const bpSaved = matches.map(m => m.player_bpSaved);
 
-    const dates = sortedMatches.map(m => m.tourney_date);
-    const bpFaced = sortedMatches.map(m => m.player_bpFaced);
-    const bpSaved = sortedMatches.map(m => m.player_bpSaved);
-
-    const cleanFaced = filterNulls(dates, bpFaced);
-    const cleanSaved = filterNulls(dates, bpSaved);
+    const cleanFaced = filterNulls(indices, bpFaced);
+    const cleanSaved = filterNulls(indices, bpSaved);
 
     return {
         data: [
@@ -296,7 +275,7 @@ export const createBpSavedChart = (matches: any[], playerName: string): ChartCon
         ],
         layout: {
             title: { text: 'Break Points Faced vs Saved' },
-            xaxis: { title: { text: 'Date' } },
+            xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Count' }, rangemode: 'nonnegative' },
             legend: { orientation: 'h', y: -0.2 },
             hovermode: 'x unified'
