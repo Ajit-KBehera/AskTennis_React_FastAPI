@@ -40,7 +40,7 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 x: cleanIn.dates,
                 y: cleanIn.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: '1st Serve In %',
                 line: { color: '#2563EB', width: 2 },
                 marker: { size: 6 }
@@ -49,7 +49,7 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 x: cleanWon.dates,
                 y: cleanWon.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: '1st Serve Won %',
                 line: { color: '#10B981', width: 2 },
                 marker: { size: 6 }
@@ -83,7 +83,7 @@ export const createAceDfChart = (matches: any[], playerName: string): ChartConfi
                 x: cleanAce.dates,
                 y: cleanAce.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'Ace Rate',
                 line: { color: '#8B5CF6', width: 2 },
                 fill: 'tozeroy',
@@ -93,7 +93,7 @@ export const createAceDfChart = (matches: any[], playerName: string): ChartConfi
                 x: cleanDf.dates,
                 y: cleanDf.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'Double Fault Rate',
                 line: { color: '#EF4444', width: 2 },
                 fill: 'tozeroy',
@@ -179,7 +179,7 @@ export const createReturnPointsChart = (matches: any[], playerName: string): Cha
                 x: cleanData.dates,
                 y: cleanData.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'Return Points Won %',
                 line: { color: '#F59E0B', width: 2 },
                 marker: { size: 6 }
@@ -210,7 +210,7 @@ export const createBpConversionChart = (matches: any[], playerName: string): Cha
                 x: cleanData.dates,
                 y: cleanData.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'BP Conversion %',
                 line: { color: '#10B981', width: 2 },
                 marker: { size: 6 }
@@ -279,7 +279,7 @@ export const createBpSavedChart = (matches: any[], playerName: string): ChartCon
                 x: cleanFaced.dates,
                 y: cleanFaced.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'BPs Faced',
                 line: { color: '#EF4444', width: 2 },
                 marker: { size: 6 }
@@ -288,7 +288,7 @@ export const createBpSavedChart = (matches: any[], playerName: string): ChartCon
                 x: cleanSaved.dates,
                 y: cleanSaved.values,
                 type: 'scatter',
-                mode: 'lines+markers',
+                mode: 'markers',
                 name: 'BPs Saved',
                 line: { color: '#10B981', width: 2 },
                 marker: { size: 6 }
