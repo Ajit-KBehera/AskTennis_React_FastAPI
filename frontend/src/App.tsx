@@ -148,27 +148,6 @@ function App() {
         }
     };
 
-    const handleClear = () => {
-        setMatches([]);
-        setServeCharts(null);
-        setReturnCharts(null);
-        setRankingChart(null);
-        setFilters({
-            player_name: 'All Players',
-            opponent: 'All Opponents',
-            tournament: 'All Tournaments',
-            surface: [],
-            year: 'All Years',
-        });
-        setSelectedPlayer('All Players');
-        setHasGeneratedAnalysis(false);
-        setAiResponse('');
-        setAiSqlQueries([]);
-        setAiData([]);
-        setAiError('');
-        setQuery('');
-    };
-
     return (
         <Layout onFilterChange={handleFilterChange}>
             <div className="space-y-6">
