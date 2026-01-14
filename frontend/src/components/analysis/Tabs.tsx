@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StatsChart } from '../charts/StatsChart';
 import { MatchesTable } from './MatchesTable';
-import { ServeStatsView } from './ServeStatsView';
+
 import type { ServeStatsRequest } from '../../types';
 
 interface TabsProps {
@@ -24,7 +24,7 @@ export const Tabs: React.FC<TabsProps> = ({
   filters
 }) => {
   const [activeTab, setActiveTab] = useState<'matches' | 'serve' | 'return' | 'ranking'>('matches');
-  const [useRecharts, setUseRecharts] = useState(true); // Toggle for new visualization
+
 
   const tabs = [
     { id: 'matches' as const, label: '📊 Matches', icon: '📊' },
@@ -68,25 +68,8 @@ export const Tabs: React.FC<TabsProps> = ({
 
         {!loading && activeTab === 'serve' && (
           <>
-            {/* Toggle between Recharts and Plotly */}
-            {selectedPlayer && selectedPlayer !== 'All Players' && filters && (
-              <div className="mb-4 flex items-center justify-end gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={useRecharts}
-                    onChange={(e) => setUseRecharts(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span>Use interactive charts (D3)</span>
-                </label>
-              </div>
-            )}
-
             {/* New Recharts visualization */}
-            {useRecharts && selectedPlayer && selectedPlayer !== 'All Players' && filters ? (
-              <ServeStatsView filters={filters} useRawData={true} />
-            ) : serveCharts ? (
+            {serveCharts ? (
               <div className="flex flex-col w-full max-w-full">
                 <div className="mb-6 w-full max-w-full">
                   <StatsChart data={serveCharts.timeline_chart} title="Serve Timeline" />

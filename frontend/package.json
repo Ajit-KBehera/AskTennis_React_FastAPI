@@ -10,12 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@nivo/core": "^0.87.0",
-    "@nivo/line": "^0.87.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "clsx": "^2.1.0",
-    "d3": "^7.9.0",
     "lucide-react": "^0.562.0",
     "plotly.js": "^2.35.2",
     "rc-slider": "^10.6.2",
