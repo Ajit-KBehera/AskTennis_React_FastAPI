@@ -8,6 +8,7 @@ import uuid
 import ast
 from langchain_core.messages import HumanMessage
 from typing import Dict, Any, List
+from backend.utils.string_utils import safe_parse
 
 class QueryProcessor:
     """
@@ -41,39 +42,7 @@ class QueryProcessor:
             sql_queries = response.get("sql_queries", [])
             data_list = response.get("data_list", [])
             
-            def safe_parse(val):
-                if not val:
-                    return []
-                
-                # Case 1: Already a list
-                if isinstance(val, list):
-                    # Check if it's a list containing a stringified list (common LLM pattern)
-                    if len(val) == 1 and isinstance(val[0], str) and val[0].strip().startswith('['):
-                        return safe_parse(val[0])
-                    # Otherwise return as is
-                    return val
-                
-                # Case 2: String that needs parsing
-                if isinstance(val, str):
-                    val = val.strip()
-                    if not val:
-                        return []
-                    try:
-                        parsed = ast.literal_eval(val)
-                        return safe_parse(parsed) # Recurse if needed
-                    except Exception:
-                        try:
-                            import json
-                            parsed = json.loads(val)
-                            return safe_parse(parsed) # Recurse if needed
-                        except Exception:
-                            return [val] if val else []
-                
-                # Case 3: Single dictionary (wrap it)
-                if isinstance(val, dict):
-                    return [val]
-                
-                return []
+            # safe_parse moved to backend.utils.string_utils
 
             sql_queries = safe_parse(sql_queries)
             data_list = safe_parse(data_list)
