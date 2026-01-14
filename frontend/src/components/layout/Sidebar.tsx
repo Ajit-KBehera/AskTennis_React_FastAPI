@@ -5,7 +5,7 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { apiClient, endpoints } from '../../api/client';
 import type { FilterOptionsResponse } from '../../types';
-import { Filter, RefreshCcw, X, Search } from 'lucide-react';
+import { Filter, RefreshCcw, X, Search, Users, Trophy } from 'lucide-react';
 
 type OptionType = { value: string; label: string };
 
@@ -264,32 +264,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto space-y-8 custom-scrollbar">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-              <Search className="w-3 h-3" /> Player Selection
-            </label>
-            <Select
-              value={selectedPlayerOption}
-              onChange={(option) => setSelectedPlayer(option?.value || 'All Players')}
-              options={playerOptions}
-              isSearchable
-              isClearable={false}
-              placeholder="Type manually..."
-              filterOption={optimizedFilterOption}
-              styles={selectStyles}
-              className="react-select-container"
-              classNamePrefix="react-select"
-              maxMenuHeight={300}
-              menuPlacement="auto"
-              noOptionsMessage={({ inputValue }) =>
-                inputValue ? `No players found` : 'Search...'
-              }
-            />
-          </div>
-
-          <div className="space-y-6 pt-4 border-t border-white/5">
+          <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Opponent</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-emerald-400" /> Player
+              </label>
+              <Select
+                value={selectedPlayerOption}
+                onChange={(option) => setSelectedPlayer(option?.value || 'All Players')}
+                options={playerOptions}
+                isSearchable
+                isClearable={false}
+                placeholder="Type manually..."
+                filterOption={optimizedFilterOption}
+                styles={selectStyles}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                maxMenuHeight={300}
+                menuPlacement="auto"
+                noOptionsMessage={({ inputValue }) =>
+                  inputValue ? `No players found` : 'Search...'
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-blue-400" /> Opponent
+              </label>
               <Select
                 value={selectedOpponentOption}
                 onChange={(option) => setSelectedOpponent(option?.value || 'All Opponents')}
@@ -311,7 +313,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tournament</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                <Trophy className="w-3.5 h-3.5 text-amber-400" /> Tournament
+              </label>
               <Select
                 value={selectedTournamentOption}
                 onChange={(option) => setSelectedTournament(option?.value || 'All Tournaments')}
