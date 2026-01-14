@@ -25,9 +25,11 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
     const indices = matches.map((_, i) => i);
     const firstServeIn = matches.map(m => m.player_1stIn);
     const firstServeWon = matches.map(m => m.player_1stWon);
+    const secondServeWon = matches.map(m => m.player_2ndWon);
 
     const cleanIn = filterNulls(indices, firstServeIn);
     const cleanWon = filterNulls(indices, firstServeWon);
+    const cleanSecondWon = filterNulls(indices, secondServeWon);
 
     return {
         data: [
@@ -48,6 +50,15 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 name: '1st Serve Won %',
                 line: { color: '#10B981', width: 2 },
                 marker: { size: 6 }
+            },
+            {
+                x: cleanSecondWon.dates,
+                y: cleanSecondWon.values,
+                type: 'scatter',
+                mode: 'markers',
+                name: '2nd Serve Won %',
+                line: { color: '#F59E0B', width: 2 },
+                marker: { size: 6 }
             }
         ],
         layout: {
@@ -55,7 +66,7 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
             xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
             legend: { orientation: 'h', y: -0.2 },
-            hovermode: 'x unified'
+            hovermode: 'x unified' 
         }
     };
 };
