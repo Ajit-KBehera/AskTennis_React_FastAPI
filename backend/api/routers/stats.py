@@ -146,10 +146,6 @@ async def get_serve_stats(request: ServeStatsRequest):
             return {k: (float(v) if not pd.isna(v) else None) for k, v in stats_dict.items()}
             
         return ServeStatsResponse(
-            timeline_chart=None,
-            ace_df_chart=None,
-            bp_chart=None,
-            radar_chart=None,
             matches=matches_data,
             aggregated_stats=clean_stats_dict(serve_stats),
             aggregated_opponent_stats=clean_stats_dict(opponent_stats)
@@ -225,9 +221,7 @@ async def get_return_stats(request: ReturnStatsRequest):
         matches_data = convert_df_to_records(matches_with_stats)
         
         return ReturnStatsResponse(
-            return_points_chart=None,
-            bp_conversion_chart=None,
-            radar_chart=None,
+
             matches=matches_data,
             aggregated_stats=clean_stats_dict(return_stats),
             aggregated_opponent_stats=clean_stats_dict(opponent_stats)
@@ -273,7 +267,7 @@ async def get_ranking_stats(request: RankingStatsRequest):
         ranking_data = convert_df_to_records(ranking_df)
         
         return RankingStatsResponse(
-            ranking_chart=None,
+
             ranking_data=ranking_data
         )
         
