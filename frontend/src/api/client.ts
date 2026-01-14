@@ -11,7 +11,7 @@ import type {
   ReturnStatsResponse,
   RankingStatsResponse,
   MatchesResponse,
-  RawServeStatsResponse,
+
 } from '../types';
 
 // Automatically detect API URL based on current hostname
@@ -43,7 +43,6 @@ export const endpoints = {
   chat: '/chat',
   query: '/query',  // Full AI query with SQL and data
   getServeStats: '/stats/serve',
-  getRawServeStats: '/stats/serve/raw',
   getReturnStats: '/stats/return',
   getRankingStats: '/stats/ranking',
   getMatches: '/matches',
@@ -58,7 +57,7 @@ export type {
   ServeStatsRequest,
   ReturnStatsResponse,
   RankingStatsResponse,
-  MatchesResponse,
+  MatchesResponse, // This re-export is for external consumption
   Match,
   StatsFilters,
 } from '../types';
@@ -85,23 +84,17 @@ export const api = {
   },
 
   /**
-   * Get serve statistics charts
+   * Get serve statistics data for frontend visualization
    */
   getServeStats: async (filters: ServeStatsRequest): Promise<ServeStatsResponse> => {
     const response = await apiClient.post<ServeStatsResponse>(endpoints.getServeStats, filters);
     return response.data;
   },
 
-  /**
-   * Get raw serve statistics data for frontend visualization
-   */
-  getRawServeStats: async (filters: ServeStatsRequest): Promise<RawServeStatsResponse> => {
-    const response = await apiClient.post<RawServeStatsResponse>(endpoints.getRawServeStats, filters);
-    return response.data;
-  },
+
 
   /**
-   * Get return statistics charts
+   * Get return statistics data for frontend visualization
    */
   getReturnStats: async (filters: ReturnStatsRequest): Promise<ReturnStatsResponse> => {
     const response = await apiClient.post<ReturnStatsResponse>(endpoints.getReturnStats, filters);
@@ -109,7 +102,7 @@ export const api = {
   },
 
   /**
-   * Get ranking timeline chart
+   * Get ranking timeline data for frontend visualization
    */
   getRankingStats: async (filters: RankingStatsRequest): Promise<RankingStatsResponse> => {
     const response = await apiClient.post<RankingStatsResponse>(endpoints.getRankingStats, filters);
