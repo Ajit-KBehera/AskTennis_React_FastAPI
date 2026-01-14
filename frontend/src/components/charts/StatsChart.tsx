@@ -50,14 +50,14 @@ export const StatsChart: React.FC<PlotlyChartProps> = ({ data, title }) => {
     };
 
     return (
-      <div className="w-full">
+      <div className="w-full" style={{ minHeight: '450px' }}>
         <Plot
           data={plotData}
           layout={layout}
           config={config}
           className="w-full"
           useResizeHandler={true}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', minHeight: '450px' }}
         />
       </div>
     );

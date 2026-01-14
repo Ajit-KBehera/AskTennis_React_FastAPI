@@ -89,6 +89,10 @@ class ServeStatsResponse(BaseModel):
     ace_df_chart: Optional[PlotlyChart] = None
     bp_chart: Optional[PlotlyChart] = None
     radar_chart: Optional[PlotlyChart] = None
+    # Raw data for frontend visualization
+    matches: Optional[List[dict]] = None
+    aggregated_stats: Optional[Dict[str, float]] = None
+    aggregated_opponent_stats: Optional[Dict[str, float]] = None
     error: Optional[str] = None
 
 
@@ -97,12 +101,18 @@ class ReturnStatsResponse(BaseModel):
     return_points_chart: Optional[PlotlyChart] = None
     bp_conversion_chart: Optional[PlotlyChart] = None
     radar_chart: Optional[PlotlyChart] = None
+    # Raw data for frontend visualization
+    matches: Optional[List[dict]] = None
+    aggregated_stats: Optional[Dict[str, float]] = None
+    aggregated_opponent_stats: Optional[Dict[str, float]] = None
     error: Optional[str] = None
 
 
 class RankingStatsResponse(BaseModel):
     """Response model for ranking statistics endpoint."""
     ranking_chart: Optional[PlotlyChart] = None
+    # Raw data
+    ranking_data: Optional[List[dict]] = None
     error: Optional[str] = None
     reasons: Optional[List[str]] = None
 

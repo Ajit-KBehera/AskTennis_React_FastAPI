@@ -70,6 +70,10 @@ export interface ServeStatsResponse {
   ace_df_chart?: PlotlyChartData;
   bp_chart?: PlotlyChartData;
   radar_chart?: PlotlyChartData;
+  // Raw data for frontend visualization
+  matches?: any[];
+  aggregated_stats?: Record<string, number | null>;
+  aggregated_opponent_stats?: Record<string, number | null>;
   error?: string;
 }
 
@@ -114,11 +118,17 @@ export interface ReturnStatsResponse {
   return_points_chart?: PlotlyChartData;
   bp_conversion_chart?: PlotlyChartData;
   radar_chart?: PlotlyChartData;
+  // Raw data for frontend visualization
+  matches?: any[];
+  aggregated_stats?: Record<string, number | null>;
+  aggregated_opponent_stats?: Record<string, number | null>;
   error?: string;
 }
 
 export interface RankingStatsResponse {
   ranking_chart?: PlotlyChartData;
+  // Raw data
+  ranking_data?: any[];
   error?: string;
   reasons?: string[];
 }
