@@ -124,9 +124,26 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run AskTennis Benchmark")
     parser.add_argument("--limit", type=int, default=5, help="Number of questions to run (default: 5)")
     parser.add_argument("--ids", type=str, help="Comma-separated list of question IDs to run (e.g. 1,5,10)")
-    
+    parser.add_argument("--range", type=str, help="Range of question IDs to run (e.g. 1-10)")
+
     args = parser.parse_args()
     
-    q_ids = [int(x.strip()) for x in args.ids.split(',')] if args.ids else None
+    q_ids = []
+    if args.ids:
+        q_ids.extend([int(x.strip()) for x in args.ids.split(',')])
+        
+    if args.range:
+        try:
+            start, end = map(int, args.range.split('-'))
+            q_ids.extend(range(start, end + 1))
+        except ValueError:
+            print("Error: Invalid range format. Please use 'start-end' (e.g., 1-10).")
+            sys.exit(1)
+            
+    # Deduplicate and sort if we have IDs
+    if q_ids:
+        q_ids = sorted(list(set(q_ids)))
+    else:
+        q_ids = None
     
     run_benchmark(limit=args.limit, question_ids=q_ids)

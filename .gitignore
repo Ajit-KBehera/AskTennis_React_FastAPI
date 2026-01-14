@@ -109,3 +109,5 @@ improvements.txt
 migrate.load
 
 node_modules
+
+backend/benchmark/benchmark_results.json
