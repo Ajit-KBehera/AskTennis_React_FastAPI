@@ -20,6 +20,14 @@ export interface StatsRequest {
   year?: string | null;
 }
 
+export interface FilterState {
+  player_name: string;
+  opponent: string;
+  tournament: string;
+  surface: string[];
+  year: string;
+}
+
 export interface ServeStatsRequest extends StatsRequest {
   // Inherits all fields from StatsRequest
 }

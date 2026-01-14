@@ -6,13 +6,13 @@ import SqlCodeBlock from '../ui/SqlCodeBlock';
 import Expander from '../ui/Expander';
 import { DataTable } from '../ui/DataTable';
 
-interface AiResponseSectionProps {
+interface AiResponseViewProps {
     aiResponse: string;
     aiSqlQueries: string[];
     aiData: any[];
 }
 
-export const AiResponseSection: React.FC<AiResponseSectionProps> = ({
+export const AiResponseView: React.FC<AiResponseViewProps> = ({
     aiResponse,
     aiSqlQueries,
     aiData

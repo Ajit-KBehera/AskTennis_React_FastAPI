@@ -3,15 +3,14 @@ import { Layout } from './components/layout/Layout';
 import { Header } from './components/layout/Header';
 import { SearchPanel } from './components/search/SearchPanel';
 import { QuickInsights } from './components/search/QuickInsights';
-import { AiResponseSection } from './components/results/AiResponseSection';
-import { Tabs } from './components/analysis/Tabs';
+import { AiResponseView } from './components/views/AiResponseView';
+import { StatsDashboardView } from './components/views/StatsDashboardView';
 import { apiClient, endpoints } from './api/client';
-import type { ServeStatsRequest, MatchesResponse, ServeStatsResponse, ReturnStatsResponse, RankingStatsResponse } from './types';
-import { TrendingUp } from 'lucide-react';
+import { FilterState } from './types';
 
 function App() {
     // Filter state
-    const [filters, setFilters] = useState<ServeStatsRequest>({
+    const [filters, setFilters] = useState<FilterState>({
         player_name: 'All Players',
         opponent: 'All Opponents',
         tournament: 'All Tournaments',
@@ -19,12 +18,6 @@ function App() {
         year: 'All Years',
     });
 
-    // Data state
-    const [matches, setMatches] = useState<any[]>([]);
-    const [serveCharts, setServeCharts] = useState<any>(null);
-    const [returnCharts, setReturnCharts] = useState<any>(null);
-    const [rankingChart, setRankingChart] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<string>('All Players');
     const [hasGeneratedAnalysis, setHasGeneratedAnalysis] = useState(false);
 
@@ -38,95 +31,29 @@ function App() {
     // Shared Query State
     const [query, setQuery] = useState('');
 
-    // Handle filter changes from sidebar
-    const handleFilterChange = async (newFilters: {
-        player_name: string;
-        opponent?: string;
-        tournament?: string;
-        surface?: string[];
-        year?: string;
-    }) => {
-        setFilters({
-            player_name: newFilters.player_name,
-            opponent: newFilters.opponent || 'All Opponents',
-            tournament: newFilters.tournament || 'All Tournaments',
-            surface: newFilters.surface || [],
-            year: newFilters.year || 'All Years',
-        });
-
+    const handleFilterChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
         setSelectedPlayer(newFilters.player_name);
 
         if (!newFilters.player_name || newFilters.player_name === 'All Players') {
-            setMatches([]);
-            setServeCharts(null);
-            setReturnCharts(null);
-            setRankingChart(null);
             setHasGeneratedAnalysis(false);
             return;
         }
 
+        // Clear AI state when switching to analysis view
         setAiResponse('');
         setAiSqlQueries([]);
         setAiData([]);
         setAiError('');
 
-        setLoading(true);
         setHasGeneratedAnalysis(true);
-
-        try {
-            const matchesRequest = {
-                player_name: newFilters.player_name,
-                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
-                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
-                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
-                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
-            };
-            const matchesRes = await apiClient.post<MatchesResponse>(endpoints.getMatches, matchesRequest);
-            setMatches(matchesRes.data.matches || []);
-
-            const serveRes = await apiClient.post<ServeStatsResponse>(endpoints.getServeStats, {
-                player_name: newFilters.player_name,
-                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
-                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
-                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
-                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
-            });
-            setServeCharts(serveRes.data);
-
-            const returnRes = await apiClient.post<ReturnStatsResponse>(endpoints.getReturnStats, {
-                player_name: newFilters.player_name,
-                opponent: newFilters.opponent !== 'All Opponents' ? newFilters.opponent : undefined,
-                tournament: newFilters.tournament !== 'All Tournaments' ? newFilters.tournament : undefined,
-                surface: newFilters.surface && newFilters.surface.length > 0 ? newFilters.surface : undefined,
-                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
-            });
-            setReturnCharts(returnRes.data);
-
-            const rankingRes = await apiClient.post<RankingStatsResponse>(endpoints.getRankingStats, {
-                player_name: newFilters.player_name,
-                year: newFilters.year !== 'All Years' ? newFilters.year : undefined,
-            });
-            setRankingChart(rankingRes.data);
-
-        } catch (error: any) {
-            setMatches([]);
-            setServeCharts(null);
-            setReturnCharts(null);
-            setRankingChart(null);
-        } finally {
-            setLoading(false);
-        }
     };
 
     const handleQuerySubmit = async (queryText: string) => {
         if (!queryText.trim()) return;
 
+        // Switch to AI view
         setHasGeneratedAnalysis(false);
-        setMatches([]);
-        setServeCharts(null);
-        setReturnCharts(null);
-        setRankingChart(null);
-
         setAiLoading(true);
         setAiError('');
         setAiResponse('');
@@ -160,7 +87,7 @@ function App() {
                     onChange={setQuery}
                 />
 
-                {!loading && !aiLoading && !hasGeneratedAnalysis && !aiResponse && (
+                {!aiLoading && !hasGeneratedAnalysis && !aiResponse && (
                     <QuickInsights onInsightClick={(q) => { setQuery(q); handleQuerySubmit(q); }} />
                 )}
 
@@ -186,7 +113,7 @@ function App() {
                 )}
 
                 {!hasGeneratedAnalysis && !aiLoading && aiResponse && (
-                    <AiResponseSection
+                    <AiResponseView
                         aiResponse={aiResponse}
                         aiSqlQueries={aiSqlQueries}
                         aiData={aiData}
@@ -194,21 +121,7 @@ function App() {
                 )}
 
                 {hasGeneratedAnalysis && (
-                    <div>
-                        <div className="flex items-center gap-2 mb-4 text-blue-600 font-semibold">
-                            <TrendingUp className="w-5 h-5" />
-                            <span>Statistical Analysis Dashboard</span>
-                        </div>
-                        <Tabs
-                            serveCharts={serveCharts}
-                            returnCharts={returnCharts}
-                            rankingChart={rankingChart}
-                            matches={matches}
-                            loading={loading}
-                            selectedPlayer={selectedPlayer}
-                            filters={filters}
-                        />
-                    </div>
+                    <StatsDashboardView filters={filters} selectedPlayer={selectedPlayer} />
                 )}
             </div>
         </Layout>
