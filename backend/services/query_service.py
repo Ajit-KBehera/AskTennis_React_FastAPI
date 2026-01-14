@@ -28,14 +28,16 @@ class QueryProcessor:
             session_id = str(uuid.uuid4())[:8]
         
         try:
-            config = {"configurable": {"thread_id": session_id}}
+            config = {
+                "configurable": {"thread_id": session_id},
+                "recursion_limit": 100
+            }
             initial_state = {
                 "messages": [HumanMessage(content=user_question)]
             }
             response = agent_graph.invoke(
                 initial_state,
-                config=config,
-                recursion_limit=100
+                config=config
             ) 
 
             conversation_messages = response.get("messages", [])
