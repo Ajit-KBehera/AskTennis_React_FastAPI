@@ -21,15 +21,15 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   };
 
   return (
-    <div className="sticky top-0 z-30 -mx-8 px-8 pt-8 pb-4 -mt-8 bg-gray-100 mb-6 animate-in fade-in fill-mode-both delay-150 duration-700 shadow-sm shadow-gray-200/50">
-      <div className="group relative flex items-center bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500/50 transition-all duration-300">
+    <div className="sticky top-0 z-30 -mx-8 px-8 pt-4 pb-4 -mt-4 bg-slate-950/0 backdrop-blur-sm mb-6 animate-in fade-in fill-mode-both delay-150 duration-700">
+      <div className="group relative flex items-center bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/20 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500/50 transition-all duration-300">
         <div className="pl-6 pointer-events-none text-slate-400">
-          <Search className="w-5 h-5 group-focus-within:text-emerald-500 transition-colors" />
+          <Search className="w-5 h-5 group-focus-within:text-emerald-400 transition-colors" />
         </div>
         <input
-          className="w-full py-5 px-6 bg-transparent text-lg focus:outline-none placeholder:text-slate-400"
+          className="w-full py-5 px-6 bg-transparent text-lg text-white focus:outline-none placeholder:text-slate-500"
           type="text"
-          placeholder="Who has the most aces? Federer vs Nadal stats..."
+          placeholder="Ask anything... (e.g., 'Roger Federer vs Nadal stats')"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
@@ -37,7 +37,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
         />
         <div className="pr-3">
           <button
-            className="bg-slate-900 hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 group shadow-lg shadow-slate-900/10"
+            className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-bold py-3 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 group shadow-lg shadow-emerald-500/20"
             onClick={handleSubmit}
             disabled={disabled || !value.trim()}
           >

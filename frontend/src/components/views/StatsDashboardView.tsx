@@ -1,8 +1,9 @@
 import React from 'react';
-import { TrendingUp, Loader2 } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { Tabs } from '../analysis/Tabs';
 import { useAnalysisData } from '../../hooks/useAnalysisData';
 import { FilterState } from '../../types';
+import { TennisLoader } from '../ui/TennisLoader';
 
 interface StatsDashboardViewProps {
     filters: FilterState;
@@ -14,23 +15,22 @@ export const StatsDashboardView: React.FC<StatsDashboardViewProps> = ({ filters,
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 flex justify-center items-center">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-                    <p className="text-gray-500 font-medium">Fetching match data and calculating statistics...</p>
-                </div>
+            <div className="glass-card rounded-xl p-12 flex justify-center items-center">
+                <TennisLoader />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
-                    <div className="text-red-600 text-2xl">❌</div>
+                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                        <span className="text-red-400 text-xl">❌</span>
+                    </div>
                     <div>
-                        <h3 className="font-semibold text-red-900 mb-1">Error</h3>
-                        <p className="text-red-800 text-sm">{error}</p>
+                        <h3 className="font-bold text-red-400 mb-1">Error</h3>
+                        <p className="text-red-300/80 text-sm">{error}</p>
                     </div>
                 </div>
             </div>
@@ -39,8 +39,8 @@ export const StatsDashboardView: React.FC<StatsDashboardViewProps> = ({ filters,
 
     return (
         <div>
-            <div className="flex items-center gap-2 mb-4 text-blue-600 font-semibold">
-                <TrendingUp className="w-5 h-5" />
+            <div className="flex items-center gap-2 mb-6 text-emerald-400 font-bold uppercase tracking-wider text-sm">
+                <TrendingUp className="w-4 h-4" />
                 <span>Statistical Analysis Dashboard</span>
             </div>
 

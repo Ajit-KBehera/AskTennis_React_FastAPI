@@ -18,14 +18,14 @@ export const AiResponseView: React.FC<AiResponseViewProps> = ({
     aiData
 }) => {
     return (
-        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
             {/* Answer Card with ReactMarkdown */}
-            <div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 mb-6 text-emerald-600 font-bold uppercase tracking-wider text-sm">
-                    <Lightbulb className="w-4 h-4" />
+            <div className="glass-panel rounded-3xl p-8 shadow-xl">
+                <div className="flex items-center gap-2 mb-6 text-emerald-400 font-bold uppercase tracking-wider text-sm">
+                    <Lightbulb className="w-5 h-5 text-yellow-400 fill-yellow-400/20" />
                     <span>AI Insight</span>
                 </div>
-                <div className="prose prose-slate max-w-none prose-headings:font-black prose-a:text-emerald-600 prose-strong:text-slate-900">
+                <div className="prose prose-invert max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
                 </div>
             </div>

@@ -5,7 +5,7 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { apiClient, endpoints } from '../../api/client';
 import type { FilterOptionsResponse } from '../../types';
-import { Filter, RefreshCcw, X } from 'lucide-react';
+import { Filter, RefreshCcw, X, Search } from 'lucide-react';
 
 type OptionType = { value: string; label: string };
 
@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
         const res = await apiClient.get<FilterOptionsResponse>(endpoints.getFilters, {
           params: { player_name: selectedPlayer }
         });
-        
+
         if (res.data.opponents) {
           setOptions(prev => ({ ...prev, opponents: res.data.opponents }));
           // Reset opponent if not in new list
@@ -121,9 +121,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
   }, [selectedPlayer]);
 
   const handleGenerate = () => {
-    const yearValue = useAllYears ? 'All Years' : 
-      yearRange[0] === yearRange[1] ? yearRange[0].toString() : 
-      `${yearRange[0]}-${yearRange[1]}`;
+    const yearValue = useAllYears ? 'All Years' :
+      yearRange[0] === yearRange[1] ? yearRange[0].toString() :
+        `${yearRange[0]}-${yearRange[1]}`;
 
     onFilterChange({
       player_name: selectedPlayer,
@@ -135,33 +135,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
   };
 
   // Convert options to react-select format
-  const playerOptions = useMemo(() => 
+  const playerOptions = useMemo(() =>
     options.players.map(p => ({ value: p, label: p })),
     [options.players]
   );
 
-  const opponentOptions = useMemo(() => 
+  const opponentOptions = useMemo(() =>
     (options.opponents || options.players).map(o => ({ value: o, label: o })),
     [options.opponents, options.players]
   );
 
-  const tournamentOptions = useMemo(() => 
+  const tournamentOptions = useMemo(() =>
     options.tournaments.map(t => ({ value: t, label: t })),
     [options.tournaments]
   );
 
   // Get current selected values for react-select
-  const selectedPlayerOption = useMemo(() => 
+  const selectedPlayerOption = useMemo(() =>
     playerOptions.find(p => p.value === selectedPlayer) || playerOptions[0],
     [playerOptions, selectedPlayer]
   );
 
-  const selectedOpponentOption = useMemo(() => 
+  const selectedOpponentOption = useMemo(() =>
     opponentOptions.find(o => o.value === selectedOpponent) || opponentOptions[0],
     [opponentOptions, selectedOpponent]
   );
 
-  const selectedTournamentOption = useMemo(() => 
+  const selectedTournamentOption = useMemo(() =>
     tournamentOptions.find(t => t.value === selectedTournament) || tournamentOptions[0],
     [tournamentOptions, selectedTournament]
   );
@@ -179,19 +179,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
   const selectStyles: StylesConfig<OptionType, false> = {
     control: (base, state) => ({
       ...base,
-      backgroundColor: '#f9fafb',
-      borderColor: state.isFocused ? '#3b82f6' : '#e5e7eb',
-      borderRadius: '0.5rem',
+      backgroundColor: 'rgba(30, 41, 59, 0.5)', // slate-800/50
+      borderColor: state.isFocused ? '#22c55e' : 'rgba(255, 255, 255, 0.1)',
+      borderRadius: '0.75rem',
       padding: '2px',
-      boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.5)' : 'none',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(34, 197, 94, 0.2)' : 'none',
+      color: '#f8fafc',
       '&:hover': {
-        borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+        borderColor: state.isFocused ? '#22c55e' : 'rgba(255, 255, 255, 0.2)',
       },
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: '#f8fafc', // slate-50
+    }),
+    input: (base) => ({
+      ...base,
+      color: '#f8fafc',
     }),
     menu: (base) => ({
       ...base,
+      backgroundColor: '#1e293b', // slate-800
       zIndex: 9999,
-      maxHeight: '300px', // Limit menu height for better performance
+      maxHeight: '300px',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
     }),
     menuList: (base) => ({
       ...base,
@@ -200,231 +211,243 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
     }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected 
-        ? '#3b82f6' 
-        : state.isFocused 
-        ? '#eff6ff' 
-        : 'white',
-      color: state.isSelected ? 'white' : '#374151',
+      backgroundColor: state.isSelected
+        ? '#22c55e' // tennis-green-glow
+        : state.isFocused
+          ? 'rgba(34, 197, 94, 0.1)'
+          : 'transparent',
+      color: state.isSelected ? 'black' : '#e2e8f0', // slate-200
+      cursor: 'pointer',
       '&:active': {
-        backgroundColor: '#3b82f6',
-        color: 'white',
+        backgroundColor: '#22c55e',
+        color: 'black',
       },
     }),
   };
 
-  if (loading) return <div className="p-6 text-gray-500">Loading filters...</div>;
+  if (loading) return (
+    <div className="w-80 h-screen glass-panel border-r border-white/5 flex items-center justify-center">
+      <div className="text-slate-400 animate-pulse">Loading filters...</div>
+    </div>
+  );
 
   return (
     <>
       {/* Mobile overlay backdrop */}
       {onClose && (
         <div
-          className={`md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity ${
-            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+          className={`md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
           onClick={onClose}
         />
       )}
-      
+
       <aside
-        className={`${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 md:flex fixed md:relative z-50 w-80 bg-white border-r h-screen flex flex-col shadow-sm transition-transform duration-300 ease-in-out`}
+        className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 md:flex fixed md:relative z-50 w-80 glass-panel border-r border-white/5 h-screen flex flex-col transition-transform duration-300 ease-in-out`}
       >
-        <div className="p-6 border-b flex items-center justify-between">
-        <h1 className="text-xl font-bold flex items-center gap-2 text-blue-700">
-          <Filter className="w-5 h-5" />
-          AskTennis
-        </h1>
+        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+          <h1 className="text-xl font-black flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
+            <Filter className="w-5 h-5 text-emerald-400" />
+            AskTennis
+          </h1>
           {/* Close button for mobile */}
           {onClose && (
             <button
               onClick={onClose}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
               aria-label="Close sidebar"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-5 h-5 text-slate-400" />
             </button>
           )}
-      </div>
-
-      <div className="p-6 flex-1 overflow-y-auto space-y-6">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Search Player</label>
-          <Select
-            value={selectedPlayerOption}
-            onChange={(option) => setSelectedPlayer(option?.value || 'All Players')}
-            options={playerOptions}
-            isSearchable
-            isClearable={false}
-            placeholder="Type to search players..."
-            filterOption={optimizedFilterOption}
-            styles={selectStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            menuMaxHeight={300}
-            maxMenuHeight={300}
-            menuPlacement="auto"
-            noOptionsMessage={({ inputValue }) => 
-              inputValue ? `No players found matching "${inputValue}"` : 'Type to search...'
-            }
-          />
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Search Opponent</label>
-          <Select
-            value={selectedOpponentOption}
-            onChange={(option) => setSelectedOpponent(option?.value || 'All Opponents')}
-            options={opponentOptions}
-            isSearchable
-            isClearable={false}
-            isDisabled={selectedPlayer === 'All Players'}
-            placeholder="Type to search opponents..."
-            filterOption={optimizedFilterOption}
-            styles={selectStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            menuMaxHeight={300}
-            maxMenuHeight={300}
-            menuPlacement="auto"
-            noOptionsMessage={({ inputValue }) => 
-              inputValue ? `No opponents found matching "${inputValue}"` : 'Type to search...'
-            }
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Search Tournament</label>
-          <Select
-            value={selectedTournamentOption}
-            onChange={(option) => setSelectedTournament(option?.value || 'All Tournaments')}
-            options={tournamentOptions}
-            isSearchable
-            isClearable={false}
-            placeholder="Type to search tournaments..."
-            filterOption={optimizedFilterOption}
-            styles={selectStyles}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            menuMaxHeight={300}
-            maxMenuHeight={300}
-            menuPlacement="auto"
-            noOptionsMessage={({ inputValue }) => 
-              inputValue ? `No tournaments found matching "${inputValue}"` : 'Type to search...'
-            }
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Select Year Range
-          </label>
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input
-                type="checkbox"
-                checked={useAllYears}
-                onChange={(e) => setUseAllYears(e.target.checked)}
-                className="rounded"
-              />
-              All Years ({minYear}-{maxYear})
+        <div className="p-6 flex-1 overflow-y-auto space-y-8 custom-scrollbar">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+              <Search className="w-3 h-3" /> Player Selection
             </label>
-            {!useAllYears && (
-              <div className="space-y-3">
-                {minYear === maxYear ? (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      Only one year available: <strong>{minYear}</strong>
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="px-2">
-                      <Slider
-                        range
-                        min={minYear}
-                        max={maxYear}
-                        value={[yearRange[0], yearRange[1]]}
-                        onChange={(value) => {
-                          if (Array.isArray(value)) {
-                            setYearRange([value[0], value[1]]);
-                          }
-                        }}
-                        trackStyle={[{ backgroundColor: '#3b82f6', height: 6 }]}
-                        handleStyle={[
-                          { 
-                            borderColor: '#3b82f6', 
-                            height: 20, 
-                            width: 20,
-                            backgroundColor: '#fff',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          },
-                          { 
-                            borderColor: '#3b82f6', 
-                            height: 20, 
-                            width: 20,
-                            backgroundColor: '#fff',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }
-                        ]}
-                        railStyle={{ backgroundColor: '#e5e7eb', height: 6 }}
-                        dotStyle={{ borderColor: '#d1d5db', backgroundColor: '#fff' }}
-                        activeDotStyle={{ borderColor: '#3b82f6' }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-gray-600">
-                      <span>{minYear}</span>
-                      <span className="font-medium text-gray-700">
-                        {yearRange[0] === yearRange[1] 
-                          ? `Selected: ${yearRange[0]}`
-                          : `Selected: ${yearRange[0]} - ${yearRange[1]} (${yearRange[1] - yearRange[0] + 1} years)`
-                        }
-                      </span>
-                      <span>{maxYear}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+            <Select
+              value={selectedPlayerOption}
+              onChange={(option) => setSelectedPlayer(option?.value || 'All Players')}
+              options={playerOptions}
+              isSearchable
+              isClearable={false}
+              placeholder="Type manually..."
+              filterOption={optimizedFilterOption}
+              styles={selectStyles}
+              className="react-select-container"
+              classNamePrefix="react-select"
+              menuMaxHeight={300}
+              maxMenuHeight={300}
+              menuPlacement="auto"
+              noOptionsMessage={({ inputValue }) =>
+                inputValue ? `No players found` : 'Search...'
+              }
+            />
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Surfaces</label>
-          <div className="space-y-2">
-            {(options.surfaces || ['Hard', 'Clay', 'Grass', 'Carpet']).map(surface => (
-              <label key={surface} className="flex items-center gap-2 text-sm">
+          <div className="space-y-6 pt-4 border-t border-white/5">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Opponent</label>
+              <Select
+                value={selectedOpponentOption}
+                onChange={(option) => setSelectedOpponent(option?.value || 'All Opponents')}
+                options={opponentOptions}
+                isSearchable
+                isClearable={false}
+                isDisabled={selectedPlayer === 'All Players'}
+                placeholder="Filter by opponent..."
+                filterOption={optimizedFilterOption}
+                styles={selectStyles}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                menuMaxHeight={300}
+                maxMenuHeight={300}
+                menuPlacement="auto"
+                noOptionsMessage={({ inputValue }) =>
+                  inputValue ? `No opponents found` : 'Search...'
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tournament</label>
+              <Select
+                value={selectedTournamentOption}
+                onChange={(option) => setSelectedTournament(option?.value || 'All Tournaments')}
+                options={tournamentOptions}
+                isSearchable
+                isClearable={false}
+                placeholder="Filter by tournament..."
+                filterOption={optimizedFilterOption}
+                styles={selectStyles}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                menuMaxHeight={300}
+                maxMenuHeight={300}
+                menuPlacement="auto"
+                noOptionsMessage={({ inputValue }) =>
+                  inputValue ? `No tournaments found` : 'Search...'
+                }
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-white/5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+              Era & Timeline
+            </label>
+            <div className="space-y-4 bg-slate-900/30 p-4 rounded-xl border border-white/5">
+              <label className="flex items-center gap-3 text-sm text-slate-300 font-medium cursor-pointer hover:text-white transition-colors">
                 <input
                   type="checkbox"
-                  checked={selectedSurfaces.includes(surface)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedSurfaces([...selectedSurfaces, surface]);
-                    } else {
-                      setSelectedSurfaces(selectedSurfaces.filter(s => s !== surface));
-                    }
-                  }}
-                  className="rounded"
+                  checked={useAllYears}
+                  onChange={(e) => setUseAllYears(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-500/20"
                 />
-                {surface}
+                Include All Years ({minYear}-{maxYear})
               </label>
-            ))}
+              {!useAllYears && (
+                <div className="space-y-4">
+                  {minYear === maxYear ? (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-sm text-blue-400">
+                        Single year available: <strong>{minYear}</strong>
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-2 pt-2">
+                        <Slider
+                          range
+                          min={minYear}
+                          max={maxYear}
+                          value={[yearRange[0], yearRange[1]]}
+                          onChange={(value) => {
+                            if (Array.isArray(value)) {
+                              setYearRange([value[0], value[1]]);
+                            }
+                          }}
+                          trackStyle={[{ backgroundColor: '#22c55e', height: 4 }]}
+                          handleStyle={[
+                            {
+                              borderColor: '#22c55e',
+                              height: 16,
+                              width: 16,
+                              backgroundColor: '#0f172a',
+                              boxShadow: '0 0 0 2px #22c55e',
+                              opacity: 1
+                            },
+                            {
+                              borderColor: '#22c55e',
+                              height: 16,
+                              width: 16,
+                              backgroundColor: '#0f172a',
+                              boxShadow: '0 0 0 2px #22c55e',
+                              opacity: 1
+                            }
+                          ]}
+                          railStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', height: 4 }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <span>{minYear}</span>
+                        <span className="font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">
+                          {yearRange[0] === yearRange[1]
+                            ? `${yearRange[0]}`
+                            : `${yearRange[0]} — ${yearRange[1]}`
+                          }
+                        </span>
+                        <span>{maxYear}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        <button 
-          type="button"
-          onClick={handleGenerate}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer border-0"
-        >
-          <RefreshCcw className="w-4 h-4" />
-          Generate Analysis
-        </button>
-      </div>
-    </aside>
+          <div className="pt-4 border-t border-white/5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Court Surface</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(options.surfaces || ['Hard', 'Clay', 'Grass', 'Carpet']).map(surface => (
+                <label
+                  key={surface}
+                  className={`flex items-center gap-2 text-sm p-3 rounded-lg border cursor-pointer transition-all duration-200 ${selectedSurfaces.includes(surface)
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                      : 'bg-slate-900/30 border-white/5 text-slate-400 hover:bg-white/5'
+                    }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSurfaces.includes(surface)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedSurfaces([...selectedSurfaces, surface]);
+                      } else {
+                        setSelectedSurfaces(selectedSurfaces.filter(s => s !== surface));
+                      }
+                    }}
+                    className="rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-offset-0 focus:ring-0"
+                  />
+                  {surface}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 border border-white/10 group mt-4 transform hover:-translate-y-0.5"
+          >
+            <RefreshCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+            Generate Analytics
+          </button>
+        </div>
+      </aside>
     </>
   );
 };
-

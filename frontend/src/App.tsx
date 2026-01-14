@@ -7,6 +7,7 @@ import { AiResponseView } from './components/views/AiResponseView';
 import { StatsDashboardView } from './components/views/StatsDashboardView';
 import { apiClient, endpoints } from './api/client';
 import { FilterState } from './types';
+import { TennisLoader } from './components/ui/TennisLoader';
 
 function App() {
     // Filter state
@@ -77,7 +78,7 @@ function App() {
 
     return (
         <Layout onFilterChange={handleFilterChange}>
-            <div className="space-y-6">
+            <div className="space-y-8 animate-fade-in">
                 <Header />
 
                 <SearchPanel
@@ -92,21 +93,20 @@ function App() {
                 )}
 
                 {aiLoading && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <div className="flex items-center gap-3">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                            <p className="text-gray-600">Analyzing tennis data...</p>
-                        </div>
+                    <div className="glass-card rounded-2xl p-12 flex justify-center items-center my-8">
+                        <TennisLoader />
                     </div>
                 )}
 
                 {aiError && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                        <div className="flex items-start gap-3">
-                            <div className="text-red-600 text-2xl">❌</div>
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 backdrop-blur-sm">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                                <span className="text-red-400 text-xl">❌</span>
+                            </div>
                             <div>
-                                <h3 className="font-semibold text-red-900 mb-1">Error</h3>
-                                <p className="text-red-800 text-sm">{aiError}</p>
+                                <h3 className="font-bold text-red-400 mb-1 text-lg">Analysis Error</h3>
+                                <p className="text-red-300/80">{aiError}</p>
                             </div>
                         </div>
                     </div>

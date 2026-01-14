@@ -10,7 +10,7 @@ interface DataTableProps {
 export const DataTable: React.FC<DataTableProps> = ({ data, maxHeight = 400 }) => {
     if (!data || data.length === 0) {
         return (
-            <div className="h-40 flex items-center justify-center text-gray-400">
+            <div className="h-40 flex items-center justify-center text-slate-500">
                 No data available.
             </div>
         );
@@ -25,10 +25,10 @@ export const DataTable: React.FC<DataTableProps> = ({ data, maxHeight = 400 }) =
 
     const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
         const row = data[index];
-        const bgClass = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+        const bgClass = index % 2 === 0 ? "bg-white/0" : "bg-white/[0.02]";
 
         return (
-            <div style={style} className={`flex items-center border-b border-gray-100 text-sm text-gray-700 ${bgClass} hover:bg-emerald-50 transition-colors`}>
+            <div style={style} className={`flex items-center border-b border-white/5 text-sm text-slate-300 ${bgClass} hover:bg-white/5 transition-colors`}>
                 {columns.map((col, colIndex) => {
                     const value = row[col];
                     const displayValue = value === null || value === undefined ? '-' : String(value);
@@ -49,9 +49,9 @@ export const DataTable: React.FC<DataTableProps> = ({ data, maxHeight = 400 }) =
     };
 
     return (
-        <div className="w-full border rounded-lg bg-white shadow-sm flex flex-col" style={{ height: `${maxHeight}px` }}>
+        <div className="w-full border border-white/10 rounded-xl bg-slate-900/40 shadow-inner flex flex-col overflow-hidden" style={{ height: `${maxHeight}px` }}>
             {/* Static Header */}
-            <div className="flex items-center bg-slate-100 border-b border-slate-200 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <div className="flex items-center bg-white/5 border-b border-white/10 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider backdrop-blur-sm">
                 {columns.map((col, index) => (
                     <div
                         key={index}
@@ -80,7 +80,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, maxHeight = 400 }) =
                 </AutoSizer>
             </div>
 
-            <div className="p-2 text-xs text-gray-400 text-right border-t bg-slate-50">
+            <div className="p-2 text-xs text-slate-500 text-right border-t border-white/5 bg-slate-900/20">
                 Showing {data.length} {data.length === 1 ? 'row' : 'rows'}
             </div>
         </div>

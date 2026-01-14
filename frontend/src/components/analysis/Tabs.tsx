@@ -120,18 +120,18 @@ export const Tabs: React.FC<TabsProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div className="glass-panel rounded-xl">
       {/* Tab Headers */}
       <div className="p-6 pb-0">
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               type="button"
-              className={`px-6 py-3 rounded-lg font-semibold transition-all border cursor-pointer ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-lg border-blue-700 hover:bg-blue-700'
-                : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-200 hover:border-blue-200'
+              className={`px-6 py-3 rounded-xl font-bold transition-all border cursor-pointer whitespace-nowrap ${activeTab === tab.id
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 border-blue-500/50'
+                  : 'bg-white/5 text-slate-400 hover:bg-white/10 border-white/5 hover:text-white'
                 }`}
             >
               {tab.label}
@@ -144,7 +144,7 @@ export const Tabs: React.FC<TabsProps> = ({
       <div className="px-6 pb-6 overflow-x-auto">
         {loading && (
           <div className="h-64 flex items-center justify-center">
-            <div className="text-gray-500 animate-pulse">Loading...</div>
+            <div className="text-slate-400 animate-pulse">Loading visualizations...</div>
           </div>
         )}
 
@@ -155,30 +155,30 @@ export const Tabs: React.FC<TabsProps> = ({
         {!loading && activeTab === 'serve' && (
           <>
             {serveCharts ? (
-              <div className="flex flex-col w-full max-w-full">
-                <div className="mb-6 w-full max-w-full">
+              <div className="flex flex-col w-full max-w-full space-y-6">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getServeChartData('timeline')} title="Serve Timeline" />
                 </div>
-                <div className="mb-6 w-full max-w-full">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getServeChartData('radar')} title="Skill Radar" />
                 </div>
-                <div className="mb-6 w-full max-w-full">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getServeChartData('acedf')} title="Ace vs DF Rate" />
                 </div>
-                <div className="w-full max-w-full">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getServeChartData('bp')} title="Break Points Saved" />
                 </div>
               </div>
             ) : (
               // Only show empty state if truly no stats
               !loading && (
-                <div className="h-40 flex items-center justify-center">
+                <div className="h-40 flex items-center justify-center glass-card rounded-xl">
                   {(!selectedPlayer || selectedPlayer === 'All Players') ? (
                     <div className="text-center">
-                      <p className="text-blue-600 font-medium">ℹ️ Please select a player to view serve statistics.</p>
+                      <p className="text-emerald-400 font-medium">ℹ️ Please select a player to view serve statistics.</p>
                     </div>
                   ) : (
-                    <div className="text-gray-400">
+                    <div className="text-slate-500">
                       No serve statistics available. Select filters and generate analysis.
                     </div>
                   )}
@@ -191,26 +191,26 @@ export const Tabs: React.FC<TabsProps> = ({
         {!loading && activeTab === 'return' && (
           <>
             {returnCharts ? (
-              <div className="flex flex-col w-full max-w-full">
-                <div className="mb-6 w-full max-w-full">
+              <div className="flex flex-col w-full max-w-full space-y-6">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getReturnChartData('return_points')} title="Return Points Won % Timeline" />
                 </div>
-                <div className="mb-6 w-full max-w-full">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getReturnChartData('bp_conversion')} title="Break Point Conversion Timeline" />
                 </div>
-                <div className="w-full max-w-full">
+                <div className="w-full max-w-full glass-card p-4 rounded-xl">
                   <StatsChart data={getReturnChartData('radar')} title="Return Statistics Radar" />
                 </div>
               </div>
             ) : (
               !loading && (
-                <div className="h-40 flex items-center justify-center">
+                <div className="h-40 flex items-center justify-center glass-card rounded-xl">
                   {(!selectedPlayer || selectedPlayer === 'All Players') ? (
                     <div className="text-center">
-                      <p className="text-blue-600 font-medium">ℹ️ Please select a player to view return statistics.</p>
+                      <p className="text-emerald-400 font-medium">ℹ️ Please select a player to view return statistics.</p>
                     </div>
                   ) : (
-                    <div className="text-gray-400">
+                    <div className="text-slate-500">
                       No return statistics available. Select filters and generate analysis.
                     </div>
                   )}
@@ -223,19 +223,19 @@ export const Tabs: React.FC<TabsProps> = ({
         {!loading && activeTab === 'ranking' && (
           <>
             {(rankingChart && (rankingChart.ranking_chart || rankingChart.ranking_data)) ? (
-              <div className="w-full max-w-full">
+              <div className="w-full max-w-full glass-card p-4 rounded-xl">
                 <StatsChart data={getRankingChartData()} title="Ranking Timeline" />
               </div>
             ) : (
               !loading && (
-                <div className="h-40 flex items-center justify-center">
+                <div className="h-40 flex items-center justify-center glass-card rounded-xl">
                   <div className="text-center max-w-2xl px-4">
-                    <p className="text-blue-600 font-medium mb-2">
+                    <p className="text-emerald-400 font-medium mb-2">
                       {rankingChart?.error || "Ranking timeline chart not available."}
                     </p>
                     {rankingChart?.reasons && Array.isArray(rankingChart.reasons) && rankingChart.reasons.length > 0 && (
-                      <div className="mt-3 text-sm text-gray-600">
-                        <p className="font-semibold mb-1">Requirements:</p>
+                      <div className="mt-3 text-sm text-slate-400">
+                        <p className="font-semibold mb-1 text-slate-300">Requirements:</p>
                         <ul className="list-disc list-inside space-y-1 text-left inline-block">
                           {rankingChart.reasons.map((reason: string, index: number) => (
                             <li key={index}>{reason}</li>
