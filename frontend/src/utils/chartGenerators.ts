@@ -21,101 +21,151 @@ const filterNulls = (dates: any[], values: any[]) => {
     return { dates: cleanDates, values: cleanValues };
 };
 
-export const createServeTimelineChart = (matches: any[], playerName: string): ChartConfig => {
+interface SeriesDef {
+    key: string;      // Property name in the match object (e.g., 'player_1stIn')
+    name: string;     // Legend name
+    color: string;
+    fillColor?: string;
+    dash?: string;    // Optional line dash style
+    hovertemplate?: string;
+}
+
+interface CreateTimeSeriesOptions {
+    title: string;
+    yAxisTitle: string;
+    yAxisRange?: [number, number];
+    yAxisMode?: 'normal' | 'nonnegative';
+    matches: any[];
+    series: SeriesDef[];
+}
+
+/**
+ * Generic helper to create time-series style charts from match data.
+ */
+const createTimeSeriesChart = (options: CreateTimeSeriesOptions): ChartConfig => {
+    const { title, yAxisTitle, yAxisRange, yAxisMode, matches, series } = options;
     const indices = matches.map((_, i) => i);
-    const firstServeIn = matches.map(m => m.player_1stIn);
-    const firstServeWon = matches.map(m => m.player_1stWon);
-    const secondServeWon = matches.map(m => m.player_2ndWon);
 
-    const cleanIn = filterNulls(indices, firstServeIn);
-    const cleanWon = filterNulls(indices, firstServeWon);
-    const cleanSecondWon = filterNulls(indices, secondServeWon);
+    const data: Data[] = series.map(s => {
+        // Extract raw data for this series
+        const rawValues = matches.map(m => m[s.key]);
+        // Filter out nulls/undefined
+        const clean = filterNulls(indices, rawValues);
 
-    return {
-        data: [
-            {
-                x: cleanIn.dates, // dates is actually indices here
-                y: cleanIn.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: '1st Serve In %',
-                line: { color: '#2563EB', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(37, 99, 235, 0.1)'
-            },
-            {
-                x: cleanWon.dates,
-                y: cleanWon.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: '1st Serve Won %',
-                line: { color: '#10B981', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(16, 185, 129, 0.1)'
-            },
-            {
-                x: cleanSecondWon.dates,
-                y: cleanSecondWon.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: '2nd Serve Won %',
-                line: { color: '#F59E0B', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(245, 158, 11, 0.1)'
-            }
-        ],
-        layout: {
-            title: { text: 'Serve Performance' },
-            xaxis: { title: { text: 'Match Number' } },
-            yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
-            legend: { orientation: 'h', y: -0.2 },
-            hovermode: 'x unified'
-        }
+        return {
+            x: clean.dates,
+            y: clean.values,
+            type: 'scatter',
+            mode: 'markers',
+            name: s.name,
+            line: s.dash ? { color: s.color, width: 2, dash: s.dash as any } : { color: s.color, width: 2 },
+            marker: { size: 6 },
+            fill: 'tozeroy',
+            fillcolor: s.fillColor || s.color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#', 'rgba('), // Simple fallback, but explicit is better
+            hovertemplate: s.hovertemplate
+        };
+    });
+
+    // Fix up fill colors if not provided (simple hex to rgba converter would be better, 
+    // but we can just rely on the caller providing it or basic fallbacks for now)
+    // The previous code had explicit rgba strings. Let's try to preserve that behavior by passing it in.
+
+    const layout: Partial<Layout> = {
+        title: { text: title },
+        xaxis: { title: { text: 'Match Number' } },
+        yaxis: { title: { text: yAxisTitle } },
+        legend: { orientation: 'h', y: -0.2 },
+        hovermode: 'x unified'
     };
+
+    if (yAxisRange) {
+        layout.yaxis!.range = yAxisRange;
+    }
+    if (yAxisMode === 'nonnegative') {
+        layout.yaxis!.rangemode = 'nonnegative';
+    }
+
+    return { data, layout };
+};
+
+
+export const createServeTimelineChart = (matches: any[], playerName: string): ChartConfig => {
+    return createTimeSeriesChart({
+        title: 'Serve Performance',
+        yAxisTitle: 'Percentage (%)',
+        yAxisRange: [0, 100],
+        matches,
+        series: [
+            { key: 'player_1stIn', name: '1st Serve In %', color: '#2563EB', fillColor: 'rgba(37, 99, 235, 0.1)' },
+            { key: 'player_1stWon', name: '1st Serve Won %', color: '#10B981', fillColor: 'rgba(16, 185, 129, 0.1)' },
+            { key: 'player_2ndWon', name: '2nd Serve Won %', color: '#F59E0B', fillColor: 'rgba(245, 158, 11, 0.1)' }
+        ]
+    });
 };
 
 export const createAceDfChart = (matches: any[], playerName: string): ChartConfig => {
-    const indices = matches.map((_, i) => i);
-    const aceRate = matches.map(m => m.player_ace_rate);
-    const dfRate = matches.map(m => m.player_df_rate);
+    return createTimeSeriesChart({
+        title: 'Ace vs Double Fault Rate',
+        yAxisTitle: 'Rate (%)',
+        matches,
+        series: [
+            { key: 'player_ace_rate', name: 'Ace Rate', color: '#8B5CF6', fillColor: 'rgba(139, 92, 246, 0.1)' },
+            { key: 'player_df_rate', name: 'Double Fault Rate', color: '#EF4444', fillColor: 'rgba(239, 68, 68, 0.1)' }
+        ]
+    });
+};
 
-    const cleanAce = filterNulls(indices, aceRate);
-    const cleanDf = filterNulls(indices, dfRate);
-
-    return {
-        data: [
+export const createReturnPointsChart = (matches: any[], playerName: string): ChartConfig => {
+    // Note: The original had a specific hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>'
+    // For simplicity we'll stick to 'x unified' hovermode which is cleaner, or we could add hovertemplate support to the helper.
+    // Given the original code had 'x unified' in the layout, the hovertemplate might have been redundant or conflicting in subtle ways.
+    // Let's stick to the uniform unified view for consistency.
+    return createTimeSeriesChart({
+        title: 'Return Points Won',
+        yAxisTitle: 'Percentage (%)',
+        yAxisRange: [0, 100],
+        matches,
+        series: [
             {
-                x: cleanAce.dates,
-                y: cleanAce.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'Ace Rate',
-                line: { color: '#8B5CF6', width: 2 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(139, 92, 246, 0.1)'
-            },
-            {
-                x: cleanDf.dates,
-                y: cleanDf.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'Double Fault Rate',
-                line: { color: '#EF4444', width: 2 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(239, 68, 68, 0.1)'
+                key: 'player_return_points_won_pct',
+                name: 'Return Points Won %',
+                color: '#F59E0B',
+                fillColor: 'rgba(245, 158, 11, 0.1)',
+                hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>'
             }
-        ],
-        layout: {
-            title: { text: 'Ace vs Double Fault Rate' },
-            xaxis: { title: { text: 'Match Number' } },
-            yaxis: { title: { text: 'Rate (%)' } },
-            legend: { orientation: 'h', y: -0.2 },
-            hovermode: 'x unified'
-        }
-    };
+        ]
+    });
+};
+
+export const createBpConversionChart = (matches: any[], playerName: string): ChartConfig => {
+    return createTimeSeriesChart({
+        title: 'Break Point Conversion Rate',
+        yAxisTitle: 'Percentage (%)',
+        yAxisRange: [0, 100],
+        matches,
+        series: [
+            {
+                key: 'player_bpConversion_pct',
+                name: 'BP Conversion %',
+                color: '#10B981',
+                fillColor: 'rgba(16, 185, 129, 0.1)',
+                hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>'
+            }
+        ]
+    });
+};
+
+export const createBpSavedChart = (matches: any[], playerName: string): ChartConfig => {
+    return createTimeSeriesChart({
+        title: 'Break Points Faced vs Saved',
+        yAxisTitle: 'Count',
+        yAxisMode: 'nonnegative',
+        matches,
+        series: [
+            { key: 'player_bpFaced', name: 'BPs Faced', color: '#EF4444', fillColor: 'rgba(239, 68, 68, 0.1)' },
+            { key: 'player_bpSaved', name: 'BPs Saved', color: '#10B981', fillColor: 'rgba(16, 185, 129, 0.1)' }
+        ]
+    });
 };
 
 export const createRadarChart = (
@@ -171,66 +221,6 @@ export const createRadarChart = (
     };
 };
 
-export const createReturnPointsChart = (matches: any[], playerName: string): ChartConfig => {
-    const indices = matches.map((_, i) => i);
-    const returnPointsWon = matches.map(m => m.player_return_points_won_pct);
-
-    const cleanData = filterNulls(indices, returnPointsWon);
-
-    return {
-        data: [
-            {
-                x: cleanData.dates,
-                y: cleanData.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'Return Points Won %',
-                hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>',
-                line: { color: '#F59E0B', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(245, 158, 11, 0.1)'
-            }
-        ],
-        layout: {
-            title: { text: 'Return Points Won' },
-            xaxis: { title: { text: 'Match Number' } },
-            yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
-            hovermode: 'x unified'
-        }
-    };
-};
-
-export const createBpConversionChart = (matches: any[], playerName: string): ChartConfig => {
-    const indices = matches.map((_, i) => i);
-    const bpConversion = matches.map(m => m.player_bpConversion_pct);
-
-    const cleanData = filterNulls(indices, bpConversion);
-
-    return {
-        data: [
-            {
-                x: cleanData.dates,
-                y: cleanData.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'BP Conversion %',
-                hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>',
-                line: { color: '#10B981', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(16, 185, 129, 0.1)'
-            }
-        ],
-        layout: {
-            title: { text: 'Break Point Conversion Rate' },
-            xaxis: { title: { text: 'Match Number' } },
-            yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
-            hovermode: 'x unified'
-        }
-    };
-};
-
 export const createRankingChart = (rankingData: any[], playerName: string): ChartConfig => {
     // rankingData has { ranking_date, rank, tour? }
     const sortedData = [...rankingData].sort((a, b) =>
@@ -264,48 +254,6 @@ export const createRankingChart = (rankingData: any[], playerName: string): Char
                 autorange: 'reversed' // Important for ranking
             },
             hovermode: 'closest'
-        }
-    };
-};
-export const createBpSavedChart = (matches: any[], playerName: string): ChartConfig => {
-    const indices = matches.map((_, i) => i);
-    const bpFaced = matches.map(m => m.player_bpFaced);
-    const bpSaved = matches.map(m => m.player_bpSaved);
-
-    const cleanFaced = filterNulls(indices, bpFaced);
-    const cleanSaved = filterNulls(indices, bpSaved);
-
-    return {
-        data: [
-            {
-                x: cleanFaced.dates,
-                y: cleanFaced.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'BPs Faced',
-                line: { color: '#EF4444', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(239, 68, 68, 0.1)'
-            },
-            {
-                x: cleanSaved.dates,
-                y: cleanSaved.values,
-                type: 'scatter',
-                mode: 'markers',
-                name: 'BPs Saved',
-                line: { color: '#10B981', width: 2 },
-                marker: { size: 6 },
-                fill: 'tozeroy',
-                fillcolor: 'rgba(16, 185, 129, 0.1)'
-            }
-        ],
-        layout: {
-            title: { text: 'Break Points Faced vs Saved' },
-            xaxis: { title: { text: 'Match Number' } },
-            yaxis: { title: { text: 'Count' }, rangemode: 'nonnegative' },
-            legend: { orientation: 'h', y: -0.2 },
-            hovermode: 'x unified'
         }
     };
 };
