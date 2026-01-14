@@ -23,12 +23,12 @@ from api.models import (
 )
 
 # Import stats calculation functions
-from serve_tab.serve_stats import (
+from analysis.serve_stats import (
     calculate_match_serve_stats,
     calculate_aggregated_player_serve_stats, 
     calculate_aggregated_opponent_serve_stats
 )
-from return_tab.return_stats import (
+from analysis.return_stats import (
     calculate_match_return_stats,
     calculate_aggregated_player_return_stats,
     calculate_aggregated_opponent_return_stats
