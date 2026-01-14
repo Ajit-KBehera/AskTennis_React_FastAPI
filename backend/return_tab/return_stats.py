@@ -10,7 +10,6 @@ Note: Return statistics are calculated from the opponent's serve perspective.
 
 import pandas as pd
 import numpy as np
-from utils.chart_utils import build_year_suffix
 
 
 def safe_nanmean(series):

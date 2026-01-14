@@ -10,14 +10,12 @@ This module contains return-related analysis:
 from .return_stats import (
     calculate_match_return_stats,
     calculate_aggregated_player_return_stats,
-    calculate_aggregated_opponent_return_stats,
-    build_year_suffix
+    calculate_aggregated_opponent_return_stats
 )
 
 __all__ = [
     'calculate_match_return_stats',
     'calculate_aggregated_player_return_stats',
-    'calculate_aggregated_opponent_return_stats',
-    'build_year_suffix'
+    'calculate_aggregated_opponent_return_stats'
 ]
 

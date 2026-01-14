@@ -10,15 +10,13 @@ This module contains serve-related analysis:
 from .serve_stats import (
     calculate_match_serve_stats,
     calculate_aggregated_player_serve_stats,
-    calculate_aggregated_opponent_serve_stats,
-    build_year_suffix
+    calculate_aggregated_opponent_serve_stats
 )
 
 __all__ = [
     'calculate_match_serve_stats',
     'calculate_aggregated_player_serve_stats',
-    'calculate_aggregated_opponent_serve_stats',
-    'build_year_suffix'
+    'calculate_aggregated_opponent_serve_stats'
 ]
 
 

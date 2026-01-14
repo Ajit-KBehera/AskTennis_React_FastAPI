@@ -11,7 +11,6 @@ import numpy as np
 
 # Import utility function from utils
 from utils.df_utils import add_player_match_columns
-from utils.chart_utils import build_year_suffix
 
 
 def _calculate_player_serve_stats(df):
