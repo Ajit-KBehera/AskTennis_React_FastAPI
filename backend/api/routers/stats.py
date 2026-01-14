@@ -19,9 +19,7 @@ from api.models import (
     ReturnStatsRequest,
     ReturnStatsResponse,
     RankingStatsRequest,
-    RankingStatsResponse,
-    PlotlyChart,
-    RawServeMatch
+    RankingStatsResponse
 )
 
 # Import stats calculation functions

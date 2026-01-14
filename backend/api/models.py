@@ -26,22 +26,7 @@ class FilterOptionsResponse(BaseModel):
     year_range: Optional[YearRange] = None
 
 
-# ============================================================================
-# Chat Models
-# ============================================================================
 
-class ChatRequest(BaseModel):
-    """Request model for chat endpoint."""
-    query: str = Field(..., min_length=1, description="User's tennis query")
-    session_id: Optional[str] = Field(None, description="Session ID for conversation history")
-
-
-class ChatResponse(BaseModel):
-    """Response model for chat endpoint."""
-    answer: str
-    session_id: str
-    summary: Optional[str] = None
-    sql_debug: Optional[str] = None
 
 
 # ============================================================================

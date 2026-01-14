@@ -10,10 +10,7 @@
 // Request Types (matching backend Pydantic models)
 // ============================================================================
 
-export interface ChatRequest {
-  query: string;
-  session_id?: string | null;
-}
+
 
 export interface StatsRequest {
   player_name: string;
@@ -51,12 +48,7 @@ export interface FilterOptionsResponse {
   year_range?: { min: number; max: number } | null;
 }
 
-export interface ChatResponse {
-  answer: string;
-  session_id: string;
-  summary?: string | null;
-  sql_debug?: string | null;
-}
+
 
 // Plotly chart data structure (from json.loads(fig.to_json()))
 export interface PlotlyChartData {

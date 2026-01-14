@@ -1,8 +1,7 @@
 import axios from 'axios';
 import type {
   FilterOptionsResponse,
-  ChatRequest,
-  ChatResponse,
+
   StatsRequest,
   ServeStatsRequest,
   ReturnStatsRequest,
@@ -40,7 +39,7 @@ export const apiClient = axios.create({
 
 export const endpoints = {
   getFilters: '/filters',
-  chat: '/chat',
+
   query: '/query',  // Full AI query with SQL and data
   getServeStats: '/stats/serve',
   getReturnStats: '/stats/return',
@@ -51,8 +50,7 @@ export const endpoints = {
 // Re-export types for convenience
 export type {
   FilterOptionsResponse,
-  ChatRequest,
-  ChatResponse,
+
   StatsRequest,
   ServeStatsRequest,
   ReturnStatsResponse,
@@ -75,13 +73,7 @@ export const api = {
     return response.data;
   },
 
-  /**
-   * Send a chat message to the AI agent
-   */
-  chat: async (request: ChatRequest): Promise<ChatResponse> => {
-    const response = await apiClient.post<ChatResponse>(endpoints.chat, request);
-    return response.data;
-  },
+
 
   /**
    * Get serve statistics data for frontend visualization

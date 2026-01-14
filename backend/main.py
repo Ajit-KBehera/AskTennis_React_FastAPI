@@ -13,8 +13,7 @@ from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 
 # Import API routers
-from api.routers import filters_router, chat_router, matches_router, stats_router
-import api.routers.chat as chat_module
+from api.routers import filters_router, matches_router, stats_router
 
 app = FastAPI(
     title="AskTennis API",
@@ -36,8 +35,7 @@ try:
     agent_graph = setup_langgraph_agent()
     query_processor = QueryProcessor()
     
-    # Set dependencies for chat router
-    chat_module.set_dependencies(query_processor, agent_graph)
+
     
     print("✅ Services initialized successfully")
 except Exception as e:
@@ -68,7 +66,7 @@ async def root():
             "legacy": ["/query"],
             "api": [
                 "/api/filters",
-                "/api/chat",
+
                 "/api/matches",
                 "/api/query",
                 "/api/stats/serve",
@@ -134,7 +132,7 @@ async def process_query(request: QueryRequest):
 
 # Include all API routers
 api_router.include_router(filters_router, tags=["Filters"])
-api_router.include_router(chat_router, tags=["Chat"])
+
 api_router.include_router(matches_router, tags=["Matches"])
 api_router.include_router(stats_router, tags=["Statistics"])
 

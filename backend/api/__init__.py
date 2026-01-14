@@ -5,8 +5,7 @@ Contains routers and models for REST API endpoints.
 
 from .models import (
     FilterOptionsResponse,
-    ChatRequest,
-    ChatResponse,
+
     StatsRequest,
     ServeStatsRequest,
     ReturnStatsRequest,
@@ -16,8 +15,7 @@ from .models import (
 
 __all__ = [
     "FilterOptionsResponse",
-    "ChatRequest",
-    "ChatResponse",
+
     "StatsRequest",
     "ServeStatsRequest",
     "ReturnStatsRequest",
