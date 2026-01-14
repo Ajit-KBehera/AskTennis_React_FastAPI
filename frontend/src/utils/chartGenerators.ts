@@ -261,3 +261,45 @@ export const createRankingChart = (rankingData: any[], playerName: string): Char
         }
     };
 };
+export const createBpSavedChart = (matches: any[], playerName: string): ChartConfig => {
+    const sortedMatches = [...matches].sort((a, b) =>
+        new Date(a.tourney_date).getTime() - new Date(b.tourney_date).getTime()
+    );
+
+    const dates = sortedMatches.map(m => m.tourney_date);
+    const bpFaced = sortedMatches.map(m => m.player_bpFaced);
+    const bpSaved = sortedMatches.map(m => m.player_bpSaved);
+
+    const cleanFaced = filterNulls(dates, bpFaced);
+    const cleanSaved = filterNulls(dates, bpSaved);
+
+    return {
+        data: [
+            {
+                x: cleanFaced.dates,
+                y: cleanFaced.values,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'BPs Faced',
+                line: { color: '#EF4444', width: 2 },
+                marker: { size: 6 }
+            },
+            {
+                x: cleanSaved.dates,
+                y: cleanSaved.values,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'BPs Saved',
+                line: { color: '#10B981', width: 2 },
+                marker: { size: 6 }
+            }
+        ],
+        layout: {
+            title: { text: 'Break Points Faced vs Saved' },
+            xaxis: { title: { text: 'Date' } },
+            yaxis: { title: { text: 'Count' }, rangemode: 'nonnegative' },
+            legend: { orientation: 'h', y: -0.2 },
+            hovermode: 'x unified'
+        }
+    };
+};

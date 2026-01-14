@@ -7,7 +7,8 @@ import {
   createRadarChart,
   createReturnPointsChart,
   createBpConversionChart,
-  createRankingChart
+  createRankingChart,
+  createBpSavedChart
 } from '../../utils/chartGenerators';
 
 import type { ServeStatsRequest } from '../../types';
@@ -63,8 +64,7 @@ export const Tabs: React.FC<TabsProps> = ({
           }
           break;
         case 'bp':
-          if (serveCharts.bp_chart) return serveCharts.bp_chart;
-          break;
+          return createBpSavedChart(serveCharts.matches, playerName);
       }
     }
 
