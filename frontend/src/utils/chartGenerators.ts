@@ -40,7 +40,9 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 mode: 'markers',
                 name: '1st Serve In %',
                 line: { color: '#2563EB', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(37, 99, 235, 0.1)'
             },
             {
                 x: cleanWon.dates,
@@ -49,7 +51,9 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 mode: 'markers',
                 name: '1st Serve Won %',
                 line: { color: '#10B981', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
             },
             {
                 x: cleanSecondWon.dates,
@@ -58,7 +62,9 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
                 mode: 'markers',
                 name: '2nd Serve Won %',
                 line: { color: '#F59E0B', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(245, 158, 11, 0.1)'
             }
         ],
         layout: {
@@ -66,7 +72,7 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
             xaxis: { title: { text: 'Match Number' } },
             yaxis: { title: { text: 'Percentage (%)' }, range: [0, 100] },
             legend: { orientation: 'h', y: -0.2 },
-            hovermode: 'x unified' 
+            hovermode: 'x unified'
         }
     };
 };
@@ -180,7 +186,9 @@ export const createReturnPointsChart = (matches: any[], playerName: string): Cha
                 mode: 'markers',
                 name: 'Return Points Won %',
                 line: { color: '#F59E0B', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(245, 158, 11, 0.1)'
             }
         ],
         layout: {
@@ -207,7 +215,9 @@ export const createBpConversionChart = (matches: any[], playerName: string): Cha
                 mode: 'markers',
                 name: 'BP Conversion %',
                 line: { color: '#10B981', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
             }
         ],
         layout: {
@@ -272,7 +282,9 @@ export const createBpSavedChart = (matches: any[], playerName: string): ChartCon
                 mode: 'markers',
                 name: 'BPs Faced',
                 line: { color: '#EF4444', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(239, 68, 68, 0.1)'
             },
             {
                 x: cleanSaved.dates,
@@ -281,7 +293,9 @@ export const createBpSavedChart = (matches: any[], playerName: string): ChartCon
                 mode: 'markers',
                 name: 'BPs Saved',
                 line: { color: '#10B981', width: 2 },
-                marker: { size: 6 }
+                marker: { size: 6 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.1)'
             }
         ],
         layout: {
