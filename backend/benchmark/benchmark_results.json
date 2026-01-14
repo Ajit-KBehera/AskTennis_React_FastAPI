@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "question": "Which player has the highest number of Grand Slam titles in the Open Era?",
+    "generated_sql": [
+      "SELECT winner_name, COUNT(*) as titles\nFROM (\n    SELECT winner_name FROM atp_matches WHERE tourney_level = 'G' AND round = 'F'\n    UNION ALL\n    SELECT winner_name FROM wta_matches WHERE tourney_level = 'G' AND round = 'F'\n) as gs_winners\nGROUP BY winner_name\nORDER BY titles DESC\nLIMIT 5;"
+    ],
+    "generated_answer": "Novak Djokovic holds the record for the highest number of Grand Slam titles in the Open Era with **24** titles.\n\n**Top 5 Grand Slam title leaders (Open Era):**\n1. **Novak Djokovic**: 24\n2. **Serena Williams**: 23\n3. **Steffi Graf**: 22\n4. **Rafael Nadal**: 22\n5. **Roger Federer**: 20",
+    "duration_seconds": 20.86,
+    "status": "success",
+    "gold_expected_keywords": [
+      "Novak Djokovic",
+      "24"
+    ],
+    "is_correct": true,
+    "keywords_found": [
+      "Novak Djokovic",
+      "24"
+    ]
+  },
+  {
+    "id": 2,
+    "question": "List all players who have won more than 100 matches in a single calendar year.",
+    "generated_sql": [
+      "SELECT winner_name, event_year, COUNT(*) as win_count\nFROM atp_matches\nGROUP BY winner_name, event_year\nHAVING win_count > 100\nUNION ALL\nSELECT winner_name, event_year, COUNT(*) as win_count\nFROM wta_matches\nGROUP BY winner_name, event_year\nHAVING win_count > 100\nORDER BY win_count DESC;"
+    ],
+    "generated_answer": "Winning more than 100 matches in a single calendar year is an extraordinary feat, primarily achieved during the high-volume schedules of the late 1960s through the early 1980s. \n\nHere are the players who have achieved this milestone:\n\n### **ATP Tour (Men)**\n*   **Guillermo Vilas (1977):** 131 wins\n*   **Ilie Nastase (1973):** 125 wins\n*   **Ilie Nastase (1972):** 119 wins\n*   **Ivan Lendl (1982):** 109 wins\n*   **Ivan Lendl (1980):** 107 wins\n*   **Brian Gottfried (1977):** 107 wins\n*   **Arthur Ashe (1975):** 102 wins\n\n### **WTA Tour (Women)**\n*   **Billie Jean King (1971):** 114 wins\n*   **Margaret Court (1970):** 112 wins\n*   **Evonne Goolagong (1973):** 111 wins\n*   **Margaret Court (1969):** 110 wins\n*   **Margaret Court (1968):** 108 wins\n*   **Margaret Court (1973):** 102 wins\n\n**Note:** Guillermo Vilas's 1977 season remains the all-time record for the most match wins in a single year in the Open Era. Margaret Court achieved the feat four separate times, the most of any player.",
+    "duration_seconds": 14.16,
+    "status": "success",
+    "is_correct": null
+  },
+  {
+    "id": 3,
+    "question": "Identify the first player from each continent to reach the World No. 1 ranking.",
+    "generated_sql": [
+      "SELECT 'ATP' AS tour, p.full_name, p.ioc, MIN(r.ranking_date) AS first_date\nFROM atp_rankings r\nJOIN atp_players p ON r.player = p.player_id\nWHERE r.rank = 1\nGROUP BY p.full_name, p.ioc\n\nUNION ALL\n\nSELECT 'WTA' AS tour, p.full_name, p.ioc, MIN(r.ranking_date) AS first_date\nFROM wta_rankings r\nJOIN wta_players p ON r.player = p.player_id\nWHERE r.rank = 1\nGROUP BY p.full_name, p.ioc\nORDER BY first_date ASC;"
+    ],
+    "generated_answer": "Based on historical rankings from the ATP and WTA tours, here are the first players from each continent to reach the World No. 1 ranking:\n\n*   **Europe:** **Ilie N\u0103stase** (Romania) was the first player to be ranked World No. 1 upon the introduction of the computerized ATP rankings on **August 27, 1973**.\n*   **Oceania:** **John Newcombe** (Australia) became the first from Oceania to reach the top spot on **June 3, 1974**.\n*   **North America:** **Jimmy Connors** (United States) reached World No. 1 for the first time on **July 29, 1974**.\n*   **South America:** **Marcelo R\u00edos** (Chile) became the first South American World No. 1 on **March 30, 1998**.\n*   **Asia:** **Naomi Osaka** (Japan) became the first Asian player (male or female) to reach the World No. 1 singles ranking on **January 28, 2019**.\n\n**Note on Africa:** As of now, no player from Africa has reached the World No. 1 ranking in singles on either the ATP or WTA tours. The highest-ranked African players in history include Amanda Coetzer (South Africa), who reached No. 3 in the WTA, and Kevin Anderson (South Africa), who reached No. 5 in the ATP.",
+    "duration_seconds": 22.36,
+    "status": "success",
+    "is_correct": null
+  },
+  {
+    "id": 4,
+    "question": "Who has the highest winning percentage in Grand Slam finals (minimum 10 finals)?",
+    "generated_sql": [
+      "WITH gs_finals AS (\n    SELECT winner_name AS player, 1 AS is_win FROM atp_matches WHERE tourney_level = 'G' AND round = 'F'\n    UNION ALL\n    SELECT loser_name AS player, 0 AS is_win FROM atp_matches WHERE tourney_level = 'G' AND round = 'F'\n    UNION ALL\n    SELECT winner_name AS player, 1 AS is_win FROM wta_matches WHERE tourney_level = 'G' AND round = 'F'\n    UNION ALL\n    SELECT loser_name AS player, 0 AS is_win FROM wta_matches WHERE tourney_level = 'G' AND round = 'F'\n)\nSELECT \n    player, \n    SUM(is_win) AS wins, \n    COUNT(*) AS total_finals,\n    ROUND(CAST(SUM(is_win) AS FLOAT) / COUNT(*) * 100, 2) AS win_percentage\nFROM gs_finals\nGROUP BY player\nHAVING COUNT(*) >= 10\nORDER BY win_percentage DESC;"
+    ],
+    "generated_answer": "Margaret Court holds the highest winning percentage in Grand Slam finals (among those with at least 10 appearances) with an **84.62%** success rate, winning 11 of the 13 finals recorded in the database.\n\nHere are the top performers by winning percentage in Grand Slam finals:\n\n1.  **Margaret Court**: 84.62% (11 wins, 13 finals)\n2.  **Pete Sampras**: 77.78% (14 wins, 18 finals)\n3.  **Rafael Nadal**: 73.33% (22 wins, 30 finals)\n4.  **Steffi Graf**: 70.97% (22 wins, 31 finals)\n5.  **Serena Williams**: 69.70% (23 wins, 33 finals)\n6.  **Monica Seles**: 69.23% (9 wins, 13 finals)\n7.  **Billie Jean King**: 69.23% (9 wins, 13 finals)\n8.  **Bjorn Borg**: 68.75% (11 wins, 16 finals)\n9.  **Novak Djokovic**: 64.86% (24 wins, 37 finals)\n10. **Roger Federer**: 64.52% (20 wins, 31 finals)\n\n*Note: Statistics are based on matches available in the database, which primarily tracks Open Era data (post-1968).*",
+    "duration_seconds": 20.91,
+    "status": "success",
+    "is_correct": null
+  },
+  {
+    "id": 5,
+    "question": "Find all players who won their first Grand Slam after the age of 30.",
+    "generated_sql": [
+      "SELECT winner_name, MIN(winner_age) as age_at_first_gs, MIN(tourney_date) as first_gs_date, tourney_name\nFROM (\n    SELECT winner_name, winner_age, tourney_date, tourney_name\n    FROM atp_matches\n    WHERE tourney_level = 'G' AND round = 'F'\n    UNION ALL\n    SELECT winner_name, winner_age, tourney_date, tourney_name\n    FROM wta_matches\n    WHERE tourney_level = 'G' AND round = 'F'\n) AS all_gs_wins\nGROUP BY winner_name\nHAVING age_at_first_gs > 30\nORDER BY age_at_first_gs DESC;"
+    ],
+    "generated_answer": "The list of players who won their first Grand Slam title after the age of 30 (in the Open Era) includes several notable veterans. Here are the players identified:\n\n1.  **Andres Gimeno**: The oldest first-time Grand Slam champion in history. He won **Roland Garros in 1972** at the age of **34.8**.\n2.  **Flavia Pennetta**: She won her first (and only) Grand Slam title at the **2015 US Open** at the age of **33.5**, famously announcing her retirement during the trophy ceremony.\n3.  **Andres Gomez**: He defeated Andre Agassi to win **Roland Garros in 1990** at the age of **30.2**.\n4.  **Ann Jones**: She is recorded as winning **Wimbledon in 1969** at age **30.7**. \n    *   *Note: While this was her first title of the Open Era, she had previously won two French Championships (1961, 1966) before the Open Era began in 1968.*\n5.  **Ken Rosewall**: Recorded winning **Roland Garros in 1968** at age **33.5**.\n    *   *Note: Like Jones, Rosewall was a prolific champion before 1968, having won 4 Grand Slam titles in the 1950s. Roland Garros 1968 was the first Grand Slam of the Open Era.*\n\n**Notable \"Almost\" 30s:**\n*   **Petr Korda** won the 1998 Australian Open at age 30 years and 8 days.\n*   **Li Na** (29.3 years at 2011 Roland Garros) and **Francesca Schiavone** (29.9 years at 2010 Roland Garros) also came very close to this milestone.",
+    "duration_seconds": 30.72,
+    "status": "success",
+    "is_correct": null
+  }
+]

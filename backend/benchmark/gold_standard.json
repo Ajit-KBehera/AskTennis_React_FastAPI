@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "question": "Which player has the highest number of Grand Slam titles in the Open Era?",
+        "expected_answer_keywords": [
+            "Novak Djokovic",
+            "24"
+        ],
+        "expected_sql_keywords": [
+            "atp_matches",
+            "wta_matches",
+            "tourney_level = 'G'",
+            "COUNT"
+        ]
+    }
+]
