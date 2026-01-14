@@ -2,7 +2,7 @@
 Statistics router - provides tennis statistics charts and data.
 Endpoints:
   - POST /api/stats/serve - Serve statistics charts
-  - POST /api/stats/serve/raw - Raw serve data for frontend visualization
+
   - POST /api/stats/return - Return statistics charts
   - POST /api/stats/ranking - Ranking timeline chart
 """
@@ -19,9 +19,7 @@ from api.models import (
     ReturnStatsResponse,
     RankingStatsRequest,
     RankingStatsResponse,
-    RawServeStatsResponse,
-    RawServeMatch,
-    RawServeStatsFilters,
+
     PlotlyChart,
 )
 
@@ -160,118 +158,7 @@ async def get_serve_stats(request: ServeStatsRequest):
         )
 
 
-@router.post("/serve/raw", response_model=RawServeStatsResponse)
-async def get_raw_serve_stats(request: ServeStatsRequest):
-    """
-    Get raw match-level serve data for frontend visualization (D3, Recharts, etc).
-    
-    Returns match-level data including:
-    - First serve %, 1st serve won %, 2nd serve won %
-    - Ace rate, double fault rate
-    - Break points faced, saved, save percentage
-    - Opponent serve statistics
-    
-    Args:
-        request: ServeStatsRequest with player and filter parameters
-        
-    Returns:
-        RawServeStatsResponse with match-level data
-    """
-    if db_service is None:
-        raise HTTPException(status_code=500, detail="Database service not initialized")
-    
-    try:
-        player = request.player_name
-        opponent = request.opponent if request.opponent != DatabaseService.ALL_OPPONENTS else None
-        tournament = request.tournament if request.tournament != DatabaseService.ALL_TOURNAMENTS else None
-        surfaces = request.surface if request.surface and len(request.surface) > 0 else None
-        year = parse_year_filter(request.year) if request.year else None
-        
-        # Get matches with all columns
-        df = db_service.get_matches_with_filters(
-            player=player,
-            opponent=opponent,
-            tournament=tournament,
-            year=year,
-            surfaces=surfaces,
-            return_all_columns=True
-        )
-        
-        if df.empty:
-            return RawServeStatsResponse(
-                matches=[],
-                player_name=player,
-                filters=RawServeStatsFilters(
-                    opponent=opponent,
-                    tournament=tournament,
-                    year=request.year,
-                    surface=surfaces
-                )
-            )
-        
-        # Transform DataFrame to RawServeMatch models
-        matches = []
-        for idx, row in df.iterrows():
-            # Determine player stats (whether player won or lost)
-            is_winner = row.get('winner_name', '').lower() == player.lower()
-            
-            # Map columns based on whether player won or lost
-            if is_winner:
-                player_prefix = 'w_'
-                opponent_name = row.get('loser_name', '')
-                opponent_rank = row.get('loser_rank')
-                result = 'W'
-            else:
-                player_prefix = 'l_'
-                opponent_name = row.get('winner_name', '')
-                opponent_rank = row.get('winner_rank')
-                result = 'L'
-            
-            # Extract serve statistics
-            match_data = RawServeMatch(
-                match_index=int(idx),
-                year=str(row.get('event_year', '')),
-                tourney_name=row.get('tourney_name', ''),
-                round=row.get('round', ''),
-                opponent=opponent_name,
-                opponent_rank=int(opponent_rank) if opponent_rank and pd.notna(opponent_rank) else None,
-                result=result,
-                surface=row.get('surface', ''),
-                tourney_date=str(row.get('tourney_date', '')),
-                player_1stIn=float(row.get(f'{player_prefix}1stIn', 0)) if pd.notna(row.get(f'{player_prefix}1stIn')) else None,
-                player_1stWon=float(row.get(f'{player_prefix}1stWon', 0)) if pd.notna(row.get(f'{player_prefix}1stWon')) else None,
-                player_2ndWon=float(row.get(f'{player_prefix}2ndWon', 0)) if pd.notna(row.get(f'{player_prefix}2ndWon')) else None,
-                player_ace_rate=float(row.get(f'{player_prefix}ace', 0)) if pd.notna(row.get(f'{player_prefix}ace')) else None,
-                player_df_rate=float(row.get(f'{player_prefix}df', 0)) if pd.notna(row.get(f'{player_prefix}df')) else None,
-                player_bpFaced=int(row.get(f'{player_prefix}bpFaced', 0)) if pd.notna(row.get(f'{player_prefix}bpFaced')) else None,
-                player_bpSaved=int(row.get(f'{player_prefix}bpSaved', 0)) if pd.notna(row.get(f'{player_prefix}bpSaved')) else None,
-                player_bpSavePct=float(row.get(f'{player_prefix}bpSaved', 0)) / float(row.get(f'{player_prefix}bpFaced', 1)) * 100 
-                    if pd.notna(row.get(f'{player_prefix}bpFaced')) and row.get(f'{player_prefix}bpFaced', 0) > 0 else None,
-                # Opponent stats (opposite prefix)
-                opponent_1stIn=float(row.get(f'{"l_" if is_winner else "w_"}1stIn', 0)) if pd.notna(row.get(f'{"l_" if is_winner else "w_"}1stIn')) else None,
-                opponent_1stWon=float(row.get(f'{"l_" if is_winner else "w_"}1stWon', 0)) if pd.notna(row.get(f'{"l_" if is_winner else "w_"}1stWon')) else None,
-                opponent_2ndWon=float(row.get(f'{"l_" if is_winner else "w_"}2ndWon', 0)) if pd.notna(row.get(f'{"l_" if is_winner else "w_"}2ndWon')) else None,
-                opponent_ace_rate=float(row.get(f'{"l_" if is_winner else "w_"}ace', 0)) if pd.notna(row.get(f'{"l_" if is_winner else "w_"}ace')) else None,
-                opponent_df_rate=float(row.get(f'{"l_" if is_winner else "w_"}df', 0)) if pd.notna(row.get(f'{"l_" if is_winner else "w_"}df')) else None,
-            )
-            matches.append(match_data)
-        
-        return RawServeStatsResponse(
-            matches=matches,
-            player_name=player,
-            filters=RawServeStatsFilters(
-                opponent=opponent,
-                tournament=tournament,
-                year=request.year,
-                surface=surfaces
-            )
-        )
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch raw serve data: {str(e)}"
-        )
+
 
 
 @router.post("/return", response_model=ReturnStatsResponse)

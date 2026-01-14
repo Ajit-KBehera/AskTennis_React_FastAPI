@@ -72,7 +72,6 @@ async def root():
                 "/api/matches",
                 "/api/query",
                 "/api/stats/serve",
-                "/api/stats/serve/raw",
                 "/api/stats/return",
                 "/api/stats/ranking"
             ]

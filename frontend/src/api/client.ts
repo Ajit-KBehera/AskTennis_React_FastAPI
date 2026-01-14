@@ -91,8 +91,6 @@ export const api = {
     return response.data;
   },
 
-
-
   /**
    * Get return statistics data for frontend visualization
    */
