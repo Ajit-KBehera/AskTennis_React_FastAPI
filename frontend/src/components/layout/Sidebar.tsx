@@ -279,7 +279,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
               styles={selectStyles}
               className="react-select-container"
               classNamePrefix="react-select"
-              menuMaxHeight={300}
               maxMenuHeight={300}
               menuPlacement="auto"
               noOptionsMessage={({ inputValue }) =>
@@ -303,7 +302,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
                 styles={selectStyles}
                 className="react-select-container"
                 classNamePrefix="react-select"
-                menuMaxHeight={300}
                 maxMenuHeight={300}
                 menuPlacement="auto"
                 noOptionsMessage={({ inputValue }) =>
@@ -325,7 +323,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
                 styles={selectStyles}
                 className="react-select-container"
                 classNamePrefix="react-select"
-                menuMaxHeight={300}
                 maxMenuHeight={300}
                 menuPlacement="auto"
                 noOptionsMessage={({ inputValue }) =>
