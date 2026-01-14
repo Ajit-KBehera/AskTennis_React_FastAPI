@@ -412,29 +412,50 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
           <div className="pt-4 border-t border-white/5">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Court Surface</label>
             <div className="grid grid-cols-2 gap-2">
-              {(options.surfaces || ['Hard', 'Clay', 'Grass', 'Carpet']).map(surface => (
-                <label
-                  key={surface}
-                  className={`flex items-center gap-2 text-sm p-3 rounded-lg border cursor-pointer transition-all duration-200 ${selectedSurfaces.includes(surface)
-                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                      : 'bg-slate-900/30 border-white/5 text-slate-400 hover:bg-white/5'
-                    }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedSurfaces.includes(surface)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedSurfaces([...selectedSurfaces, surface]);
-                      } else {
-                        setSelectedSurfaces(selectedSurfaces.filter(s => s !== surface));
-                      }
-                    }}
-                    className="rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-offset-0 focus:ring-0"
-                  />
-                  {surface}
-                </label>
-              ))}
+              {(options.surfaces || ['Hard', 'Clay', 'Grass', 'Carpet']).map(surface => {
+                const isSelected = selectedSurfaces.includes(surface);
+                return (
+                  <label
+                    key={surface}
+                    className={`flex items-center justify-between text-sm p-3 rounded-lg border cursor-pointer transition-all duration-200 group ${isSelected
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-500/10'
+                      : 'bg-slate-900/30 border-white/5 text-slate-400 hover:bg-white/5 hover:border-white/10'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedSurfaces([...selectedSurfaces, surface]);
+                          } else {
+                            setSelectedSurfaces(selectedSurfaces.filter(s => s !== surface));
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                      <span className="font-medium">{surface}</span>
+                    </div>
+                    {isSelected && (
+                      <div className="bg-emerald-500 rounded-full p-0.5 animate-in zoom-in duration-200">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-3 h-3 text-slate-950"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    )}
+                  </label>
+                );
+              })}
             </div>
           </div>
 
