@@ -9,6 +9,7 @@ Endpoints:
 
 from fastapi import APIRouter, HTTPException
 import json
+import pandas as pd
 from typing import Optional, Dict, Any
 
 from services.database_service import DatabaseService
@@ -158,9 +159,6 @@ async def get_serve_stats(request: ServeStatsRequest):
         )
 
 
-
-
-
 @router.post("/return", response_model=ReturnStatsResponse)
 async def get_return_stats(request: ReturnStatsRequest):
     """
@@ -290,5 +288,3 @@ async def get_ranking_stats(request: RankingStatsRequest):
         )
 
 
-# Add pandas import for type checking
-import pandas as pd
