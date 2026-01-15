@@ -110,4 +110,4 @@ migrate.load
 
 node_modules
 
-backend/benchmark/benchmark_results.json
+backend/benchmark/benchmark_results*.json

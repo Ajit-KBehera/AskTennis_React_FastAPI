@@ -6,6 +6,7 @@ import re
 import random
 import time
 import argparse
+from datetime import datetime
 from typing import List, Dict, Any
 
 # Add the backend directory to sys.path to allow imports
@@ -15,7 +16,7 @@ from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 
 QUESTION_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../TENNIS_ANALYTICAL_QUESTIONS_MCP.md'))
-OUTPUT_FILE = os.path.join(os.path.dirname(__file__), 'benchmark_results.json')
+OUTPUT_FILE = os.path.join(os.path.dirname(__file__), f'benchmark_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json')
 GOLD_STANDARD_FILE = os.path.join(os.path.dirname(__file__), 'gold_standard.json')
 
 def parse_questions(filepath: str) -> List[Dict[str, Any]]:
