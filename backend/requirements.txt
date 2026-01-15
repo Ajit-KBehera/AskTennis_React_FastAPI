@@ -19,3 +19,4 @@ cloud-sql-python-connector[pg8000]>=1.0.0
 google-auth>=2.0.0
 python-multipart>=0.0.6
 requests>=2.31.0
+mcp>=1.0.0
