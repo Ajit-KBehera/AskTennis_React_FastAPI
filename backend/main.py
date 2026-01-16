@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -84,21 +85,23 @@ async def process_query(request: QueryRequest):
     AI query endpoint - generates SQL and returns detailed results.
     For chat-style interface, use /api/chat instead.
     """
-    if query_processor is None or agent_graph is None:
+    if not agent_graph or not query_processor:
         raise HTTPException(status_code=500, detail="Services not initialized")
-    
+
     try:
-        results = query_processor.handle_user_query(
-            request.query, 
+        results = await run_in_threadpool(
+            query_processor.handle_user_query,
+            request.query,
             agent_graph
         )
-        
-        return {
-            "answer": results["answer"],
-            "sql_queries": results["sql_queries"],
-            "data": results["data"],
-            "conversation_flow": results["conversation_flow"]
-        }
+
+        return QueryResponse(
+            answer=results.get("answer", ""),
+            sql_queries=results.get("sql_queries", []),
+            data=results.get("data", []),
+            conversation_flow=results.get("conversation_flow", [])
+        )
+
     except Exception as e:
         import traceback
         traceback.print_exc()
