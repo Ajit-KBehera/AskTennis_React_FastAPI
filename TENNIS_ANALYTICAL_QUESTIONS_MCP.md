@@ -1042,6 +1042,7 @@ This document contains a comprehensive collection of analytical and complex tenn
 998. Who has the most "Outdoor Hard" wins?
 999. Identify the "Master of the Clay Slide" (best movement stats).
 1000. Compare "Success Rate of Drop Shots" on Clay vs. Hard.
+1001. When's the last time three teenagers played  WTA  final round match on the same day/week?
 
 ---
 
