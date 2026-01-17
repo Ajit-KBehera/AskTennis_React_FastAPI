@@ -65,12 +65,29 @@ class QueryProcessor:
                 "answer": final_answer,
                 "sql_queries": sql_queries,
                 "data": data_list,
-                "conversation_flow": [msg.content for msg in conversation_messages],
+                "conversation_flow": self._serialize_messages(conversation_messages),
                 "session_id": session_id
             }
             
         except Exception as e:
             raise Exception(f"An error occurred while processing your request: {e}")
+    
+    def _serialize_messages(self, messages: List[Any]) -> List[Dict[str, Any]]:
+        """Serialize messages for frontend consumption."""
+        serialized = []
+        for msg in messages:
+            msg_data = {
+                "type": type(msg).__name__,
+                "content": msg.content,
+            }
+            # Include tool calls if present (mostly for AIMessage)
+            if hasattr(msg, "tool_calls") and msg.tool_calls:
+                msg_data["tool_calls"] = [
+                    {"name": tc.get("name"), "args": tc.get("args")} 
+                    for tc in msg.tool_calls
+                ]
+            serialized.append(msg_data)
+        return serialized
     
     def process_agent_response(self, conversation_messages: List[Any]) -> str:
         """Process and format the agent's response."""

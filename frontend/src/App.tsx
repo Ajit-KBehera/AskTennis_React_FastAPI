@@ -26,6 +26,7 @@ function App() {
     const [aiResponse, setAiResponse] = useState<string>('');
     const [aiSqlQueries, setAiSqlQueries] = useState<string[]>([]);
     const [aiData, setAiData] = useState<any[]>([]);
+    const [aiConversationFlow, setAiConversationFlow] = useState<any[]>([]);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState<string>('');
 
@@ -44,7 +45,9 @@ function App() {
         // Clear AI state when switching to analysis view
         setAiResponse('');
         setAiSqlQueries([]);
+        setAiSqlQueries([]);
         setAiData([]);
+        setAiConversationFlow([]);
         setAiError('');
 
         setHasGeneratedAnalysis(true);
@@ -59,7 +62,9 @@ function App() {
         setAiError('');
         setAiResponse('');
         setAiSqlQueries([]);
+        setAiSqlQueries([]);
         setAiData([]);
+        setAiConversationFlow([]);
 
         try {
             const response = await apiClient.post(endpoints.query, {
@@ -68,7 +73,9 @@ function App() {
 
             setAiResponse(response.data.answer || '');
             setAiSqlQueries(response.data.sql_queries || []);
+            setAiSqlQueries(response.data.sql_queries || []);
             setAiData(response.data.data || []);
+            setAiConversationFlow(response.data.conversation_flow || []);
         } catch (error: any) {
             setAiError(error.response?.data?.detail || 'Failed to get AI response. Please try again.');
         } finally {
@@ -117,6 +124,7 @@ function App() {
                         aiResponse={aiResponse}
                         aiSqlQueries={aiSqlQueries}
                         aiData={aiData}
+                        conversationFlow={aiConversationFlow}
                     />
                 )}
 
