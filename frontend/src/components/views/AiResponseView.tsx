@@ -6,6 +6,7 @@ import SqlCodeBlock from '../ui/SqlCodeBlock';
 import Expander from '../ui/Expander';
 import { DataTable } from '../ui/DataTable';
 import { parseMessageForDisplay } from '../../utils/messageParser';
+import { DataVisualizer } from '../ui/DataVisualizer';
 
 interface AiResponseViewProps {
     aiResponse: string;
@@ -64,6 +65,12 @@ export const AiResponseView: React.FC<AiResponseViewProps> = ({
             {/* Data Expander */}
             {aiData && aiData.length > 0 && (
                 <Expander label={`Query Results (${aiData.length} rows)`}>
+                    {/* 1. Visual Analysis (Auto-Detected) */}
+                    <div className="mt-4">
+                        <DataVisualizer data={aiData} />
+                    </div>
+
+                    {/* 2. Raw Data Table */}
                     <div className="mt-4">
                         <DataTable data={aiData} maxHeight={400} />
                     </div>
