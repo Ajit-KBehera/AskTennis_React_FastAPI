@@ -5,6 +5,7 @@ import { Lightbulb } from 'lucide-react';
 import SqlCodeBlock from '../ui/SqlCodeBlock';
 import Expander from '../ui/Expander';
 import { DataTable } from '../ui/DataTable';
+import { parseMessageForDisplay } from '../../utils/messageParser';
 
 interface AiResponseViewProps {
     aiResponse: string;
@@ -20,71 +21,18 @@ export const AiResponseView: React.FC<AiResponseViewProps> = ({
     conversationFlow
 }) => {
     const renderMessageContent = (msg: any) => {
-        const type = msg.type;
-        const content = msg.content;
+        const { label, labelClass, content, isCodeBlock } = parseMessageForDisplay(msg);
 
-        if (type === 'HumanMessage') {
-            return (
-                <div className="space-y-1">
-                    <div className="text-sm font-bold text-blue-300">👤 Human:</div>
-                    <div className="text-gray-300 whitespace-pre-wrap">{typeof content === 'string' ? content : JSON.stringify(content)}</div>
-                </div>
-            );
-        }
-
-        if (type === 'AIMessage') {
-            let textContent = "";
-            if (Array.isArray(content)) {
-                for (const part of content) {
-                    if (typeof part === 'string') {
-                        textContent += part;
-                    } else if (typeof part === 'object' && part !== null) {
-                        textContent += part.text || JSON.stringify(part);
-                    }
-                }
-            } else {
-                textContent = String(content);
-            }
-
-            if (!textContent && msg.tool_calls && msg.tool_calls.length > 0) {
-                const toolNames = msg.tool_calls.map((tc: any) => tc.name).join(', ');
-                textContent = `🔧 Calling tool(s): ${toolNames}`;
-            } else if (!textContent) {
-                textContent = "*[No text content]*";
-            }
-
-            return (
-                <div className="space-y-1">
-                    <div className="text-sm font-bold text-emerald-300">🤖 AI:</div>
-                    <div className="text-gray-300 whitespace-pre-wrap">{textContent}</div>
-                </div>
-            );
-        }
-
-        if (type === 'ToolMessage') {
-            let contentStr = String(content);
-            if (contentStr.length > 500) {
-                contentStr = contentStr.substring(0, 500) + "...";
-            }
-            return (
-                <div className="space-y-1">
-                    <div className="text-sm font-bold text-amber-300">🔧 Tool Response:</div>
-                    <div className="bg-black/30 p-2 rounded text-xs font-mono text-gray-400 overflow-x-auto">
-                        {contentStr}
-                    </div>
-                </div>
-            );
-        }
-
-        // Fallback for other message types
-        let displayContent = String(content);
-        if (displayContent.length > 200) {
-            displayContent = displayContent.substring(0, 200) + "...";
-        }
         return (
             <div className="space-y-1">
-                <div className="text-sm font-bold text-gray-400">📝 {type}:</div>
-                <div className="text-gray-300">{displayContent}</div>
+                <div className={`text-sm font-bold ${labelClass}`}>{label}</div>
+                {isCodeBlock ? (
+                    <div className="bg-black/30 p-2 rounded text-xs font-mono text-gray-400 overflow-x-auto">
+                        {content}
+                    </div>
+                ) : (
+                    <div className="text-gray-300 whitespace-pre-wrap">{content}</div>
+                )}
             </div>
         );
     };
