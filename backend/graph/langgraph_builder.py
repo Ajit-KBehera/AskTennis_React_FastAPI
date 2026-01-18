@@ -12,6 +12,11 @@ from agent.agent_state import AgentState
 from typing import List, Any, Callable
 from tennis.tennis_schema_pruner import TennisSchemaPruner
 from tennis.tennis_prompts import TennisPromptBuilder
+import diskcache
+import hashlib
+import json
+import os
+
 
 
 class LangGraphBuilder:
@@ -43,7 +48,14 @@ class LangGraphBuilder:
         self.prompt_template_factory = prompt_template_factory
         self.db = db
         self.full_schema = full_schema
+        self.full_schema = full_schema
         self.schema_pruner = TennisSchemaPruner(full_schema)
+        
+        # Initialize disk-based cache
+        cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".cache")
+        self.cache = diskcache.Cache(cache_dir)
+        print(f"--- Cache initialized at {cache_dir} ---")
+
     
     def _has_sql_results(self, messages: List[Any]) -> bool:
         """
@@ -245,6 +257,23 @@ class LangGraphBuilder:
                     for tool in self.tools:
                         if tool.name == tool_name:
                             try:
+                                # Check cache for sql_db_query
+                                if tool_name == "sql_db_query":
+                                    query = tool_input.get("query")
+                                    if query:
+                                        # Create a deterministic cache key
+                                        cache_key = hashlib.md5(f"sql_query:{query}".encode()).hexdigest()
+                                        
+                                        # Check cache
+                                        cached_result = self.cache.get(cache_key)
+                                        if cached_result:
+                                            print(f"--- Serving from cache: {query[:50]}... ---")
+                                            return_state = {}
+                                            return_state["sql_queries"] = [query]
+                                            return_state["messages"] = [AIMessage(content=str(cached_result), tool_calls=[])]
+                                            return_state["data_list"] = [cached_result]
+                                            return return_state
+
                                 result = tool.invoke(tool_input)
                                 # print(tool_name, "\n\n", tool_input, "\n\n", result, "\n\n")
                                 return_state = {}
@@ -281,6 +310,14 @@ class LangGraphBuilder:
                                         result_str = str(result)
                                         truncation_note = f"\n\n[Note: Results truncated to 100 rows. Original query returned more rows.]"
                                         result = result_str + truncation_note
+                                    
+                                    # Cache the result (TTL: 24 hours)
+                                    if query:
+                                        # Store original result in cache, not truncated one if possible? 
+                                        # Actually, for analysis we want the data.
+                                        # Let's cache the RESULT that we are returning.
+                                        cache_key = hashlib.md5(f"sql_query:{query}".encode()).hexdigest()
+                                        self.cache.set(cache_key, result, expire=86400)
                                 
                                 # If sql_db_query_checker returned formatted SQL, add a hint to execute
                                 if tool_name == "sql_db_query_checker" and result and "SELECT" in str(result).upper():
