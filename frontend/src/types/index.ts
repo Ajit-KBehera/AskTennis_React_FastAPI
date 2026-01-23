@@ -165,3 +165,29 @@ export interface StatsFilters {
 // Re-export for backward compatibility
 export type FilterOptions = FilterOptionsResponse;
 
+// ============================================================================
+// AI Query Types
+// ============================================================================
+
+export interface AiQueryResponse {
+  answer: string;
+  sql_queries: string[];
+  data: Record<string, unknown>[];
+  conversation_flow: ConversationFlowItem[];
+}
+
+export interface ConversationFlowItem {
+  role: string;
+  content: string;
+  [key: string]: unknown;
+}
+
+export interface AiQueryState {
+  response: string;
+  sqlQueries: string[];
+  data: Record<string, unknown>[];
+  conversationFlow: ConversationFlowItem[];
+  loading: boolean;
+  error: string;
+}
+
