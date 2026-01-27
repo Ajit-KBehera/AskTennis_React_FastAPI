@@ -39,6 +39,13 @@ app.add_middleware(
     **cors_config
 )
 
+# Initialize OpenTelemetry
+from config.observability import setup_observability
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+tracer = setup_observability()
+FastAPIInstrumentor.instrument_app(app)
+
 # Initialize structured logging
 from config.logging_config import configure_logging
 import structlog

@@ -29,8 +29,7 @@ export const Tabs: React.FC<TabsProps> = ({
   rankingChart,
   matches,
   loading,
-  selectedPlayer,
-  filters
+  selectedPlayer
 }) => {
   const [activeTab, setActiveTab] = useState<'matches' | 'serve' | 'return' | 'ranking'>('matches');
 
@@ -130,8 +129,8 @@ export const Tabs: React.FC<TabsProps> = ({
               onClick={() => setActiveTab(tab.id)}
               type="button"
               className={`px-6 py-3 rounded-xl font-bold transition-all border cursor-pointer whitespace-nowrap ${activeTab === tab.id
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 border-blue-500/50'
-                  : 'bg-white/5 text-slate-400 hover:bg-white/10 border-white/5 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 border-blue-500/50'
+                : 'bg-white/5 text-slate-400 hover:bg-white/10 border-white/5 hover:text-white'
                 }`}
             >
               {tab.label}

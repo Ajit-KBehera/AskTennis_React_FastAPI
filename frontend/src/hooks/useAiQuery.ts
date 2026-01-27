@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { apiClient, endpoints } from '../api/client';
-import { AiQueryState, AiQueryResponse, ConversationFlowItem } from '../types';
+import { AiQueryState, AiQueryResponse } from '../types';
 
 const initialState: AiQueryState = {
   response: '',

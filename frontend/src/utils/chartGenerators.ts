@@ -89,7 +89,7 @@ const createTimeSeriesChart = (options: CreateTimeSeriesOptions): ChartConfig =>
 };
 
 
-export const createServeTimelineChart = (matches: any[], playerName: string): ChartConfig => {
+export const createServeTimelineChart = (matches: any[], _playerName: string): ChartConfig => {
     return createTimeSeriesChart({
         title: 'Serve Performance',
         yAxisTitle: 'Percentage (%)',
@@ -103,7 +103,7 @@ export const createServeTimelineChart = (matches: any[], playerName: string): Ch
     });
 };
 
-export const createAceDfChart = (matches: any[], playerName: string): ChartConfig => {
+export const createAceDfChart = (matches: any[], _playerName: string): ChartConfig => {
     return createTimeSeriesChart({
         title: 'Ace vs Double Fault Rate',
         yAxisTitle: 'Rate (%)',
@@ -115,7 +115,7 @@ export const createAceDfChart = (matches: any[], playerName: string): ChartConfi
     });
 };
 
-export const createReturnPointsChart = (matches: any[], playerName: string): ChartConfig => {
+export const createReturnPointsChart = (matches: any[], _playerName: string): ChartConfig => {
     // Note: The original had a specific hovertemplate: '<b>%{fullData.name}</b>: %{y}%<extra></extra>'
     // For simplicity we'll stick to 'x unified' hovermode which is cleaner, or we could add hovertemplate support to the helper.
     // Given the original code had 'x unified' in the layout, the hovertemplate might have been redundant or conflicting in subtle ways.
@@ -137,7 +137,7 @@ export const createReturnPointsChart = (matches: any[], playerName: string): Cha
     });
 };
 
-export const createBpConversionChart = (matches: any[], playerName: string): ChartConfig => {
+export const createBpConversionChart = (matches: any[], _playerName: string): ChartConfig => {
     return createTimeSeriesChart({
         title: 'Break Point Conversion Rate',
         yAxisTitle: 'Percentage (%)',
@@ -155,7 +155,7 @@ export const createBpConversionChart = (matches: any[], playerName: string): Cha
     });
 };
 
-export const createBpSavedChart = (matches: any[], playerName: string): ChartConfig => {
+export const createBpSavedChart = (matches: any[], _playerName: string): ChartConfig => {
     return createTimeSeriesChart({
         title: 'Break Points Faced vs Saved',
         yAxisTitle: 'Count',
@@ -221,7 +221,7 @@ export const createRadarChart = (
     };
 };
 
-export const createRankingChart = (rankingData: any[], playerName: string): ChartConfig => {
+export const createRankingChart = (rankingData: any[], _playerName: string): ChartConfig => {
     // rankingData has { ranking_date, rank, tour? }
     const sortedData = [...rankingData].sort((a, b) =>
         new Date(a.ranking_date).getTime() - new Date(b.ranking_date).getTime()

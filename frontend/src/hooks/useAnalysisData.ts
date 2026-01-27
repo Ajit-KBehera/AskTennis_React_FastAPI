@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { endpoints, apiClient } from '../api/client';
 import {
-    ServeStatsRequest, MatchesResponse, ServeStatsResponse,
+    MatchesResponse, ServeStatsResponse,
     ReturnStatsResponse, RankingStatsResponse, FilterState
 } from '../types';
 
