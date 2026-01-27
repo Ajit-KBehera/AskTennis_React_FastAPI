@@ -39,6 +39,46 @@ app.add_middleware(
     **cors_config
 )
 
+# Initialize structured logging
+from config.logging_config import configure_logging
+import structlog
+import uuid
+import time
+
+configure_logging()
+logger = structlog.get_logger()
+
+# Request ID and Logging Middleware
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+    
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        
+        logger.info(
+            "request_processed",
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            process_time=process_time
+        )
+        response.headers["X-Request-ID"] = request_id
+        return response
+    except Exception as e:
+        process_time = time.time() - start_time
+        logger.error(
+            "request_failed",
+            method=request.method,
+            path=request.url.path,
+            error=str(e),
+            process_time=process_time
+        )
+        raise
+
 # Initialize services
 try:
     agent_graph = setup_langgraph_agent()

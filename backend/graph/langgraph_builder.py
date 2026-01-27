@@ -12,10 +12,13 @@ from agent.agent_state import AgentState
 from typing import List, Any, Callable
 from tennis.tennis_schema_pruner import TennisSchemaPruner
 from tennis.tennis_prompts import TennisPromptBuilder
-import diskcache
+from tennis.tennis_schema_pruner import TennisSchemaPruner
+from tennis.tennis_prompts import TennisPromptBuilder
+# import diskcache  # Replaced by CacheService
 import hashlib
 import json
 import os
+from services.cache_service import CacheFactory
 
 
 
@@ -51,10 +54,9 @@ class LangGraphBuilder:
         self.full_schema = full_schema
         self.schema_pruner = TennisSchemaPruner(full_schema)
         
-        # Initialize disk-based cache
-        cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".cache")
-        self.cache = diskcache.Cache(cache_dir)
-        print(f"--- Cache initialized at {cache_dir} ---")
+        # Initialize abstract cache service
+        self.cache = CacheFactory.get_service()
+
 
     
     def _has_sql_results(self, messages: List[Any]) -> bool:
