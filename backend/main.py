@@ -86,10 +86,14 @@ async def root():
         "endpoints": endpoints
     }
 
+# Import authentication dependency
+from config.auth import get_api_key
+from fastapi import Depends
+
 # New /api/query endpoint (same as legacy, but under /api prefix)
 @api_router.post("/query", response_model=QueryResponse)
 @limiter.limit(get_query_rate_limit_string())
-async def process_query(request: Request, query_request: QueryRequest):
+async def process_query(request: Request, query_request: QueryRequest, api_key: str = Depends(get_api_key)):
     """
     AI query endpoint - generates SQL and returns detailed results.
     For chat-style interface, use /api/chat instead.

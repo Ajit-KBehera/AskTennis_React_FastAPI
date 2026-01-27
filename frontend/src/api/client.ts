@@ -30,10 +30,13 @@ const getApiBaseUrl = (): string => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+const API_KEY = import.meta.env.VITE_API_KEY || 'dev-key';
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'X-API-Key': API_KEY,
   },
 });
 
