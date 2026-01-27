@@ -5,7 +5,6 @@ Provides a single source of truth for database type detection and configuration.
 
 from typing import Optional
 import os
-from constants import DEFAULT_DB_PATH
 
 from .base import DatabaseConfig
 from .sqlite_config import SQLiteConfig

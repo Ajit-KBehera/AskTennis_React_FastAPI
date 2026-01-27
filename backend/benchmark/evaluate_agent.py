@@ -3,7 +3,6 @@ import sys
 import os
 import json
 import re
-import random
 import time
 import argparse
 from datetime import datetime
@@ -52,7 +51,7 @@ def run_benchmark(limit: int = 5, question_ids: List[int] = None):
     else:
         questions_to_run = all_questions[:limit] if limit else all_questions
 
-    print(f"--- Initializing Agent ---")
+    print("--- Initializing Agent ---")
     try:
         agent_graph = setup_langgraph_agent()
         query_processor = QueryProcessor()

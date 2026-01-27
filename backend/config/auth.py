@@ -4,7 +4,7 @@ Handles API key validation.
 """
 
 import os
-from fastapi import Header, HTTPException, Security
+from fastapi import Header, HTTPException
 from typing import Optional
 
 

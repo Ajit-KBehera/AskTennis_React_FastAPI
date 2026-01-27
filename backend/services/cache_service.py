@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 import os
 import diskcache
+import redis
+import pickle
 
 class CacheService(ABC):
     """Abstract base class for caching services."""
@@ -34,10 +36,6 @@ class DiskCacheService(CacheService):
     def set(self, key: str, value: Any, expire: int = 86400) -> None:
         self.cache.set(key, value, expire=expire)
 
-import redis
-import json
-import pickle
-
 class RedisCacheService(CacheService):
     """Redis-based caching implementation."""
     
@@ -50,16 +48,16 @@ class RedisCacheService(CacheService):
             data = self.redis.get(key)
             if data:
                 return pickle.loads(data)
-        except Exception as e:
-            print(f"Error reading from Redis: {e}")
+        except Exception:
+            print("Error reading from Redis")
         return None
 
     def set(self, key: str, value: Any, expire: int = 86400) -> None:
         try:
             pickled_value = pickle.dumps(value)
             self.redis.set(key, pickled_value, ex=expire)
-        except Exception as e:
-            print(f"Error writing to Redis: {e}")
+        except Exception:
+            print("Error writing to Redis")
 
 class CacheFactory:
     """Factory to create the appropriate cache service."""

@@ -6,7 +6,7 @@ CREATE TABLE statements based on user query intent.
 """
 
 import re
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 
 class TennisSchemaPruner:

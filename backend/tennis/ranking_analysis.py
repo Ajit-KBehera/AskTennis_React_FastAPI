@@ -8,7 +8,7 @@ for tennis-related queries involving player rankings.
 import re
 from enum import Enum
 from functools import lru_cache
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 
 
 class RankingQuestionType(Enum):

@@ -3,12 +3,8 @@ Database Service for Enhanced UI
 Provides dynamic data for dropdowns and analysis
 """
 
-import os
-import duckdb
 import pandas as pd
 from typing import List, Optional, Tuple, Union
-import glob
-from pathlib import Path
 from functools import lru_cache
 from sqlalchemy import Engine, text
 
@@ -619,7 +615,7 @@ class DatabaseService:
                             where_conditions.append("event_year = ?")
                             params.append(year_int)
                         
-                except (ValueError, TypeError) as e:
+                except (ValueError, TypeError):
                     pass
             
             if surfaces:

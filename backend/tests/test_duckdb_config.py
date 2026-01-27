@@ -3,8 +3,7 @@ Tests for DuckDB configuration and DatabaseFactory.
 """
 
 import os
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from config.database.database_factory import DatabaseFactory
 from config.database.duckdb_config import DuckDBConfig
 from config.database.sqlite_config import SQLiteConfig

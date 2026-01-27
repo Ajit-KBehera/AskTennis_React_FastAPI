@@ -1,14 +1,12 @@
 import os
 import sys
 import pandas as pd
-from typing import List, Optional
 from mcp.server.fastmcp import FastMCP
 from sqlalchemy import text, inspect
 
 # Add backend directory to path so we can import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.config.database.database_factory import DatabaseFactory
 from backend.services.database_service import DatabaseService
 
 # Initialize MCP Server

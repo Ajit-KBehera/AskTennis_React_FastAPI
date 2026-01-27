@@ -6,7 +6,6 @@ from match data. These functions can be used by charts, tables, and other
 analysis tools.
 """
 
-import pandas as pd
 import numpy as np
 
 # Import utility function from utils

@@ -1,26 +1,32 @@
-from fastapi import FastAPI, HTTPException, APIRouter, Request
+from fastapi import FastAPI, HTTPException, APIRouter, Request, Depends
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-import os
+from typing import List, Dict, Any
+import time
+import uuid
+import structlog
 from dotenv import load_dotenv
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-# Load environment variables
-load_dotenv()
-
-# Import core logic
+# Core logic imports
 from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 
-# Import API routers
+# API Routers
 from api.routers import filters_router, matches_router, stats_router
 
-# Import configuration
+# Configuration imports
 from config.cors import get_cors_config
 from config.rate_limiter import limiter, get_query_rate_limit_string
+from config.observability import setup_observability
+from config.logging_config import configure_logging
+from config.auth import get_api_key
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(
     title="AskTennis API",
@@ -40,18 +46,10 @@ app.add_middleware(
 )
 
 # Initialize OpenTelemetry
-from config.observability import setup_observability
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
 tracer = setup_observability()
 FastAPIInstrumentor.instrument_app(app)
 
 # Initialize structured logging
-from config.logging_config import configure_logging
-import structlog
-import uuid
-import time
-
 configure_logging()
 logger = structlog.get_logger()
 
@@ -133,9 +131,7 @@ async def root():
         "endpoints": endpoints
     }
 
-# Import authentication dependency
-from config.auth import get_api_key
-from fastapi import Depends
+# Import authentication dependency already imported at top
 
 # New /api/query endpoint (same as legacy, but under /api prefix)
 @api_router.post("/query", response_model=QueryResponse)

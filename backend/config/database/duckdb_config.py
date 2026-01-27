@@ -5,7 +5,6 @@ Handles local DuckDB database setup and connection with read-only support.
 
 from typing import Optional
 from sqlalchemy import create_engine, Engine
-from constants import DEFAULT_DB_PATH
 from .base import DatabaseConfig
 
 

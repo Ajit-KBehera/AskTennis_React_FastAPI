@@ -7,10 +7,9 @@ Endpoints:
 """
 
 from fastapi import APIRouter, HTTPException
-import json
 import pandas as pd
 import numpy as np
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 
 from services.database_service import DatabaseService
 from api.models import (
@@ -112,7 +111,8 @@ async def get_serve_stats(request: ServeStatsRequest):
 
         # Convert Aggregated stats
         def clean_stats_dict(stats_dict):
-            if not stats_dict: return None
+            if not stats_dict:
+                return None
             return {k: (float(v) if not pd.isna(v) else None) for k, v in stats_dict.items()}
             
         return ServeStatsResponse(
@@ -178,7 +178,8 @@ async def get_return_stats(request: ReturnStatsRequest):
 
         # Helper to clean stats
         def clean_stats_dict(stats_dict):
-            if not stats_dict: return None
+            if not stats_dict:
+                return None
             return {k: (float(v) if not pd.isna(v) else None) for k, v in stats_dict.items()}
 
         matches_with_stats['match_index'] = range(len(matches_with_stats))

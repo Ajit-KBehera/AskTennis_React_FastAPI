@@ -4,7 +4,7 @@ Endpoint: POST /api/matches
 """
 
 from fastapi import APIRouter, HTTPException
-from typing import List, Dict, Any, Optional
+from typing import List
 import pandas as pd
 
 from services.database_service import DatabaseService

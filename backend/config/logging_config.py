@@ -6,7 +6,6 @@ Configures structured logging (JSON) for production and pretty printing for deve
 import logging
 import sys
 import structlog
-from typing import Any, Dict
 import os
 from dotenv import load_dotenv
 

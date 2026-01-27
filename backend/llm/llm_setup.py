@@ -13,7 +13,6 @@ from langchain_community.tools import (
 from langchain_core.tools import tool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from typing import Dict, Any, List, Optional, Union, Sequence
-from constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 
 from config.database.base import DatabaseConfig
 

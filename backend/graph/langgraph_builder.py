@@ -12,12 +12,8 @@ from agent.agent_state import AgentState
 from typing import List, Any, Callable
 from tennis.tennis_schema_pruner import TennisSchemaPruner
 from tennis.tennis_prompts import TennisPromptBuilder
-from tennis.tennis_schema_pruner import TennisSchemaPruner
-from tennis.tennis_prompts import TennisPromptBuilder
 # import diskcache  # Replaced by CacheService
 import hashlib
-import json
-import os
 from services.cache_service import CacheFactory
 
 
@@ -310,7 +306,7 @@ class LangGraphBuilder:
                                     # Add truncation note if results were truncated
                                     if truncated:
                                         result_str = str(result)
-                                        truncation_note = f"\n\n[Note: Results truncated to 100 rows. Original query returned more rows.]"
+                                        truncation_note = "\n\n[Note: Results truncated to 100 rows. Original query returned more rows.]"
                                         result = result_str + truncation_note
                                     
                                     # Cache the result (TTL: 24 hours)
