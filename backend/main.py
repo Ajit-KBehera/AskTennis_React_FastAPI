@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import os
 from dotenv import load_dotenv
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables
 load_dotenv()
@@ -16,19 +18,25 @@ from services.query_service import QueryProcessor
 # Import API routers
 from api.routers import filters_router, matches_router, stats_router
 
+# Import configuration
+from config.cors import get_cors_config
+from config.rate_limiter import limiter, get_query_rate_limit_string
+
 app = FastAPI(
     title="AskTennis API",
     description="AI-powered tennis statistics and analytics API",
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Add CORS middleware with environment-based configuration
+cors_config = get_cors_config()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    **cors_config
 )
 
 # Initialize services
@@ -80,7 +88,8 @@ async def root():
 
 # New /api/query endpoint (same as legacy, but under /api prefix)
 @api_router.post("/query", response_model=QueryResponse)
-async def process_query(request: QueryRequest):
+@limiter.limit(get_query_rate_limit_string())
+async def process_query(request: Request, query_request: QueryRequest):
     """
     AI query endpoint - generates SQL and returns detailed results.
     For chat-style interface, use /api/chat instead.
@@ -91,7 +100,7 @@ async def process_query(request: QueryRequest):
     try:
         results = await run_in_threadpool(
             query_processor.handle_user_query,
-            request.query,
+            query_request.query,
             agent_graph
         )
 
