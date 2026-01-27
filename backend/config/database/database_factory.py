@@ -9,6 +9,7 @@ from constants import DEFAULT_DB_PATH
 
 from .base import DatabaseConfig
 from .sqlite_config import SQLiteConfig
+from .duckdb_config import DuckDBConfig
 from .cloud_sql_config import CloudSQLConfig
 
 
@@ -43,22 +44,25 @@ class DatabaseFactory:
         Create a database configuration instance based on environment settings.
         
         Args:
-            db_path: Optional database path (for SQLite). If None, uses DEFAULT_DB_PATH.
+            db_path: Optional database path (for SQLite/DuckDB). If None, uses DEFAULT_DB_PATH.
             force_sqlite: Force SQLite configuration even if Cloud SQL is available
             force_cloud_sql: Force Cloud SQL configuration (will fail if config is missing)
             
         Returns:
-            DatabaseConfig instance (SQLiteConfig or CloudSQLConfig)
+            DatabaseConfig instance (SQLiteConfig, DuckDBConfig, or CloudSQLConfig)
             
         Raises:
             ValueError: If force_cloud_sql is True but Cloud SQL config is missing
         """
+        # Check environment for explicit DB type
+        db_type = os.getenv("DB_TYPE", "").lower()
+        
         # Check if we should use Cloud SQL
         use_cloud_sql = False
         
         if force_cloud_sql:
             use_cloud_sql = True
-        elif not force_sqlite:
+        elif not force_sqlite and db_type != "sqlite" and db_type != "duckdb":
             use_cloud_sql = DatabaseFactory._is_cloud_sql_config()
         
         if use_cloud_sql:
@@ -74,8 +78,11 @@ class DatabaseFactory:
                 print("WARNING: Cloud SQL configuration incomplete, falling back to SQLite")
                 return SQLiteConfig(db_path)
             return config
+        elif db_type == "duckdb" or (db_path and db_path.startswith("duckdb://")):
+            # Create DuckDB configuration
+            return DuckDBConfig(db_path)
         else:
-            # Create SQLite configuration
+            # Create SQLite configuration (default)
             return SQLiteConfig(db_path)
     
     @staticmethod
