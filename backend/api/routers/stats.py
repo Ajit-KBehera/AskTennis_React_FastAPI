@@ -40,7 +40,7 @@ router = APIRouter(prefix="/stats")
 # Initialize database service
 try:
     db_service = DatabaseService()
-except Exception as e:
+except Exception:
     db_service = None
 
 

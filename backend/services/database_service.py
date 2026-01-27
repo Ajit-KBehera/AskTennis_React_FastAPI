@@ -165,7 +165,7 @@ class DatabaseService:
                     result = conn.execute(query).fetchone()
                     if result and result[0]:
                         return 'unified'
-        except Exception as e:
+        except Exception:
             # Default to separate for new databases
             return 'separate'
         # Default to separate for new databases (most common case)
@@ -242,7 +242,7 @@ class DatabaseService:
             if df.empty:
                 return [DatabaseService.ALL_PLAYERS]
             return [DatabaseService.ALL_PLAYERS] + df['player_name'].tolist()
-        except Exception as e:
+        except Exception:
             return [DatabaseService.ALL_PLAYERS, "Roger Federer", "Rafael Nadal", "Novak Djokovic"]
     
     @lru_cache(maxsize=128)
@@ -287,7 +287,7 @@ class DatabaseService:
                 if df.empty:
                     return [DatabaseService.ALL_TOURNAMENTS]
                 return [DatabaseService.ALL_TOURNAMENTS] + df['tourney_name'].tolist()
-            except Exception as e:
+            except Exception:
                 return [DatabaseService.ALL_TOURNAMENTS, "Wimbledon", "French Open", "US Open", "Australian Open"]
         
         # Filter tournaments for specific player
@@ -326,7 +326,7 @@ class DatabaseService:
             if df.empty:
                 return [DatabaseService.ALL_TOURNAMENTS]
             return [DatabaseService.ALL_TOURNAMENTS] + df['tourney_name'].tolist()
-        except Exception as e:
+        except Exception:
             # Fallback to all tournaments on error
             try:
                 schema_type = _self._detect_schema_type()
@@ -412,7 +412,7 @@ class DatabaseService:
                 max_year = _self.MAX_YEAR
             
             return (min_year, max_year)
-        except Exception as e:
+        except Exception:
             return (1968, 2024)  # Default range on error
     
     @lru_cache(maxsize=128)
@@ -476,7 +476,7 @@ class DatabaseService:
             # This ensures we don't return unexpected surface types
             filtered_surfaces = [s for s in all_surfaces if s in player_surfaces]
             return filtered_surfaces if filtered_surfaces else all_surfaces
-        except Exception as e:
+        except Exception:
             return all_surfaces  # Fallback to all surfaces on error
     
     @lru_cache(maxsize=128)
@@ -534,7 +534,7 @@ class DatabaseService:
             if df.empty:
                 return [DatabaseService.ALL_OPPONENTS]
             return [DatabaseService.ALL_OPPONENTS] + df['opponent_name'].tolist()
-        except Exception as e:
+        except Exception:
             return _self.get_all_players()
     
     @lru_cache(maxsize=32)
@@ -868,7 +868,7 @@ class DatabaseService:
                                 year_filter_clause = f"AND CAST({year_expr} AS INTEGER) = ?"
                                 year_params = [year_int]
                                 
-                    except (ValueError, TypeError) as e:
+                    except (ValueError, TypeError):
                         # If year filtering fails, just continue without year filter
                         pass
                 
@@ -928,5 +928,5 @@ class DatabaseService:
                 
                 return combined_df
                 
-        except Exception as e:
+        except Exception:
             return pd.DataFrame()

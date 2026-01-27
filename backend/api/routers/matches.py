@@ -16,7 +16,7 @@ router = APIRouter()
 # Initialize database service
 try:
     db_service = DatabaseService()
-except Exception as e:
+except Exception:
     db_service = None
 
 @router.post("/matches", response_model=MatchesResponse)
@@ -72,7 +72,7 @@ async def get_matches(request: StatsRequest):
                         'score': str(match_dict.get('score', '')) if pd.notna(match_dict.get('score')) else '',
                     }
                     matches.append(Match(**match_data))
-                except Exception as e:
+                except Exception:
                     continue
         
         return MatchesResponse(

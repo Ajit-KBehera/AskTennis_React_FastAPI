@@ -14,7 +14,7 @@ router = APIRouter()
 # Initialize database service (singleton pattern)
 try:
     db_service = DatabaseService()
-except Exception as e:
+except Exception:
     db_service = None
 
 
