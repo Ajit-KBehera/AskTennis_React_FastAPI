@@ -111,3 +111,5 @@ migrate.load
 node_modules
 
 backend/benchmark/benchmark_results*.json
+
+.ruff_cache
