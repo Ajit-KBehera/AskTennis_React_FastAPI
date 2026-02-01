@@ -1,9 +1,11 @@
 """
 String manipulation and parsing utilities.
 """
+
 import ast
 import json
 from typing import Any, List
+
 
 def safe_parse(val: Any) -> List[Any]:
     """
@@ -13,15 +15,15 @@ def safe_parse(val: Any) -> List[Any]:
     """
     if not val:
         return []
-    
+
     # Case 1: Already a list
     if isinstance(val, list):
         # Check if it's a list containing a stringified list (common LLM pattern)
-        if len(val) == 1 and isinstance(val[0], str) and val[0].strip().startswith('['):
+        if len(val) == 1 and isinstance(val[0], str) and val[0].strip().startswith("["):
             return safe_parse(val[0])
         # Otherwise return as is
         return val
-    
+
     # Case 2: String that needs parsing
     if isinstance(val, str):
         val = val.strip()
@@ -29,16 +31,16 @@ def safe_parse(val: Any) -> List[Any]:
             return []
         try:
             parsed = ast.literal_eval(val)
-            return safe_parse(parsed) # Recurse if needed
+            return safe_parse(parsed)  # Recurse if needed
         except Exception:
             try:
                 parsed = json.loads(val)
-                return safe_parse(parsed) # Recurse if needed
+                return safe_parse(parsed)  # Recurse if needed
             except Exception:
                 return [val] if val else []
-    
+
     # Case 3: Single dictionary (wrap it)
     if isinstance(val, dict):
         return [val]
-    
+
     return []

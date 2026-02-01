@@ -9,9 +9,8 @@ from .sqlite_config import SQLiteConfig
 from .cloud_sql_config import CloudSQLConfig
 
 __all__ = [
-    'DatabaseFactory',
-    'DatabaseConfig',
-    'SQLiteConfig',
-    'CloudSQLConfig',
+    "DatabaseFactory",
+    "DatabaseConfig",
+    "SQLiteConfig",
+    "CloudSQLConfig",
 ]
-

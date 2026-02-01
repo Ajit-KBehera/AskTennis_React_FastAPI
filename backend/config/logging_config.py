@@ -11,12 +11,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def configure_logging():
     """
     Configure structured logging based on environment.
     """
     environment = os.getenv("ENVIRONMENT", "development").lower()
-    
+
     shared_processors = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,

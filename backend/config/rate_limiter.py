@@ -11,10 +11,10 @@ from slowapi.util import get_remote_address
 def get_rate_limit_string() -> str:
     """
     Get rate limit string from environment or use default.
-    
+
     Environment Variables:
         RATE_LIMIT_PER_MINUTE: Requests per minute (default: 30)
-    
+
     Returns:
         Rate limit string in SlowAPI format (e.g., "30/minute")
     """
@@ -26,10 +26,10 @@ def get_query_rate_limit_string() -> str:
     """
     Get rate limit string specifically for AI query endpoints.
     These are more expensive, so we rate limit more aggressively.
-    
+
     Environment Variables:
         QUERY_RATE_LIMIT_PER_MINUTE: Requests per minute for /api/query (default: 10)
-    
+
     Returns:
         Rate limit string in SlowAPI format
     """

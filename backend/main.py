@@ -38,7 +38,7 @@ load_dotenv()
 app = FastAPI(
     title="AskTennis API",
     description="AI-powered tennis statistics and analytics API",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # =============================================================================
@@ -83,7 +83,7 @@ async def logging_middleware(request: Request, call_next):
             method=request.method,
             path=request.url.path,
             status_code=response.status_code,
-            process_time=process_time
+            process_time=process_time,
         )
         response.headers["X-Request-ID"] = request_id
         return response
@@ -95,7 +95,7 @@ async def logging_middleware(request: Request, call_next):
             method=request.method,
             path=request.url.path,
             error=str(e),
-            process_time=process_time
+            process_time=process_time,
         )
         raise
 
@@ -117,18 +117,20 @@ async def root():
     endpoints = []
     for route in app.routes:
         if hasattr(route, "path") and route.path.startswith("/api"):
-            methods = [m for m in route.methods if m not in ["OPTIONS", "HEAD"]] if hasattr(route, "methods") else []
-            endpoints.append({
-                "path": route.path,
-                "methods": methods,
-                "name": route.name
-            })
+            methods = (
+                [m for m in route.methods if m not in ["OPTIONS", "HEAD"]]
+                if hasattr(route, "methods")
+                else []
+            )
+            endpoints.append(
+                {"path": route.path, "methods": methods, "name": route.name}
+            )
 
     return {
         "message": "Welcome to AskTennis API",
         "version": "1.0.0",
         "docs_url": "/docs",
-        "endpoints": endpoints
+        "endpoints": endpoints,
     }
 
 
@@ -146,4 +148,5 @@ app.include_router(api_router)
 # =============================================================================
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

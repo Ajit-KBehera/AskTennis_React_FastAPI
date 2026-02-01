@@ -15,35 +15,36 @@ import numpy as np
 def safe_nanmean(series):
     """
     Calculate nanmean safely, returning NaN if all values are NaN.
-    
+
     This prevents RuntimeWarning when np.nanmean is called on empty or all-NaN arrays.
-    
+
     Args:
         series: pandas Series or array-like object
-        
+
     Returns:
         float: Mean value or np.nan if no valid values exist
     """
     if series is None or len(series) == 0:
         return np.nan
-    valid_values = series.dropna() if hasattr(series, 'dropna') else pd.Series(series).dropna()
+    valid_values = (
+        series.dropna() if hasattr(series, "dropna") else pd.Series(series).dropna()
+    )
     if len(valid_values) == 0:
         return np.nan
     return np.nanmean(series)
 
 
-
 def _calculate_player_return_stats(df):
     """
     Calculate player return statistics for each match in the dataframe.
-    
+
     Return statistics are calculated from the opponent's serve perspective:
     - Return Points Won % = 100 - (opponent's serve points won %)
     - Break Point Conversion = break points converted when returning
-    
+
     Args:
         df: DataFrame containing match data with 'is_winner' column
-        
+
     Returns:
         DataFrame: DataFrame with added player return statistics columns
     """
@@ -53,33 +54,36 @@ def _calculate_player_return_stats(df):
     # Return Points Won % = 100 - (opponent's serve points won %)
     # If player was winner, opponent was loser (use l_* columns)
     # If player was loser, opponent was winner (use w_* columns)
-    
+
     # Opponent's total serve points
-    opponent_svpt = np.where(df['is_winner'], df['l_svpt'], df['w_svpt'])
-    
+    opponent_svpt = np.where(df["is_winner"], df["l_svpt"], df["w_svpt"])
+
     # Opponent's points won on serve (1st serve won + 2nd serve won)
     opponent_points_won_on_serve = np.where(
-        df['is_winner'],
-        df['l_1stWon'] + df['l_2ndWon'],
-        df['w_1stWon'] + df['w_2ndWon']
+        df["is_winner"],
+        df["l_1stWon"] + df["l_2ndWon"],
+        df["w_1stWon"] + df["w_2ndWon"],
     )
-    
+
     # Opponent's serve points won %
     # Use np.divide with where parameter to avoid division by zero warnings
-    opponent_serve_points_won_pct = np.divide(
-        opponent_points_won_on_serve,
-        opponent_svpt,
-        out=np.full_like(opponent_points_won_on_serve, np.nan, dtype=float),
-        where=(opponent_svpt > 0)
-    ) * 100
-    
+    opponent_serve_points_won_pct = (
+        np.divide(
+            opponent_points_won_on_serve,
+            opponent_svpt,
+            out=np.full_like(opponent_points_won_on_serve, np.nan, dtype=float),
+            where=(opponent_svpt > 0),
+        )
+        * 100
+    )
+
     # Return Points Won % = 100 - opponent's serve points won %
-    df['player_return_points_won_pct'] = np.where(
+    df["player_return_points_won_pct"] = np.where(
         ~np.isnan(opponent_serve_points_won_pct),
         100 - opponent_serve_points_won_pct,
-        np.nan
+        np.nan,
     )
-    
+
     # =============================================================================
     # BREAK POINT CONVERSION CALCULATION (when returning)
     # =============================================================================
@@ -87,90 +91,105 @@ def _calculate_player_return_stats(df):
     # When player is returning, they convert break points that the opponent faced when serving
     # If player was winner: They converted break points = l_bpFaced - l_bpSaved
     # If player was loser: They converted break points = w_bpFaced - w_bpSaved
-    
+
     # Break points faced by opponent when serving (break points created by player)
-    opponent_bpFaced = np.where(df['is_winner'], df['l_bpFaced'], df['w_bpFaced'])
-    opponent_bpSaved = np.where(df['is_winner'], df['l_bpSaved'], df['w_bpSaved'])
-    
+    opponent_bpFaced = np.where(df["is_winner"], df["l_bpFaced"], df["w_bpFaced"])
+    opponent_bpSaved = np.where(df["is_winner"], df["l_bpSaved"], df["w_bpSaved"])
+
     # Break points converted = break points faced - break points saved
-    df['player_bpConverted'] = opponent_bpFaced - opponent_bpSaved
-    
+    df["player_bpConverted"] = opponent_bpFaced - opponent_bpSaved
+
     # Store break points faced by opponent for conversion percentage calculation
-    df['player_bpFaced_opponent'] = opponent_bpFaced
-    
+    df["player_bpFaced_opponent"] = opponent_bpFaced
+
     # Break Point Conversion %
     # Use np.divide with where parameter to avoid division by zero warnings
-    df['player_bpConversion_pct'] = np.divide(
-        df['player_bpConverted'],
-        df['player_bpFaced_opponent'],
-        out=np.full_like(df['player_bpConverted'], np.nan, dtype=float),
-        where=(df['player_bpFaced_opponent'] > 0)
-    ) * 100
-    
+    df["player_bpConversion_pct"] = (
+        np.divide(
+            df["player_bpConverted"],
+            df["player_bpFaced_opponent"],
+            out=np.full_like(df["player_bpConverted"], np.nan, dtype=float),
+            where=(df["player_bpFaced_opponent"] > 0),
+        )
+        * 100
+    )
+
     # =============================================================================
     # RETURN GAMES WON % CALCULATION
     # =============================================================================
     # Return Games Won % = percentage of opponent's service games broken
     # Note: This calculation may need adjustment based on available data
     # For now, we'll calculate a simplified version
-    df['player_return_games_won_pct'] = np.nan  # Placeholder - needs proper calculation
-    
+    df["player_return_games_won_pct"] = np.nan  # Placeholder - needs proper calculation
+
     return df
 
 
 def _calculate_opponent_return_stats(df):
     """
     Calculate opponent return statistics for each match in the dataframe.
-    
+
     Opponent return stats are the opposite of player return stats:
     - Opponent's return points won % = 100 - player's serve points won %
     - Opponent's break point conversion = break points converted when returning against player
-    
+
     Args:
         df: DataFrame containing match data with 'is_winner' column
-        
+
     Returns:
         DataFrame: DataFrame with added opponent return statistics columns
     """
     # Opponent's return points won % = 100 - player's serve points won %
-    player_svpt = np.where(df['is_winner'], df['w_svpt'], df['l_svpt'])
+    player_svpt = np.where(df["is_winner"], df["w_svpt"], df["l_svpt"])
     player_points_won_on_serve = np.where(
-        df['is_winner'],
-        df['w_1stWon'] + df['w_2ndWon'],
-        df['l_1stWon'] + df['l_2ndWon']
+        df["is_winner"],
+        df["w_1stWon"] + df["w_2ndWon"],
+        df["l_1stWon"] + df["l_2ndWon"],
     )
     # Use np.divide with where parameter to avoid division by zero warnings
-    player_serve_points_won_pct = np.divide(
-        player_points_won_on_serve,
-        player_svpt,
-        out=np.full_like(player_points_won_on_serve, np.nan, dtype=float),
-        where=(player_svpt > 0)
-    ) * 100
-    
-    df['opponent_return_points_won_pct'] = np.where(
+    player_serve_points_won_pct = (
+        np.divide(
+            player_points_won_on_serve,
+            player_svpt,
+            out=np.full_like(player_points_won_on_serve, np.nan, dtype=float),
+            where=(player_svpt > 0),
+        )
+        * 100
+    )
+
+    df["opponent_return_points_won_pct"] = np.where(
         ~np.isnan(player_serve_points_won_pct),
         100 - player_serve_points_won_pct,
-        np.nan
+        np.nan,
     )
-    
+
     # Opponent's break point conversion (when returning against player)
     # When opponent is returning, they convert break points that the player faced when serving
-    player_bpFaced_when_serving = np.where(df['is_winner'], df['w_bpFaced'], df['l_bpFaced'])
-    player_bpSaved_when_serving = np.where(df['is_winner'], df['w_bpSaved'], df['l_bpSaved'])
-    
+    player_bpFaced_when_serving = np.where(
+        df["is_winner"], df["w_bpFaced"], df["l_bpFaced"]
+    )
+    player_bpSaved_when_serving = np.where(
+        df["is_winner"], df["w_bpSaved"], df["l_bpSaved"]
+    )
+
     # Opponent converted break points = player's break points faced - player's break points saved
-    df['opponent_bpConverted'] = player_bpFaced_when_serving - player_bpSaved_when_serving
-    
-    df['opponent_bpFaced_when_returning'] = player_bpFaced_when_serving
-    
+    df["opponent_bpConverted"] = (
+        player_bpFaced_when_serving - player_bpSaved_when_serving
+    )
+
+    df["opponent_bpFaced_when_returning"] = player_bpFaced_when_serving
+
     # Use np.divide with where parameter to avoid division by zero warnings
-    df['opponent_bpConversion_pct'] = np.divide(
-        df['opponent_bpConverted'],
-        df['opponent_bpFaced_when_returning'],
-        out=np.full_like(df['opponent_bpConverted'], np.nan, dtype=float),
-        where=(df['opponent_bpFaced_when_returning'] > 0)
-    ) * 100
-    
+    df["opponent_bpConversion_pct"] = (
+        np.divide(
+            df["opponent_bpConverted"],
+            df["opponent_bpFaced_when_returning"],
+            out=np.full_like(df["opponent_bpConverted"], np.nan, dtype=float),
+            where=(df["opponent_bpFaced_when_returning"] > 0),
+        )
+        * 100
+    )
+
     return df
 
 
@@ -178,93 +197,104 @@ def calculate_match_return_stats(df):
     """
     Calculate return statistics for each match in the dataframe.
     This function assumes 'is_winner' column is already present in the DataFrame.
-    
+
     Return statistics are calculated from the opponent's serve perspective:
     - Return Points Won % = 100 - (opponent's serve points won %)
     - Break Point Conversion = break points converted when returning
     - Return Games Won % = percentage of opponent's service games broken
-    
+
     Args:
         df: DataFrame containing match data with 'is_winner' column pre-calculated
-        
+
     Returns:
         DataFrame: Original dataframe with added columns for return statistics
-        
+
     Raises:
         ValueError: If 'is_winner' column is missing from the DataFrame
     """
     df = df.copy()
-    
-    if 'is_winner' not in df.columns:
-        raise ValueError("is_winner column must be pre-calculated. Use add_player_match_columns() from utils.df_utils before calling this function.")
-    
+
+    if "is_winner" not in df.columns:
+        raise ValueError(
+            "is_winner column must be pre-calculated. Use add_player_match_columns() from utils.df_utils before calling this function."
+        )
+
     # Calculate player return statistics
     df = _calculate_player_return_stats(df)
-    
+
     # Calculate opponent return statistics
     df = _calculate_opponent_return_stats(df)
-    
+
     return df
 
 
-def calculate_aggregated_player_return_stats(df, player_name=None, case_sensitive=False):
+def calculate_aggregated_player_return_stats(
+    df, player_name=None, case_sensitive=False
+):
     """
     Calculate aggregated player return statistics across all matches.
-    
+
     Args:
         df: DataFrame containing match data. If stats columns already exist
-            (player_return_points_won_pct, player_bpConversion_pct, etc.), 
-            they will be used directly. Otherwise, player_name must be provided 
+            (player_return_points_won_pct, player_bpConversion_pct, etc.),
+            they will be used directly. Otherwise, player_name must be provided
             to calculate them.
         player_name: Name of the player (optional if stats columns already exist)
         case_sensitive: Whether to use case-sensitive name matching (default: False)
-        
+
     Returns:
         dict: Dictionary containing aggregated player return statistics
     """
     # Check if stats columns already exist
-    required_stats_columns = ['player_return_points_won_pct', 'player_bpConversion_pct']
-    
+    required_stats_columns = ["player_return_points_won_pct", "player_bpConversion_pct"]
+
     if all(col in df.columns for col in required_stats_columns):
         # Stats already calculated, use them directly
         df_with_stats = df
     else:
         # Calculate match-level stats
         if player_name is None:
-            raise ValueError("player_name is required when stats columns are not present in the DataFrame")
+            raise ValueError(
+                "player_name is required when stats columns are not present in the DataFrame"
+            )
         # Pre-calculate is_winner, opponent, result columns before calling calculate_match_return_stats
         from utils.df_utils import add_player_match_columns
+
         df = add_player_match_columns(df, player_name, case_sensitive)
         df_with_stats = calculate_match_return_stats(df)
-    
+
     # Calculate averages across all matches (excluding NaN values)
     stats = {
-        'Return Points Won %': safe_nanmean(df_with_stats['player_return_points_won_pct']),
-        'Break Point Conversion %': safe_nanmean(df_with_stats['player_bpConversion_pct'])
+        "Return Points Won %": safe_nanmean(
+            df_with_stats["player_return_points_won_pct"]
+        ),
+        "Break Point Conversion %": safe_nanmean(
+            df_with_stats["player_bpConversion_pct"]
+        ),
     }
-    
+
     # Add return games won % if available and has valid values
-    if 'player_return_games_won_pct' in df_with_stats.columns:
-        games_won_pct = safe_nanmean(df_with_stats['player_return_games_won_pct'])
+    if "player_return_games_won_pct" in df_with_stats.columns:
+        games_won_pct = safe_nanmean(df_with_stats["player_return_games_won_pct"])
         if not np.isnan(games_won_pct):
-            stats['Return Games Won %'] = games_won_pct
-    
+            stats["Return Games Won %"] = games_won_pct
+
     return stats
 
 
 def calculate_aggregated_opponent_return_stats(df, opponent_name=None):
     """
     Calculate aggregated opponent return statistics across all matches.
-    
+
     Handles "All Opponents" case by checking if multiple opponents exist.
     Aggregation is only meaningful when filtering by a specific opponent.
-    
+
     Args:
         df: DataFrame containing match data with opponent return stats columns already calculated
             (opponent_return_points_won_pct, opponent_bpConversion_pct, etc.)
         opponent_name: Optional opponent name. If provided, only aggregates matches vs this opponent.
                       If None, checks if single opponent exists in data.
-        
+
     Returns:
         dict: Dictionary containing aggregated opponent return statistics, or None if:
               - Multiple opponents exist and no specific opponent_name provided
@@ -272,21 +302,25 @@ def calculate_aggregated_opponent_return_stats(df, opponent_name=None):
               - Required opponent stats columns are missing
     """
     # Check if opponent stats columns exist
-    required_stats_columns = ['opponent_return_points_won_pct', 'opponent_bpConversion_pct', 'opponent']
-    
+    required_stats_columns = [
+        "opponent_return_points_won_pct",
+        "opponent_bpConversion_pct",
+        "opponent",
+    ]
+
     if not all(col in df.columns for col in required_stats_columns):
         # Opponent stats not calculated yet - return None
         return None
-    
+
     # Filter by opponent if specified
     if opponent_name:
-        df_filtered = df[df['opponent'] == opponent_name]
+        df_filtered = df[df["opponent"] == opponent_name]
         if df_filtered.empty:
             # Specified opponent not found
             return None
     else:
         # Check if multiple opponents exist
-        unique_opponents = df['opponent'].nunique()
+        unique_opponents = df["opponent"].nunique()
         if unique_opponents > 1:
             # Multiple opponents - aggregation not meaningful
             return None
@@ -296,12 +330,15 @@ def calculate_aggregated_opponent_return_stats(df, opponent_name=None):
         else:
             # Single opponent - safe to aggregate
             df_filtered = df
-    
+
     # Calculate averages across all matches (excluding NaN values)
     stats = {
-        'Return Points Won %': safe_nanmean(df_filtered['opponent_return_points_won_pct']),
-        'Break Point Conversion %': safe_nanmean(df_filtered['opponent_bpConversion_pct'])
+        "Return Points Won %": safe_nanmean(
+            df_filtered["opponent_return_points_won_pct"]
+        ),
+        "Break Point Conversion %": safe_nanmean(
+            df_filtered["opponent_bpConversion_pct"]
+        ),
     }
-    
-    return stats
 
+    return stats

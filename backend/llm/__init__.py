@@ -5,4 +5,4 @@ Contains LLM setup and database configuration components.
 
 from .llm_setup import LLMFactory
 
-__all__ = ['LLMFactory']
+__all__ = ["LLMFactory"]

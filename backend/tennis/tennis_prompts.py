@@ -3,18 +3,19 @@ Tennis Prompt Builder
 Contains the TennisPromptBuilder class for creating optimized system prompts.
 """
 
+
 class TennisPromptBuilder:
     """Unified tennis prompt builder with optimized system prompts."""
-    
+
     @staticmethod
     def create_query_system_prompt(db_schema: str, user_query: str = "") -> str:
         """
         Create a system prompt for SQL query generation phase with pruned schema.
-        
+
         Args:
             db_schema: Pruned database schema (already filtered)
             user_query: User's query for context (optional, for logging)
-            
+
         Returns:
             System prompt string with pruned schema for query generation
         """
@@ -91,14 +92,14 @@ Do not claim you cannot perform analysis. You have full access to SQL aggregate 
 - When MCP data is needed but not available for a specific match, fall back to basic match statistics from `atp_matches`/`wta_matches`
 - Join MCP tables using: `JOIN atp_mcp_matches ON atp_matches.match_id = atp_mcp_matches.linked_match_id`
 """
-    
+
     @staticmethod
     def create_synthesis_system_prompt() -> str:
         """
         Create a minified system prompt for response synthesis phase.
         This prompt omits the database schema since SQL has already been executed
         and results are available. Used to reduce token count in final synthesis.
-        
+
         Returns:
             System prompt string for synthesizing query results into natural language
         """
@@ -129,10 +130,9 @@ Do not claim you cannot perform analysis. You have full access to SQL aggregate 
 - Do not claim you cannot perform analysis. You have full access to the query results to provide comprehensive answers.
 """
 
+
 # =============================================================================
 # EXPORTS
 # =============================================================================
 
-__all__ = [
-    'TennisPromptBuilder'
-]
+__all__ = ["TennisPromptBuilder"]

@@ -5,4 +5,4 @@ Contains LangGraph construction and node definitions.
 
 from .langgraph_builder import LangGraphBuilder
 
-__all__ = ['LangGraphBuilder']
+__all__ = ["LangGraphBuilder"]

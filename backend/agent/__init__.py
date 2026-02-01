@@ -5,5 +5,4 @@ Contains agent state and orchestration components.
 
 from .agent_state import AgentState
 
-__all__ = ['AgentState']
-
+__all__ = ["AgentState"]

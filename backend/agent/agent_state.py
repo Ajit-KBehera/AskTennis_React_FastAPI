@@ -2,9 +2,11 @@
 Agent state definitions for LangGraph.
 Contains the enhanced AgentState TypedDict with more detailed state tracking.
 """
+
 from typing import TypedDict, Annotated, List, Optional
 from langchain_core.messages import BaseMessage
 import operator
+
 
 class AgentState(TypedDict, total=False):
     """
@@ -17,6 +19,7 @@ class AgentState(TypedDict, total=False):
     - sql_queries: List of SQL queries executed during the agent's processing.
     - pruned_schema: Current pruned schema of the database relevant to the current user query.
     """
+
     # Core conversation (always present)
     messages: Annotated[List[BaseMessage], operator.add]
 
