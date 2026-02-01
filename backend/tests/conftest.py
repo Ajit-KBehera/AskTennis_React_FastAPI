@@ -53,9 +53,14 @@ def mock_db_service():
 @pytest.fixture
 def client(mock_agent_graph, mock_query_processor):
     """Create a test client with mocked dependencies."""
-    with patch('main.setup_langgraph_agent', return_value=mock_agent_graph):
-        with patch('main.QueryProcessor', return_value=mock_query_processor):
-            # Need to reload main to pick up mocks
+    # Reset lazy-loaded singletons in query router
+    import api.routers.query as query_module
+    query_module._agent_graph = None
+    query_module._query_processor = None
+    
+    # Patch the correct module location (after refactoring to query router)
+    with patch('api.routers.query.setup_langgraph_agent', return_value=mock_agent_graph):
+        with patch('api.routers.query.QueryProcessor', return_value=mock_query_processor):
             from main import app
             yield TestClient(app)
 
