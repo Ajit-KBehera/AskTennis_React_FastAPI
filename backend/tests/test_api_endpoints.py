@@ -67,14 +67,14 @@ class TestQueryEndpoint:
         assert response.status_code in [200, 500]
     
     def test_query_endpoint_empty_query(self, client_no_mocks):
-        """Test query endpoint with empty query."""
+        """Test query endpoint with empty query returns validation error."""
         response = client_no_mocks.post(
             "/api/query",
             json={"query": ""},
             headers={"X-API-Key": "dev-key"}
         )
-        # Should still process (empty query handling is application logic)
-        assert response.status_code in [200, 500]
+        # Pydantic validation rejects empty queries with 422
+        assert response.status_code == 422
     
     def test_query_endpoint_missing_query_field(self, client_no_mocks):
         """Test query endpoint with missing query field."""
