@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Lightbulb } from 'lucide-react';
 import SqlCodeBlock from '../ui/SqlCodeBlock';
 import Expander from '../ui/Expander';
@@ -40,14 +43,19 @@ export const AiResponseView: React.FC<AiResponseViewProps> = ({
 
     return (
         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-            {/* Answer Card with ReactMarkdown */}
+            {/* Answer Card with ReactMarkdown + Math */}
             <div className="glass-panel rounded-3xl p-8 shadow-xl">
                 <div className="flex items-center gap-2 mb-6 text-emerald-400 font-bold uppercase tracking-wider text-sm">
                     <Lightbulb className="w-5 h-5 text-yellow-400 fill-yellow-400/20" />
                     <span>AI Insight</span>
                 </div>
                 <div className="prose prose-invert max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
+                    <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                    >
+                        {aiResponse}
+                    </ReactMarkdown>
                 </div>
             </div>
 

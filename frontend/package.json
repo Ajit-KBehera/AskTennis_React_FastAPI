@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "clsx": "^2.1.0",
+    "katex": "^0.16.28",
     "lucide-react": "^0.562.0",
     "plotly.js": "^2.35.2",
     "rc-slider": "^10.6.2",
@@ -29,7 +30,9 @@
     "react-virtualized-auto-sizer": "^1.0.24",
     "react-window": "^1.8.10",
     "recharts": "^3.6.0",
+    "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "tailwindcss": "^4.0.0",
     "zustand": "^5.0.10"
   },
