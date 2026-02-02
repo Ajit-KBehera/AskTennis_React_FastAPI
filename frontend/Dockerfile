@@ -18,14 +18,27 @@ RUN npm run build
 # Stage 2: Serve the application with Nginx
 FROM nginx:alpine
 
+# Install gettext for envsubst command
+RUN apk add --no-cache gettext
+
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config if needed (optional, using default for now or creating one)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx config template
+COPY nginx.conf.template /etc/nginx/conf.d/default.conf.template
 
-# Expose port 80
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Remove default nginx config
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+# Cloud Run will inject PORT, default to 80
+ENV PORT=80
+
+# Expose port (will be overridden by Cloud Run)
 EXPOSE 80
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Use custom entrypoint to configure nginx
+ENTRYPOINT ["/entrypoint.sh"]

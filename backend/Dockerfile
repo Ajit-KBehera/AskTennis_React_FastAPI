@@ -31,7 +31,12 @@ EXPOSE 8000
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
+
+# Healthcheck for Docker/Cloud Run
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Run the application
-# Use host 0.0.0.0 to be accessible from outside container
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Cloud Run injects PORT env variable, default to 8000 for local
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT}

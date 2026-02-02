@@ -57,14 +57,31 @@ npm run dev
 # App running at http://localhost:5173
 ```
 
-## 🤖 CI/CD
+## 🤖 CI/CD & Deployment
 
-This project uses **GitHub Actions** for Continuous Integration.
+This project uses **GitHub Actions** for Continuous Integration and Continuous Deployment.
 
-- **Frontend**: Automatically lints (`eslint`) and builds (`vite build`) on push/PR.
-- **Backend**: automatically installs dependencies and lints with `flake8`.
+### Continuous Integration
+
+- **Frontend**: Automatically lints (`eslint`), tests, and builds (`vite build`) on push/PR
+- **Backend**: Automatically installs dependencies, lints with `ruff`, and runs `pytest` tests
 
 Workflows are defined in `.github/workflows/ci.yml`.
+
+### Continuous Deployment to GCP Cloud Run
+
+Automatic deployment to Google Cloud Platform Cloud Run on every push to `main`:
+
+- **Backend**: Deployed to Cloud Run with Cloud SQL PostgreSQL integration
+- **Frontend**: Deployed to Cloud Run with Nginx serving static assets
+- **Secrets**: Managed via Google Cloud Secret Manager
+- **Auto-scaling**: Scales to zero when idle, up to 10 instances under load
+
+**Deployment Workflows:**
+- `.github/workflows/deploy-backend.yml` - Backend deployment
+- `.github/workflows/deploy-frontend.yml` - Frontend deployment
+
+**📚 Full deployment guide:** See [`docs/deployment.md`](docs/deployment.md) for complete setup instructions.
 
 ## 📂 Project Structure
 

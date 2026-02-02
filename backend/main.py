@@ -134,6 +134,15 @@ async def root():
     }
 
 
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for Cloud Run and load balancers.
+    Returns 200 OK if the service is healthy.
+    """
+    return {"status": "healthy", "service": "asktennis-backend"}
+
+
 # Register all API routers
 api_router.include_router(query_router, tags=["AI Query"])
 api_router.include_router(filters_router, tags=["Filters"])
