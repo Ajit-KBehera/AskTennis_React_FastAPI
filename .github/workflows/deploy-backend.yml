@@ -78,8 +78,7 @@ jobs:
             --set-secrets "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
             --set-secrets "API_SECRET_KEY=API_SECRET_KEY:latest" \
             --set-secrets "DB_PASSWORD=DB_PASSWORD:latest" \
-            --add-cloudsql-instances ${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
-            --service-account ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+            --add-cloudsql-instances ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
       
       - name: Get Service URL
         run: |
