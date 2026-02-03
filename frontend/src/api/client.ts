@@ -13,13 +13,25 @@ import type {
 
 } from '../types';
 
-// Automatically detect API URL based on current hostname
-// If accessed from network IP, use that IP for backend too
-// Otherwise, use localhost
+// Automatically detect API URL based on environment
+// Priority: env variable > production backend > local development
 const getApiBaseUrl = (): string => {
+  // Check for explicit backend URL (set during build for production)
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  if (envApiUrl) {
+    return envApiUrl;
+  }
+
+  // For Cloud Run deployments, use HTTPS and backend service
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // If not localhost, use the same hostname for backend
+    // If running on Cloud Run (*.run.app domain)
+    if (hostname.includes('.run.app')) {
+      // Replace 'frontend' with 'backend' in the hostname
+      const backendHost = hostname.replace('frontend', 'backend');
+      return `https://${backendHost}/api`;
+    }
+    // If accessed from local network IP (not localhost)
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
       return `http://${hostname}:8000/api`;
     }
