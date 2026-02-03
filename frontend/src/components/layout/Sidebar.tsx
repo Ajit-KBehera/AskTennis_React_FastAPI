@@ -226,7 +226,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
   };
 
   if (loading) return (
-    <div className="w-80 h-screen glass-panel border-r border-white/5 flex items-center justify-center">
+    <div className="w-full md:w-80 h-screen glass-panel border-r border-white/5 flex items-center justify-center">
       <div className="text-slate-400 animate-pulse">Loading filters...</div>
     </div>
   );
@@ -244,7 +244,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
 
       <aside
         className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0 md:flex fixed md:relative z-50 w-80 glass-panel border-r border-white/5 h-screen flex flex-col transition-transform duration-300 ease-in-out`}
+          } md:translate-x-0 md:flex fixed md:relative z-50 w-full md:w-80 glass-panel border-r border-white/5 h-screen flex flex-col transition-transform duration-300 ease-in-out`}
       >
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
           <h1 className="text-xl font-black flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">
