@@ -266,7 +266,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
         <div className="p-6 flex-1 overflow-y-auto space-y-8 custom-scrollbar">
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+              <label className="flex text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 items-center gap-2">
                 <Search className="w-3.5 h-3.5 text-emerald-400" /> Player
               </label>
               <Select
@@ -289,7 +289,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+              <label className="flex text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 items-center gap-2">
                 <Users className="w-3.5 h-3.5 text-blue-400" /> Opponent
               </label>
               <Select
@@ -313,7 +313,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+              <label className="flex text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 items-center gap-2">
                 <Trophy className="w-3.5 h-3.5 text-amber-400" /> Tournament
               </label>
               <Select
