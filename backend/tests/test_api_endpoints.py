@@ -129,9 +129,7 @@ class TestFiltersEndpoint:
 
     def test_filters_endpoint_returns_data(self, client_no_mocks):
         """Test that filters endpoint returns filter options."""
-        response = client_no_mocks.get(
-            "/api/filters", headers={"X-API-Key": "dev-key"}
-        )
+        response = client_no_mocks.get("/api/filters", headers={"X-API-Key": "dev-key"})
         # May fail if database not initialized
         assert response.status_code in [200, 500]
 
