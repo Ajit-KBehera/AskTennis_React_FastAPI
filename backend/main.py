@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 import uuid
 import structlog
+import os
 from dotenv import load_dotenv
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -33,13 +34,16 @@ from config.logging_config import configure_logging
 # =============================================================================
 load_dotenv()
 
-# =============================================================================
-# APPLICATION INITIALIZATION
-# =============================================================================
+environment = os.getenv("ENVIRONMENT", "development").lower()
+show_docs = environment != "production"
+
 app = FastAPI(
     title="AskTennis API",
     description="AI-powered tennis statistics and analytics API",
     version="1.0.0",
+    docs_url="/docs" if show_docs else None,
+    redoc_url="/redoc" if show_docs else None,
+    openapi_url="/openapi.json" if show_docs else None,
 )
 
 # =============================================================================
@@ -113,27 +117,30 @@ api_router = APIRouter(prefix="/api", dependencies=[Depends(get_api_key)])
 @app.get("/")
 async def root():
     """
-    Root endpoint - returns API info and available endpoints.
-    Useful for health checks and API discovery.
+    Root endpoint - returns a welcome message.
+    In development, it also lists available endpoints.
     """
-    endpoints = []
-    for route in app.routes:
-        if hasattr(route, "path") and route.path.startswith("/api"):
-            methods = (
-                [m for m in route.methods if m not in ["OPTIONS", "HEAD"]]
-                if hasattr(route, "methods")
-                else []
-            )
-            endpoints.append(
-                {"path": route.path, "methods": methods, "name": route.name}
-            )
-
-    return {
+    response = {
         "message": "Welcome to AskTennis API",
         "version": "1.0.0",
-        "docs_url": "/docs",
-        "endpoints": endpoints,
     }
+
+    if environment != "production":
+        endpoints = []
+        for route in app.routes:
+            if hasattr(route, "path") and route.path.startswith("/api"):
+                methods = (
+                    [m for m in route.methods if m not in ["OPTIONS", "HEAD"]]
+                    if hasattr(route, "methods")
+                    else []
+                )
+                endpoints.append(
+                    {"path": route.path, "methods": methods, "name": route.name}
+                )
+        response["endpoints"] = endpoints
+        response["docs_url"] = "/docs"
+
+    return response
 
 
 @app.get("/health")
