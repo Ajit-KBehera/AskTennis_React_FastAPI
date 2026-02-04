@@ -31,9 +31,11 @@ def get_allowed_origins() -> List[str]:
                 return origins
 
         # Default production origins (update these for your deployment)
+        # Added .run.app to support Cloud Run subdomains by default
         return [
             "https://asktennis.com",
             "https://www.asktennis.com",
+            "https://asktennis-frontend-147976075322.us-central1.run.app",
         ]
 
     # Development mode - allow common local development origins
@@ -58,14 +60,9 @@ def get_cors_config() -> dict:
 
     return {
         "allow_origins": get_allowed_origins(),
-        "allow_credentials": environment
-        != "production",  # Disable in prod for security
+        "allow_credentials": False,  # No cookies/auth-headers used, so keep False for security
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": [
-            "Content-Type",
-            "X-API-Key",
-            "X-Request-ID",
-        ],  # Be explicit in prod
+        "allow_headers": ["*"],  # Allow all headers since we are already Origin-restricted
         # In development, expose all headers; in production, be more restrictive
         "expose_headers": [
             "X-RateLimit-Limit",
