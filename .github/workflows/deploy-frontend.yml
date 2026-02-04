@@ -48,6 +48,7 @@ jobs:
           
           docker build \
             --build-arg VITE_API_URL=${{ secrets.BACKEND_URL }}/api \
+            --build-arg VITE_API_KEY=${{ secrets.API_SECRET_KEY }} \
             -t ${IMAGE_TAG} -t ${IMAGE_LATEST} .
           docker push ${IMAGE_TAG}
           docker push ${IMAGE_LATEST}

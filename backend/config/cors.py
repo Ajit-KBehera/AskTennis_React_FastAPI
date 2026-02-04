@@ -58,9 +58,9 @@ def get_cors_config() -> dict:
 
     return {
         "allow_origins": get_allowed_origins(),
-        "allow_credentials": True,
+        "allow_credentials": environment != "production",  # Disable in prod for security
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["*"],
+        "allow_headers": ["Content-Type", "X-API-Key", "X-Request-ID"],  # Be explicit in prod
         # In development, expose all headers; in production, be more restrictive
         "expose_headers": [
             "X-RateLimit-Limit",
