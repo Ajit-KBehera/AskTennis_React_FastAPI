@@ -88,7 +88,6 @@ class QueryResponse(BaseModel):
 async def process_query(
     request: Request,
     query_request: QueryRequest,
-    api_key: str = Depends(get_api_key),  # Auth validation happens in Depends
 ):
     """
     AI query endpoint - processes natural language questions about tennis.

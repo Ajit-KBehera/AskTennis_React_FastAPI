@@ -104,8 +104,10 @@ async def logging_middleware(request: Request, call_next):
 # ROUTES
 # =============================================================================
 
-# Main API router with /api prefix
-api_router = APIRouter(prefix="/api")
+from config.auth import get_api_key
+
+# Main API router with /api prefix - Protected by API Key
+api_router = APIRouter(prefix="/api", dependencies=[Depends(get_api_key)])
 
 
 @app.get("/")
