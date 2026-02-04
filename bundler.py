@@ -45,7 +45,7 @@ def is_binary(file_path):
         with open(file_path, "tr") as check_file:
             check_file.read()
             return False
-    except:
+    except Exception:
         return True
 
 
