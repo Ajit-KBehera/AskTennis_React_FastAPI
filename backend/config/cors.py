@@ -65,7 +65,9 @@ def get_cors_config() -> dict:
         "allow_origins": get_allowed_origins(),
         "allow_credentials": False,  # No cookies/auth-headers used, so keep False for security
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["*"],  # Allow all headers since we are already Origin-restricted
+        "allow_headers": [
+            "*"
+        ],  # Allow all headers since we are already Origin-restricted
         # In development, expose all headers; in production, be more restrictive
         "expose_headers": [
             "X-RateLimit-Limit",
