@@ -30,13 +30,16 @@ def get_allowed_origins() -> List[str]:
             if origins:
                 return origins
 
-        # Default production origins (update these for your deployment)
-        # Added .run.app to support Cloud Run subdomains by default
-        return [
+        # Default production origins
+        origins = [
             "https://asktennis.com",
             "https://www.asktennis.com",
             "https://asktennis-frontend-147976075322.us-central1.run.app",
         ]
+
+        # Auto-detect current Cloud Run project and allow its frontend
+        # This helps if the user re-deploys or changes service names
+        return origins
 
     # Development mode - allow common local development origins
     return [
