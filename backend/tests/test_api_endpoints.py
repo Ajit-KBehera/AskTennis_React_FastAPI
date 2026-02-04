@@ -129,13 +129,17 @@ class TestFiltersEndpoint:
 
     def test_filters_endpoint_returns_data(self, client_no_mocks):
         """Test that filters endpoint returns filter options."""
-        response = client_no_mocks.get("/api/filters")
+        response = client_no_mocks.get(
+            "/api/filters", headers={"X-API-Key": "dev-key"}
+        )
         # May fail if database not initialized
         assert response.status_code in [200, 500]
 
     def test_filters_with_player_parameter(self, client_no_mocks):
         """Test filters endpoint with player parameter."""
         response = client_no_mocks.get(
-            "/api/filters", params={"player_name": "Roger Federer"}
+            "/api/filters",
+            params={"player_name": "Roger Federer"},
+            headers={"X-API-Key": "dev-key"},
         )
         assert response.status_code in [200, 500]
