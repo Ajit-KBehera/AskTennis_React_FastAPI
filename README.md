@@ -81,7 +81,11 @@ Automatic deployment to Google Cloud Platform Cloud Run on every push to `main`:
 - `.github/workflows/deploy-backend.yml` - Backend deployment
 - `.github/workflows/deploy-frontend.yml` - Frontend deployment
 
-**📚 Full deployment guide:** See [`docs/deployment.md`](docs/deployment.md) for complete setup instructions.
+**Frontend → Backend connection on GCP:** The frontend must know the backend URL at **build time** (Vite inlines `VITE_API_URL`). Ensure:
+
+1. **GitHub secret `BACKEND_URL`** is set to your backend Cloud Run URL (e.g. `https://asktennis-backend-xxxxx-uc.a.run.app`). Get it after the first backend deploy from the workflow output or `gcloud run services describe asktennis-backend --region us-central1 --format 'value(status.url)'`.
+2. **Redeploy the frontend** after setting `BACKEND_URL` so the new build bakes in the correct API URL.
+3. **CORS**: The backend allows Cloud Run frontend origins matching `https://asktennis-frontend-*.run.app`. If you use a custom domain or different service name, set the `ALLOWED_ORIGINS` env var on the backend Cloud Run service.
 
 ## 📂 Project Structure
 

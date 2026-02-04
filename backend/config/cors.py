@@ -30,15 +30,12 @@ def get_allowed_origins() -> List[str]:
             if origins:
                 return origins
 
-        # Default production origins
+        # Default production origins (exact URLs)
         origins = [
             "https://asktennis.com",
             "https://www.asktennis.com",
-            "https://asktennis-frontend-147976075322.us-central1.run.app",
         ]
-
-        # Auto-detect current Cloud Run project and allow its frontend
-        # This helps if the user re-deploys or changes service names
+        # Cloud Run frontend URL varies by project/hash; allow via regex in get_cors_config
         return origins
 
     # Development mode - allow common local development origins
@@ -60,15 +57,13 @@ def get_cors_config() -> dict:
         Dictionary of CORS middleware settings
     """
     environment = os.getenv("ENVIRONMENT", "development").lower()
-
-    return {
+    config: dict = {
         "allow_origins": get_allowed_origins(),
         "allow_credentials": False,  # No cookies/auth-headers used, so keep False for security
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": [
             "*"
         ],  # Allow all headers since we are already Origin-restricted
-        # In development, expose all headers; in production, be more restrictive
         "expose_headers": [
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
@@ -78,3 +73,9 @@ def get_cors_config() -> dict:
         if environment == "production"
         else 0,  # Cache preflight for 10 min in prod
     }
+    # In production, allow Cloud Run frontend URLs (format varies: project-number.region.run.app or hash.region.run.app)
+    if environment == "production":
+        config[
+            "allow_origin_regex"
+        ] = r"https://asktennis-frontend-[a-zA-Z0-9.-]+\.run\.app"
+    return config

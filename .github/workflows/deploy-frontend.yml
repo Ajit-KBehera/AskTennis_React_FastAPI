@@ -42,6 +42,7 @@ jobs:
       - name: Build and Push Docker Image
         working-directory: ./frontend
         run: |
+          # BACKEND_URL must be set in repo secrets (e.g. https://asktennis-backend-xxx-uc.a.run.app) so the frontend bundle points to the correct API.
           IMAGE_NAME="${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPO }}/${{ env.SERVICE_NAME }}"
           IMAGE_TAG="${IMAGE_NAME}:${{ github.sha }}"
           IMAGE_LATEST="${IMAGE_NAME}:latest"
