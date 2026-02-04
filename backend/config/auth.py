@@ -15,12 +15,12 @@ def get_api_key(x_api_key: Optional[str] = Header(None, alias="X-API-Key")) -> s
     environment = os.getenv("ENVIRONMENT", "development").lower()
     expected_key = os.getenv("API_SECRET_KEY")
 
-    # In development, use a default if not set
-    if environment == "development" and not expected_key:
+    # In development or testing, use a default if not set
+    if environment in ["development", "testing"] and not expected_key:
         expected_key = "dev-key"
 
-    # In production, the key MUST be set
-    if environment != "development" and not expected_key:
+    # In other environments (production), the key MUST be set
+    if environment not in ["development", "testing"] and not expected_key:
         raise HTTPException(
             status_code=500, detail="Server misconfiguration: API key not set."
         )

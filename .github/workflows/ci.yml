@@ -50,7 +50,7 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         # Mock other required env vars
         GOOGLE_API_KEY: "mock-key"
-        API_SECRET_KEY: "mock-secret"
+        API_SECRET_KEY: "dev-key"
       run: |
         pytest -v
 
