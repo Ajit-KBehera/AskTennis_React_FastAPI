@@ -8,7 +8,7 @@ This module initializes the application and wires up all components.
 # =============================================================================
 # IMPORTS
 # =============================================================================
-from fastapi import FastAPI, APIRouter, Request
+from fastapi import FastAPI, APIRouter, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import time
 import uuid
@@ -22,6 +22,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from api.routers import filters_router, matches_router, stats_router, query_router
 
 # Configuration
+from config.auth import get_api_key
 from config.cors import get_cors_config
 from config.rate_limiter import limiter
 from config.observability import setup_observability
@@ -104,7 +105,6 @@ async def logging_middleware(request: Request, call_next):
 # ROUTES
 # =============================================================================
 
-from config.auth import get_api_key
 
 # Main API router with /api prefix - Protected by API Key
 api_router = APIRouter(prefix="/api", dependencies=[Depends(get_api_key)])

@@ -8,13 +8,12 @@ Endpoints:
 import traceback
 from typing import List, Dict, Any
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, field_validator
 import structlog
 
 from config.rate_limiter import limiter, get_query_rate_limit_string
-from config.auth import get_api_key
 from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 
