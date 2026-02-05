@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../api/client';
 
+import { AuthCredentials } from '../types';
+
 interface AuthContextType {
     user: string | null;
     isLoading: boolean;
-    login: (credentials: any) => Promise<void>;
-    register: (credentials: any) => Promise<void>;
+    login: (credentials: AuthCredentials) => Promise<void>;
+    register: (credentials: AuthCredentials) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -24,13 +26,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLoading(false);
     }, []);
 
-    const login = async (credentials: any) => {
+    const login = async (credentials: AuthCredentials) => {
         const response = await api.login(credentials);
         setUser(response.username);
         localStorage.setItem('asktennis_user', response.username);
     };
 
-    const register = async (credentials: any) => {
+    const register = async (credentials: AuthCredentials) => {
         await api.register(credentials);
     };
 

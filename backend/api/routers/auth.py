@@ -38,11 +38,12 @@ def login(
     )
     
     # Set HttpOnly Cookie
+    is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True, # Should be True in production
+        secure=is_prod, # Only use Secure in production (over HTTPS)
         samesite="Lax",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )

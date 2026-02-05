@@ -191,3 +191,23 @@ export interface AiQueryState {
   error: string;
 }
 
+// ============================================================================
+// Auth Types
+// ============================================================================
+
+export interface UserResponse {
+  id: number;
+  username: string;
+  created_at: string;
+  last_login?: string | null;
+}
+
+export interface AuthCredentials {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  username: string;
+}

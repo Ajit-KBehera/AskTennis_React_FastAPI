@@ -10,7 +10,13 @@ class AuthDBService:
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         
         # Ensure tables are created
-        Base.metadata.create_all(bind=self.engine)
+        try:
+            Base.metadata.create_all(bind=self.engine)
+        except Exception as e:
+            # Prevent startup crash if DB doesn't exist yet
+            import logging
+            logging.error(f"Failed to initialize auth tables: {e}")
+            logging.warning("Ensure the database 'asktennis_auth' exists in your SQL instance.")
 
     def get_db(self):
         db = self.SessionLocal()

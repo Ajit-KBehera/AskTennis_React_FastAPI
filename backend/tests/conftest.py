@@ -76,8 +76,15 @@ def client(mock_agent_graph, mock_query_processor):
             "api.routers.query.QueryProcessor", return_value=mock_query_processor
         ):
             from main import app
-
-            yield TestClient(app)
+            from config.auth import get_current_user
+            
+            # Override authentication for tests
+            app.dependency_overrides[get_current_user] = lambda: "testuser"
+            
+            try:
+                yield TestClient(app)
+            finally:
+                app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -87,5 +94,12 @@ def client_no_mocks():
     Use this for testing endpoints that don't require the agent/processor.
     """
     from main import app
-
-    return TestClient(app)
+    from config.auth import get_current_user
+    
+    # Override authentication for tests
+    app.dependency_overrides[get_current_user] = lambda: "testuser"
+    
+    try:
+        yield TestClient(app)
+    finally:
+        app.dependency_overrides.clear()
