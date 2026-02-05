@@ -16,6 +16,17 @@ vi.mock('./hooks/useAiQuery', () => ({
     }),
 }))
 
+// Mock the Auth hook
+vi.mock('./store/AuthContext', () => ({
+    useAuth: () => ({
+        user: 'testuser',
+        isLoading: false,
+        login: vi.fn(),
+        register: vi.fn(),
+        logout: vi.fn(),
+    }),
+}))
+
 // Mock the API client
 vi.mock('./api/client', () => ({
     fetchFilters: vi.fn().mockResolvedValue({
