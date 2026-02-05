@@ -51,7 +51,17 @@ def get_cors_config() -> dict:
     }
 
     # 3. Add Dynamic Cloud Run Previews for Production
-    if is_prod and not allow_all:
-        config["allow_origin_regex"] = r"https://asktennis-frontend-[a-zA-Z0-9.-]+\.run\.app"
+    if is_prod:
+        # Match any frontend on Cloud Run to support dynamic previews/service subdomains.
+        # This is CRITICAL for credentials (cookies) to work across Cloud Run services.
+        config["allow_origin_regex"] = r"https://.*\.run\.app"
+        config["allow_credentials"] = True
+        
+        # If allow_all was set, the regex above is safer and more compatible with cookies.
+        if allow_all:
+            # We already have the regex, so we just ensure origins doesn't conflict
+            # by keeping origins as is (it will be "*" but regex takes precedence in FastAPI for specific matches)
+            # Actually, to be safe with credentials, we shouldn't have "*" in allow_origins if allow_credentials is True.
+            config["allow_origins"] = origins if not credentials_allowed else []
 
     return config

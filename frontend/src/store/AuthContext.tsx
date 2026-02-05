@@ -18,12 +18,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Check if user is already logged in (e.g., from cookie)
-        const storedUser = localStorage.getItem('asktennis_user');
-        if (storedUser) {
-            setUser(storedUser);
-        }
-        setIsLoading(false);
+        const checkAuth = async () => {
+            try {
+                const response = await api.getMe();
+                setUser(response.username);
+                localStorage.setItem('asktennis_user', response.username);
+            } catch (err) {
+                // Not logged in or session expired
+                setUser(null);
+                localStorage.removeItem('asktennis_user');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkAuth();
     }, []);
 
     const login = async (credentials: AuthCredentials) => {

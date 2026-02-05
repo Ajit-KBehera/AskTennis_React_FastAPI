@@ -44,12 +44,24 @@ def login(
         value=access_token,
         httponly=True,
         secure=is_prod, # Only use Secure in production (over HTTPS)
-        samesite="Lax",
+        samesite="None" if is_prod else "Lax", # Cross-site cookies require None + Secure
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     
     auth_db.update_last_login(db, user.id)
     return {"message": "Login successful", "username": user.username}
+
+from config.auth import get_current_user
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    username: str = Depends(get_current_user),
+    db: Session = Depends(auth_db.get_db)
+):
+    user = auth_db.get_user_by_username(db, username=username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.post("/logout")
 def logout(response: Response):

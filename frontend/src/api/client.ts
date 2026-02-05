@@ -58,6 +58,7 @@ export const endpoints = {
   login: '/auth/login',
   register: '/auth/register',
   logout: '/auth/logout',
+  getMe: '/auth/me',
 
   // API endpoints (prefix with /api)
   getFilters: '/api/filters',
@@ -149,6 +150,14 @@ export const api = {
    */
   logout: async (): Promise<any> => {
     const response = await apiClient.post(endpoints.logout);
+    return response.data;
+  },
+
+  /**
+   * Auth: Get Current User
+   */
+  getMe: async (): Promise<any> => {
+    const response = await apiClient.get(endpoints.getMe);
     return response.data;
   },
 };
