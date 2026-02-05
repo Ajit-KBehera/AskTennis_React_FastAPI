@@ -14,6 +14,8 @@ def get_allowed_origins() -> List[str]:
     Environment Variables:
         ENVIRONMENT: 'development' or 'production' (default: development)
         ALLOWED_ORIGINS: Comma-separated list of allowed origins for production
+        ALLOW_ALL_ORIGINS: Set to 'true' to allow all origins (for mobile apps)
+                          When enabled, security relies on API_SECRET_KEY
 
     Returns:
         List of allowed origin URLs
@@ -57,13 +59,18 @@ def get_cors_config() -> dict:
         Dictionary of CORS middleware settings
     """
     environment = os.getenv("ENVIRONMENT", "development").lower()
+
+    # For mobile apps (iOS, Android) and non-browser clients, allow all origins
+    # Security is enforced via API_SECRET_KEY instead of CORS
+    allow_all_origins = os.getenv("ALLOW_ALL_ORIGINS", "false").lower() == "true"
+
     config: dict = {
-        "allow_origins": get_allowed_origins(),
+        "allow_origins": ["*"] if allow_all_origins else get_allowed_origins(),
         "allow_credentials": False,  # No cookies/auth-headers used, so keep False for security
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": [
             "*"
-        ],  # Allow all headers since we are already Origin-restricted
+        ],  # Allow all headers since we are already Origin-restricted or using API key
         "expose_headers": [
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
@@ -74,7 +81,8 @@ def get_cors_config() -> dict:
         else 0,  # Cache preflight for 10 min in prod
     }
     # In production, allow Cloud Run frontend URLs (format varies: project-number.region.run.app or hash.region.run.app)
-    if environment == "production":
+    # Only apply regex if not allowing all origins
+    if environment == "production" and not allow_all_origins:
         config[
             "allow_origin_regex"
         ] = r"https://asktennis-frontend-[a-zA-Z0-9.-]+\.run\.app"
