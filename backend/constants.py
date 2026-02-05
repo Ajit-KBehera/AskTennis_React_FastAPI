@@ -7,6 +7,7 @@ import os
 
 # Database Configuration
 DB_FILE_NAME = "tennis_data_with_mcp.db"
+AUTH_DB_NAME = "asktennis_auth"
 # Use absolute path to ensure database file is found regardless of working directory
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 DB_FILE_PATH = os.path.join(PROJECT_ROOT, DB_FILE_NAME)
@@ -30,3 +31,8 @@ ALLOWED_HOSTS = []
 ALLOWED_PATTERNS = [
     "run.app",  # Matches default Cloud Run URLs
 ]
+
+# JWT Configuration
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-do-not-use-in-prod")
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day

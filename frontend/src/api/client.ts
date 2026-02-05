@@ -15,11 +15,12 @@ import type {
 
 // Automatically detect API URL based on environment
 // Priority: env variable > production backend > local development
-const getApiBaseUrl = (): string => {
+const getBackendBaseUrl = (): string => {
   // Check for explicit backend URL (set during build for production)
   const envApiUrl = import.meta.env.VITE_API_URL;
   if (envApiUrl) {
-    return envApiUrl;
+    // If it ends with /api, strip it to get the base
+    return envApiUrl.replace(/\/api\/?$/, '');
   }
 
   // For Cloud Run deployments, use HTTPS and backend service
@@ -29,37 +30,42 @@ const getApiBaseUrl = (): string => {
     if (hostname.includes('.run.app')) {
       // Replace 'frontend' with 'backend' in the hostname
       const backendHost = hostname.replace('frontend', 'backend');
-      return `https://${backendHost}/api`;
+      return `https://${backendHost}`;
     }
     // If accessed from local network IP (not localhost)
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `http://${hostname}:8000/api`;
+      return `http://${hostname}:8000`;
     }
   }
   // Default to localhost for development
-  return 'http://localhost:8000/api';
+  return 'http://localhost:8000';
 };
 
-const API_BASE_URL = getApiBaseUrl();
-
+const BACKEND_URL = getBackendBaseUrl();
 const API_KEY = import.meta.env.VITE_API_KEY || 'dev-key';
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
     'X-API-Key': API_KEY,
   },
+  withCredentials: true, // Required for HttpOnly cookies
 });
 
 export const endpoints = {
-  getFilters: '/filters',
+  // Auth endpoints (prefix with /auth)
+  login: '/auth/login',
+  register: '/auth/register',
+  logout: '/auth/logout',
 
-  query: '/query',  // Full AI query with SQL and data
-  getServeStats: '/stats/serve',
-  getReturnStats: '/stats/return',
-  getRankingStats: '/stats/ranking',
-  getMatches: '/matches',
+  // API endpoints (prefix with /api)
+  getFilters: '/api/filters',
+  query: '/api/query',
+  getServeStats: '/api/stats/serve',
+  getReturnStats: '/api/stats/return',
+  getRankingStats: '/api/stats/ranking',
+  getMatches: '/api/matches',
 };
 
 // Re-export types for convenience
@@ -119,6 +125,30 @@ export const api = {
    */
   getMatches: async (filters: StatsRequest): Promise<MatchesResponse> => {
     const response = await apiClient.post<MatchesResponse>(endpoints.getMatches, filters);
+    return response.data;
+  },
+
+  /**
+   * Auth: Login
+   */
+  login: async (credentials: any): Promise<any> => {
+    const response = await apiClient.post(endpoints.login, credentials);
+    return response.data;
+  },
+
+  /**
+   * Auth: Register
+   */
+  register: async (credentials: any): Promise<any> => {
+    const response = await apiClient.post(endpoints.register, credentials);
+    return response.data;
+  },
+
+  /**
+   * Auth: Logout
+   */
+  logout: async (): Promise<any> => {
+    const response = await apiClient.post(endpoints.logout);
     return response.data;
   },
 };

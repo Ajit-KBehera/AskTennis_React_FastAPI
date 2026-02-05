@@ -5,6 +5,7 @@ Provides a single source of truth for database type detection and configuration.
 
 from typing import Optional
 import os
+from constants import AUTH_DB_NAME
 
 from .base import DatabaseConfig
 from .sqlite_config import SQLiteConfig
@@ -85,6 +86,19 @@ class DatabaseFactory:
         else:
             # Create SQLite configuration (default)
             return SQLiteConfig(db_path)
+
+    @staticmethod
+    def create_auth_config(force_sqlite: bool = False) -> DatabaseConfig:
+        """
+        Create a database configuration specifically for authentication/identity.
+        Uses Cloud SQL if available, otherwise falls back to SQLite.
+        """
+        if not force_sqlite and DatabaseFactory._is_cloud_sql_config():
+            return DatabaseFactory.create_cloud_sql_config(db_name=AUTH_DB_NAME)
+        
+        # Fallback to local auth sqlite file
+        auth_db_path = os.getenv("AUTH_DB_PATH", "sqlite:///auth.db")
+        return SQLiteConfig(auth_db_path)
 
     @staticmethod
     def create_sqlite_config(db_path: Optional[str] = None) -> SQLiteConfig:

@@ -4,9 +4,11 @@ Handles API key validation and Referer/Origin checks.
 """
 
 import os
-from fastapi import Header, HTTPException, Request
+from fastapi import Header, HTTPException, Request, Depends
 from typing import Optional, Annotated
 from constants import ALLOWED_PATTERNS
+from services.auth_service import AuthService
+from services.auth_db_service import AuthDBService
 
 def get_api_key(
     request: Request,
@@ -15,9 +17,7 @@ def get_api_key(
     origin: Annotated[Optional[str], Header()] = None,
 ) -> str:
     """
-    Consolidated authentication dependency.
-    1. Validates API Secret Key.
-    2. Performs defense-in-depth Origin/Referer checks in production.
+    Validates the static API Key (Phase 1 hardening).
     """
     env = os.getenv("ENVIRONMENT", "development").lower()
     is_prod = env == "production"
@@ -41,3 +41,22 @@ def get_api_key(
             raise HTTPException(status_code=403, detail="Request origin not authorized")
 
     return x_api_key
+
+async def get_current_user(request: Request):
+    """
+    JWT Validation Dependency (Phase 2).
+    Extracts the 'access_token' from HttpOnly cookies.
+    """
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    payload = AuthService.decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    username: str = payload.get("sub")
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+    return username

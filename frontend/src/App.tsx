@@ -9,7 +9,12 @@ import { FilterState } from './types';
 import { TennisLoader } from './components/ui/TennisLoader';
 import { useAiQuery } from './hooks/useAiQuery';
 
+import { useAuth } from './store/AuthContext';
+import Login from './components/Login';
+
 function App() {
+    const { user, isLoading, logout } = useAuth();
+
     // Filter state
     const [filters, setFilters] = useState<FilterState>({
         player_name: 'All Players',
@@ -24,6 +29,22 @@ function App() {
 
     // AI Query state via custom hook
     const ai = useAiQuery();
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+                <TennisLoader />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+                <Login />
+            </div>
+        );
+    }
 
     const handleFilterChange = (newFilters: FilterState) => {
         setFilters(newFilters);
@@ -50,7 +71,13 @@ function App() {
 
     return (
         <Layout onFilterChange={handleFilterChange}>
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-8 animate-fade-in relative">
+                <button
+                    onClick={logout}
+                    className="absolute top-0 right-0 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white text-sm transition-all"
+                >
+                    Logout ({user})
+                </button>
                 <Header />
 
                 <SearchPanel

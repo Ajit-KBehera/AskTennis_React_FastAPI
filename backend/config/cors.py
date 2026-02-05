@@ -20,8 +20,10 @@ def get_cors_config() -> dict:
     allow_all = os.getenv("ALLOW_ALL_ORIGINS", "false").lower() == "true"
 
     # 1. Determine Allowed Origins
+    credentials_allowed = True # Default
     if allow_all:
         origins = ["*"]
+        credentials_allowed = False # Browser disallows "*" with credentials
     elif not is_prod:
         # Development: common local ports
         origins = [
@@ -39,9 +41,9 @@ def get_cors_config() -> dict:
     # 2. Build Base Configuration
     config = {
         "allow_origins": origins,
-        "allow_credentials": False, # No cookies/auth-headers used
+        "allow_credentials": credentials_allowed, # Required for HttpOnly cookies
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["*"],
+        "allow_headers": ["Content-Type", "Set-Cookie", "X-API-Key"], # Explicit headers for cookies
         "expose_headers": [
             "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"
         ],
