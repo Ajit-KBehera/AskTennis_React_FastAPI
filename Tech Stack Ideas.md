@@ -234,7 +234,6 @@ The project includes containerization support via **Docker** and **Docker Compos
 
 #### CI/CD (GitHub Actions)
 - Automated testing (`pytest`)
-- Code quality checks (`ruff` linting)
 - Frontend type checking (`tsc`) and build verification
 
 ---

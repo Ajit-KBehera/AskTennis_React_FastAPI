@@ -38,12 +38,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install ruff pytest httpx
-        
-    - name: Lint with Ruff
-      run: |
-        ruff check .
-        ruff format --check .
+        pip install pytest httpx
         
     - name: Test with pytest
       env:

@@ -64,7 +64,7 @@ This project uses **GitHub Actions** for Continuous Integration and Continuous D
 ### Continuous Integration
 
 - **Frontend**: Automatically lints (`eslint`), tests, and builds (`vite build`) on push/PR
-- **Backend**: Automatically installs dependencies, lints with `ruff`, and runs `pytest` tests
+- **Backend**: Automatically installs dependencies and runs `pytest` tests
 
 Workflows are defined in `.github/workflows/ci.yml`.
 
