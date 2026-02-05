@@ -4,86 +4,52 @@ Environment-based configuration for development and production.
 """
 
 import os
-from typing import List
-
-
-def get_allowed_origins() -> List[str]:
-    """
-    Get allowed origins based on environment.
-
-    Environment Variables:
-        ENVIRONMENT: 'development' or 'production' (default: development)
-        ALLOWED_ORIGINS: Comma-separated list of allowed origins for production
-        ALLOW_ALL_ORIGINS: Set to 'true' to allow all origins (for mobile apps)
-                          When enabled, security relies on API_SECRET_KEY
-
-    Returns:
-        List of allowed origin URLs
-    """
-    environment = os.getenv("ENVIRONMENT", "development").lower()
-
-    if environment == "production":
-        # In production, use explicit whitelist from environment
-        origins_str = os.getenv("ALLOWED_ORIGINS", "")
-        if origins_str:
-            origins = [
-                origin.strip() for origin in origins_str.split(",") if origin.strip()
-            ]
-            if origins:
-                return origins
-
-        # Default production origins (exact URLs)
-        origins = [
-            "https://asktennis.com",
-            "https://www.asktennis.com",
-        ]
-        # Cloud Run frontend URL varies by project/hash; allow via regex in get_cors_config
-        return origins
-
-    # Development mode - allow common local development origins
-    return [
-        "http://localhost:3000",
-        "http://localhost:5173",  # Vite default
-        "http://localhost:5174",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-    ]
-
+from constants import ALLOWED_HOSTS
 
 def get_cors_config() -> dict:
     """
-    Get complete CORS middleware configuration.
-
-    Returns:
-        Dictionary of CORS middleware settings
+    Get consolidated CORS middleware configuration based on environment.
+    
+    Environment Variables:
+        ENVIRONMENT: 'development' or 'production' (default: development)
+        ALLOWED_ORIGINS: Comma-separated whitelist for production
+        ALLOW_ALL_ORIGINS: Set to 'true' to bypass origin restrictions (e.g. for mobile)
     """
-    environment = os.getenv("ENVIRONMENT", "development").lower()
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    is_prod = env == "production"
+    allow_all = os.getenv("ALLOW_ALL_ORIGINS", "false").lower() == "true"
 
-    # For mobile apps (iOS, Android) and non-browser clients, allow all origins
-    # Security is enforced via API_SECRET_KEY instead of CORS
-    allow_all_origins = os.getenv("ALLOW_ALL_ORIGINS", "false").lower() == "true"
+    # 1. Determine Allowed Origins
+    if allow_all:
+        origins = ["*"]
+    elif not is_prod:
+        # Development: common local ports
+        origins = [
+            "http://localhost:3000", "http://localhost:5173", "http://localhost:5174",
+            "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:5174",
+        ]
+    else:
+        # Production: Env-based whitelist or defaults
+        env_origins = os.getenv("ALLOWED_ORIGINS", "")
+        if env_origins:
+            origins = [o.strip() for o in env_origins.split(",") if o.strip()]
+        else:
+            origins = ALLOWED_HOSTS
 
-    config: dict = {
-        "allow_origins": ["*"] if allow_all_origins else get_allowed_origins(),
-        "allow_credentials": False,  # No cookies/auth-headers used, so keep False for security
+    # 2. Build Base Configuration
+    config = {
+        "allow_origins": origins,
+        "allow_credentials": False, # No cookies/auth-headers used
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": [
-            "*"
-        ],  # Allow all headers since we are already Origin-restricted or using API key
+        "allow_headers": ["*"],
         "expose_headers": [
-            "X-RateLimit-Limit",
-            "X-RateLimit-Remaining",
-            "X-RateLimit-Reset",
+            "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"
         ],
-        "max_age": 600
-        if environment == "production"
-        else 0,  # Cache preflight for 10 min in prod
+        "max_age": 600 if is_prod else 0,
     }
-    # In production, allow Cloud Run frontend URLs (format varies: project-number.region.run.app or hash.region.run.app)
-    # Only apply regex if not allowing all origins
-    if environment == "production" and not allow_all_origins:
-        config[
-            "allow_origin_regex"
-        ] = r"https://asktennis-frontend-[a-zA-Z0-9.-]+\.run\.app"
+
+    # 3. Add Dynamic Cloud Run Previews for Production
+    if is_prod and not allow_all:
+        config["allow_origin_regex"] = r"https://asktennis-frontend-[a-zA-Z0-9.-]+\.run\.app"
+
     return config

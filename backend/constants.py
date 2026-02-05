@@ -22,3 +22,11 @@ DEFAULT_TEMPERATURE = 0
 # Application Configuration
 APP_TITLE = "🎾 AskTennis: The Advanced AI Engine"
 APP_SUBTITLE = "#### Powered by Gemini & LangGraph (Stateful Agent)"
+
+# Security Configuration
+# These are default production origins. If empty, the backend will rely on 
+# ALLOWED_ORIGINS environment variable or Cloud Run regex.
+ALLOWED_HOSTS = []
+ALLOWED_PATTERNS = [
+    "run.app",  # Matches default Cloud Run URLs
+]
