@@ -20,7 +20,16 @@ const Login: React.FC = () => {
                 setError('Account created! Please login.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Authentication failed');
+            console.error('Auth Error:', err);
+            const detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                // Handle Pydantic validation errors
+                setError(detail.map((e: any) => e.msg).join(', '));
+            } else if (typeof detail === 'string') {
+                setError(detail);
+            } else {
+                setError('Authentication failed. Please check your network or try again.');
+            }
         }
     };
 
