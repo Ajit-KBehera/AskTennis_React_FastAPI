@@ -14,7 +14,7 @@ from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 
 QUESTION_FILE = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../TENNIS_ANALYTICAL_QUESTIONS_MCP.md")
+    os.path.join(os.path.dirname(__file__), "../../question_bank/TENNIS_ANALYTICAL_QUESTIONS_MCP.md")
 )
 OUTPUT_FILE = os.path.join(
     os.path.dirname(__file__),
