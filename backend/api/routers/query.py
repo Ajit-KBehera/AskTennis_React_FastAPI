@@ -3,19 +3,23 @@ Query router - AI-powered natural language tennis queries.
 
 Endpoints:
     POST /api/query - Process natural language questions using LangGraph agent
+    GET /api/query/history - List saved query results for the logged-in user
 """
 
 import traceback
 from typing import List, Dict, Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, field_validator
+from sqlalchemy.orm import Session
 import structlog
 
+from config.auth import get_current_user
 from config.rate_limiter import limiter, get_query_rate_limit_string
 from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
+from services.auth_db_service import AuthDBService
 
 # =============================================================================
 # SETUP
@@ -27,6 +31,7 @@ logger = structlog.get_logger()
 # Lazy-loaded service singletons
 _agent_graph = None
 _query_processor = None
+_auth_db = AuthDBService()
 
 
 def get_services():
@@ -87,9 +92,12 @@ class QueryResponse(BaseModel):
 async def process_query(
     request: Request,
     query_request: QueryRequest,
+    username: str = Depends(get_current_user),
+    db: Session = Depends(_auth_db.get_db),
 ):
     """
     AI query endpoint - processes natural language questions about tennis.
+    Results are saved to the logged-in user's query history.
 
     Uses LangGraph agent to:
     1. Parse the natural language question
@@ -111,6 +119,19 @@ async def process_query(
             query_processor.handle_user_query, query_request.query, agent_graph
         )
 
+        # Save to user's query history
+        user = _auth_db.get_user_by_username(db, username)
+        if user:
+            _auth_db.save_query_history(
+                db,
+                user_id=user.id,
+                query_text=query_request.query,
+                sql_queries=results.get("sql_queries", []),
+                answer=results.get("answer", ""),
+                data=results.get("data", []),
+                conversation_flow=results.get("conversation_flow", []),
+            )
+
         return QueryResponse(
             answer=results.get("answer", ""),
             sql_queries=results.get("sql_queries", []),
@@ -126,3 +147,20 @@ async def process_query(
         )
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/query/history")
+async def get_query_history(
+    username: str = Depends(get_current_user),
+    db: Session = Depends(_auth_db.get_db),
+    limit: int = 50,
+):
+    """
+    Return the logged-in user's saved query history (query text, SQL, answer, data).
+    Most recent first, up to `limit` items (default 50).
+    """
+    user = _auth_db.get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    history = _auth_db.get_query_history_for_user(db, user.id, limit=min(limit, 100))
+    return {"history": history}

@@ -1,7 +1,8 @@
+import json
 from sqlalchemy.orm import sessionmaker, Session
 from config.database.database_factory import DatabaseFactory
-from api.auth_models import User, Base
-from typing import Optional
+from api.auth_models import User, QueryHistory, Base
+from typing import Optional, List, Dict, Any
 
 class AuthDBService:
     def __init__(self):
@@ -40,3 +41,51 @@ class AuthDBService:
             from datetime import datetime
             user.last_login = datetime.utcnow()
             db.commit()
+
+    def save_query_history(
+        self,
+        db: Session,
+        user_id: int,
+        query_text: str,
+        sql_queries: List[str],
+        answer: str,
+        data: List[Dict[str, Any]],
+        conversation_flow: Optional[List[Any]] = None,
+    ) -> QueryHistory:
+        """Save a single AI query result for the given user."""
+        record = QueryHistory(
+            user_id=user_id,
+            query_text=query_text,
+            sql_queries_json=json.dumps(sql_queries) if sql_queries else None,
+            answer=answer or None,
+            data_json=json.dumps(data) if data else None,
+            conversation_flow_json=json.dumps(conversation_flow) if conversation_flow else None,
+        )
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        return record
+
+    def get_query_history_for_user(
+        self, db: Session, user_id: int, limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Return recent query history for a user, with JSON fields parsed."""
+        rows = (
+            db.query(QueryHistory)
+            .filter(QueryHistory.user_id == user_id)
+            .order_by(QueryHistory.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        result = []
+        for r in rows:
+            result.append({
+                "id": r.id,
+                "query_text": r.query_text,
+                "sql_queries": json.loads(r.sql_queries_json) if r.sql_queries_json else [],
+                "answer": r.answer or "",
+                "data": json.loads(r.data_json) if r.data_json else [],
+                "conversation_flow": json.loads(r.conversation_flow_json) if r.conversation_flow_json else [],
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            })
+        return result
