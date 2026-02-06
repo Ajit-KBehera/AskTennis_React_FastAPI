@@ -74,7 +74,7 @@ function App() {
             <div className="space-y-8 animate-fade-in relative">
                 <button
                     onClick={logout}
-                    className="absolute top-0 right-0 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white text-sm transition-all"
+                    className="absolute top-0 right-0 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white text-sm transition-all z-50 pointer-events-auto"
                 >
                     Logout ({user})
                 </button>
