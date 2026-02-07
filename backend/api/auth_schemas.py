@@ -8,6 +8,13 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
+
+class LoginRequest(BaseModel):
+    """Login request body; supports optional remember_me for extended session."""
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=8)
+    remember_me: bool = False
+
 class UserResponse(UserBase):
     id: int
     created_at: datetime

@@ -59,6 +59,7 @@ export const endpoints = {
   register: '/auth/register',
   logout: '/auth/logout',
   getMe: '/auth/me',
+  checkUsername: '/auth/check-username',
 
   // API endpoints (prefix with /api)
   getFilters: '/api/filters',
@@ -158,6 +159,17 @@ export const api = {
    */
   getMe: async (): Promise<any> => {
     const response = await apiClient.get(endpoints.getMe);
+    return response.data;
+  },
+
+  /**
+   * Auth: Check if username is available (for registration)
+   */
+  checkUsername: async (username: string): Promise<{ available: boolean }> => {
+    const response = await apiClient.get<{ available: boolean }>(
+      endpoints.checkUsername,
+      { params: { username } }
+    );
     return response.data;
   },
 };

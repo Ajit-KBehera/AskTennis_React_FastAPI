@@ -205,6 +205,7 @@ export interface UserResponse {
 export interface AuthCredentials {
   username: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface AuthResponse {

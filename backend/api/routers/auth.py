@@ -4,12 +4,19 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from services.auth_db_service import AuthDBService
 from services.auth_service import AuthService
-from api.auth_schemas import UserCreate, UserResponse, Token
+from api.auth_schemas import UserCreate, UserResponse, Token, LoginRequest
 from api.auth_models import User
-from constants import ACCESS_TOKEN_EXPIRE_MINUTES
+from constants import ACCESS_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_DAYS_REMEMBER_ME
 
 router = APIRouter()
 auth_db = AuthDBService()
+
+@router.get("/check-username")
+def check_username(username: str, db: Session = Depends(auth_db.get_db)):
+    """Check if a username is available (for registration). No auth required."""
+    user = auth_db.get_user_by_username(db, username=username)
+    return {"available": user is None}
+
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(auth_db.get_db)):
@@ -25,30 +32,35 @@ def register(user_in: UserCreate, db: Session = Depends(auth_db.get_db)):
 
 @router.post("/login")
 def login(
-    response: Response, 
-    user_in: UserCreate, 
-    db: Session = Depends(auth_db.get_db)
+    response: Response,
+    user_in: LoginRequest,
+    db: Session = Depends(auth_db.get_db),
 ):
     user = auth_db.get_user_by_username(db, username=user_in.username)
     if not user or not AuthService.verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    if user_in.remember_me:
+        access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS_REMEMBER_ME)
+        max_age_seconds = ACCESS_TOKEN_EXPIRE_DAYS_REMEMBER_ME * 24 * 60 * 60
+    else:
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        max_age_seconds = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
     access_token = AuthService.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    
-    # Set HttpOnly Cookie
+
     is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=is_prod, # Only use Secure in production (over HTTPS)
-        samesite="None" if is_prod else "Lax", # Cross-site cookies require None + Secure
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        secure=is_prod,
+        samesite="None" if is_prod else "Lax",
+        max_age=max_age_seconds,
     )
-    
+
     auth_db.update_last_login(db, user.id)
     return {"message": "Login successful", "username": user.username}
 

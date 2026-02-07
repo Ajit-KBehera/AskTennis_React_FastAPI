@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../store/AuthContext';
+import { api } from '../api/client';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -7,11 +8,14 @@ const Login: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [usernameError, setUsernameError] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+    const [checkingUsername, setCheckingUsername] = useState(false);
     const usernameInputRef = useRef<HTMLInputElement>(null);
     const { login, register } = useAuth();
 
@@ -36,6 +40,27 @@ const Login: React.FC = () => {
             setUsernameError('');
         }
     }, [username, isLogin]);
+
+    // Debounced username availability check (registration only)
+    useEffect(() => {
+        if (isLogin || username.length < 3 || usernameError) {
+            setUsernameAvailable(null);
+            return;
+        }
+        setUsernameAvailable(null);
+        const timeoutId = setTimeout(async () => {
+            setCheckingUsername(true);
+            try {
+                const res = await api.checkUsername(username);
+                setUsernameAvailable(res.available);
+            } catch {
+                setUsernameAvailable(null);
+            } finally {
+                setCheckingUsername(false);
+            }
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [username, isLogin, usernameError]);
 
     // Real-time password validation
     useEffect(() => {
@@ -86,14 +111,14 @@ const Login: React.FC = () => {
             setPasswordError('Password is required');
             return;
         }
-        if (!isLogin && (usernameError || passwordError)) {
+        if (!isLogin && (usernameError || passwordError || usernameAvailable === false)) {
             return;
         }
 
         setIsSubmitting(true);
         try {
             if (isLogin) {
-                await login({ username, password });
+                await login({ username, password, remember_me: rememberMe });
             } else {
                 await register({ username, password });
                 setSuccess(true);
@@ -143,22 +168,34 @@ const Login: React.FC = () => {
         setSuccess(false);
         setUsernameError('');
         setPasswordError('');
+        setUsernameAvailable(null);
         setPassword('');
         setShowPassword(false);
     };
 
+    const registerSubmitDisabled =
+        !isLogin &&
+        (!!usernameError ||
+            !!passwordError ||
+            usernameAvailable === false ||
+            (username.length >= 3 && usernameAvailable === null && checkingUsername));
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl max-w-md w-full">
-            <h2 className="text-3xl font-bold text-white mb-2">
+        <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl max-w-md w-full transition-all duration-300 ease-out">
+            <h2 className="text-3xl font-bold text-white mb-2 transition-all duration-300">
                 {isLogin ? 'Welcome Back' : 'Create Account'}
             </h2>
-            <p className="text-white/60 text-sm mb-6">
+            <p className="text-white/60 text-sm mb-6 transition-all duration-300">
                 {isLogin ? 'Sign in to access AskTennis AI' : 'Join AskTennis AI to explore tennis analytics'}
             </p>
 
-            <form onSubmit={handleSubmit} className="w-full space-y-4">
+            <form
+                key={isLogin ? 'login' : 'register'}
+                onSubmit={handleSubmit}
+                className="w-full space-y-4 transition-opacity duration-300"
+            >
                 {/* Username Field */}
-                <div>
+                <div className="transition-all duration-200">
                     <label htmlFor="username" className="sr-only">
                         Username
                     </label>
@@ -171,22 +208,57 @@ const Login: React.FC = () => {
                         onChange={(e) => setUsername(e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-4 py-3 bg-white/5 border ${
-                            usernameError
+                            usernameError || usernameAvailable === false
                                 ? 'border-red-500/50 focus:border-red-500'
+                                : usernameAvailable === true
+                                ? 'border-green-500/50 focus:border-green-500'
                                 : 'border-white/10 focus:border-blue-500'
-                        } rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500/50 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                        aria-invalid={!!usernameError}
-                        aria-describedby={usernameError ? 'username-error' : undefined}
+                        } rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500/50 outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        aria-invalid={!!usernameError || usernameAvailable === false}
+                        aria-describedby={
+                            usernameError ? 'username-error' : usernameAvailable !== null ? 'username-availability' : undefined
+                        }
                         required
                     />
                     {usernameError && (
                         <p
                             id="username-error"
                             role="alert"
-                            className="text-red-400 text-xs mt-1 flex items-center gap-1"
+                            className="text-red-400 text-xs mt-1 flex items-center gap-1 opacity-100 transition-all duration-200"
                         >
-                            <AlertCircle className="w-3 h-3" />
+                            <AlertCircle className="w-3 h-3 shrink-0" />
                             {usernameError}
+                        </p>
+                    )}
+                    {!isLogin && !usernameError && username.length >= 3 && (
+                        <p
+                            id="username-availability"
+                            className={`text-xs mt-1 flex items-center gap-1 transition-all duration-200 ${
+                                checkingUsername
+                                    ? 'text-white/50'
+                                    : usernameAvailable === true
+                                    ? 'text-green-400'
+                                    : usernameAvailable === false
+                                    ? 'text-red-400'
+                                    : 'text-white/40'
+                            }`}
+                        >
+                            {checkingUsername ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 shrink-0 animate-spin" />
+                                    Checking availability...
+                                </>
+                            ) : usernameAvailable === true ? (
+                                <>
+                                    <CheckCircle className="w-3 h-3 shrink-0" />
+                                    Username available
+                                </>
+                            ) : usernameAvailable === false ? (
+                                <>
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Username already taken
+                                </>
+                            ) : null}
                         </p>
                     )}
                 </div>
@@ -316,13 +388,27 @@ const Login: React.FC = () => {
                     )}
                 </div>
 
+                {/* Remember Me (Login only) */}
+                {isLogin && (
+                    <label className="flex items-center gap-2 text-white/70 text-sm cursor-pointer select-none transition-colors hover:text-white/90">
+                        <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            disabled={isSubmitting}
+                            className="w-4 h-4 rounded border-white/30 bg-white/5 text-blue-500 focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-0 transition-all disabled:opacity-50"
+                        />
+                        Remember me for 30 days
+                    </label>
+                )}
+
                 {/* Success Message */}
                 {success && (
                     <div
                         role="alert"
-                        className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-400 text-sm flex items-center gap-2"
+                        className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-400 text-sm flex items-center gap-2 transition-all duration-300 opacity-100"
                     >
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircle className="w-5 h-5 shrink-0" />
                         Account created successfully! Redirecting to login...
                     </div>
                 )}
@@ -331,7 +417,7 @@ const Login: React.FC = () => {
                 {error && (
                     <div
                         role="alert"
-                        className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm flex items-center gap-2"
+                        className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm flex items-center gap-2 transition-all duration-300 opacity-100"
                     >
                         <AlertCircle className="w-5 h-5 shrink-0" />
                         <span>{error}</span>
@@ -341,7 +427,12 @@ const Login: React.FC = () => {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    disabled={isSubmitting || !!usernameError || !!passwordError}
+                    disabled={
+                        isSubmitting ||
+                        !!usernameError ||
+                        !!passwordError ||
+                        registerSubmitDisabled
+                    }
                     className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                 >
                     {isSubmitting ? (

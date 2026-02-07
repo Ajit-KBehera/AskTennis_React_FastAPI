@@ -1,5 +1,10 @@
-import React from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Loader2, Mic, MicOff } from 'lucide-react';
+
+const getSpeechRecognition = (): (new () => SpeechRecognition) | null => {
+  if (typeof window === 'undefined') return null;
+  return window.SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition ?? null;
+};
 
 interface SearchPanelProps {
   onQuerySubmit: (query: string) => void;
@@ -14,6 +19,56 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   value,
   onChange
 }) => {
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const SpeechRecognitionClass = getSpeechRecognition();
+  const speechSupported = SpeechRecognitionClass !== null;
+
+  useEffect(() => {
+    if (!SpeechRecognitionClass) return;
+    const recognition = new SpeechRecognitionClass();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (ev: SpeechRecognitionEvent) => {
+      const result = ev.results[ev.resultIndex];
+      const transcript = result[0]?.transcript?.trim() ?? '';
+      if (transcript) {
+        onChangeRef.current(transcript);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    return () => {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
+  }, [SpeechRecognitionClass]);
+
+  const handleToggleMic = () => {
+    if (!recognitionRef.current || disabled) return;
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch {
+        setIsListening(false);
+      }
+    }
+  };
+
   const handleSubmit = () => {
     if (value.trim() && !disabled) {
       onQuerySubmit(value.trim());
@@ -35,7 +90,27 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
           disabled={disabled}
         />
-        <div className="pr-3">
+        <div className="pr-2 flex items-center gap-1">
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={handleToggleMic}
+              disabled={disabled}
+              title={isListening ? 'Stop listening' : 'Speak your query'}
+              aria-label={isListening ? 'Stop listening' : 'Speak your query'}
+              className={`p-3 rounded-xl transition-all duration-200 ${
+                isListening
+                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 animate-pulse'
+                  : 'text-slate-400 hover:text-emerald-400 hover:bg-white/5'
+              } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400`}
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5" aria-hidden />
+              ) : (
+                <Mic className="w-5 h-5" aria-hidden />
+              )}
+            </button>
+          )}
           <button
             className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-bold py-3 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 group shadow-lg shadow-emerald-500/20"
             onClick={handleSubmit}
@@ -45,6 +120,11 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
           </button>
         </div>
       </div>
+      {isListening && (
+        <p className="text-sm text-slate-400 mt-2 px-2" role="status" aria-live="polite">
+          Listening... speak your question, then click Analyze.
+        </p>
+      )}
     </div>
   );
 };
