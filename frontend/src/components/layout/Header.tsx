@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, mode, selectedPl
 
     return (
         <header className="mb-6 relative z-20">
-            <div className="glass-card rounded-2xl p-6 relative overflow-hidden group">
+            <div className="glass-card rounded-2xl p-6 relative overflow-visible group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-400 to-blue-500 opacity-80" />
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left relative z-10">
@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, mode, selectedPl
                                 v2.5.0
                             </div>
                         </div>
-                        <div className="relative" ref={menuRef}>
+                        <div className="relative z-30" ref={menuRef}>
                             <button
                                 type="button"
                                 onClick={() => setMenuOpen((o) => !o)}
@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout, mode, selectedPl
                             </button>
                             {menuOpen && (
                                 <div
-                                    className="absolute right-0 mt-2 py-2 w-48 rounded-xl bg-slate-800 border border-white/10 shadow-xl z-50"
+                                    className="absolute right-0 mt-2 py-2 w-48 rounded-xl bg-slate-800 border border-white/10 shadow-xl z-[100]"
                                     role="menu"
                                 >
                                     <button
