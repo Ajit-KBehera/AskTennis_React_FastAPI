@@ -5,9 +5,13 @@ Endpoint: GET /api/filters
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
+import structlog
 
 from services.database_service import DatabaseService
 from api.models import FilterOptionsResponse, YearRange
+from utils.error_utils import get_500_detail
+
+logger = structlog.get_logger()
 
 router = APIRouter()
 
@@ -77,6 +81,8 @@ async def get_filters(
             )
 
     except Exception as e:
+        logger.error("filters_fetch_failed", error=str(e))
         raise HTTPException(
-            status_code=500, detail=f"Failed to fetch filter options: {str(e)}"
+            status_code=500,
+            detail=get_500_detail(e),
         )

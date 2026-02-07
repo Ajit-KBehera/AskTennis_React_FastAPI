@@ -6,12 +6,13 @@ Endpoints:
     GET /api/query/history - List saved query results for the logged-in user
 """
 
+import asyncio
 import traceback
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 import structlog
 
@@ -20,6 +21,8 @@ from config.rate_limiter import limiter, get_query_rate_limit_string
 from agent.agent_factory import setup_langgraph_agent
 from services.query_service import QueryProcessor
 from services.auth_db_service import AuthDBService
+from constants import QUERY_TIMEOUT_SECONDS
+from utils.error_utils import get_500_detail
 
 # =============================================================================
 # SETUP
@@ -59,10 +62,14 @@ def get_services():
 # =============================================================================
 
 
+# Max length for query text (avoids abuse and keeps history bounded)
+QUERY_MAX_LENGTH = 2000
+
+
 class QueryRequest(BaseModel):
     """Request model for AI query endpoint."""
 
-    query: str
+    query: str = Field(..., max_length=QUERY_MAX_LENGTH)
 
     @field_validator("query")
     @classmethod
@@ -115,8 +122,13 @@ async def process_query(
         )
 
     try:
-        results = await run_in_threadpool(
-            query_processor.handle_user_query, query_request.query, agent_graph
+        results = await asyncio.wait_for(
+            run_in_threadpool(
+                query_processor.handle_user_query,
+                query_request.query,
+                agent_graph,
+            ),
+            timeout=QUERY_TIMEOUT_SECONDS,
         )
 
         # Save to user's query history
@@ -139,14 +151,26 @@ async def process_query(
             conversation_flow=results.get("conversation_flow", []),
         )
 
+    except asyncio.TimeoutError:
+        logger.warning(
+            "query_timeout",
+            query_preview=query_request.query[:80],
+        )
+        raise HTTPException(
+            status_code=504,
+            detail="Query took too long. Try a simpler question or try again.",
+        )
     except Exception as e:
         logger.error(
             "query_processing_failed",
-            query=query_request.query[:100],  # Log first 100 chars only
+            query=query_request.query[:100],
             error=str(e),
         )
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=get_500_detail(e),
+        )
 
 
 @router.get("/query/history")

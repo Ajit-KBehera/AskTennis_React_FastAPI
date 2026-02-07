@@ -10,12 +10,13 @@ This module initializes the application and wires up all components.
 # =============================================================================
 from fastapi import FastAPI, APIRouter, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 import time
 import uuid
 import structlog
 import os
 from dotenv import load_dotenv
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -28,6 +29,7 @@ from config.cors import get_cors_config
 from config.rate_limiter import limiter
 from config.observability import setup_observability
 from config.logging_config import configure_logging
+from utils.error_utils import is_production, get_500_detail
 
 # =============================================================================
 # ENVIRONMENT SETUP
@@ -52,7 +54,20 @@ app = FastAPI(
 
 # Rate Limiting
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Retry-After (seconds) when rate limit is exceeded; frontend can show countdown
+RATE_LIMIT_RETRY_AFTER_SECONDS = 60
+
+
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    """Return 429 with Retry-After header for client countdown."""
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Please try again later."},
+        headers={"Retry-After": str(RATE_LIMIT_RETRY_AFTER_SECONDS)},
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # CORS (Cross-Origin Resource Sharing)
 cors_config = get_cors_config()
@@ -65,6 +80,24 @@ FastAPIInstrumentor.instrument_app(app)
 # Structured Logging
 configure_logging()
 logger = structlog.get_logger()
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch uncaught exceptions; sanitize detail in production. Re-raise HTTPException."""
+    if isinstance(exc, HTTPException):
+        raise exc
+    logger.error(
+        "unhandled_exception",
+        path=request.url.path,
+        error=str(exc),
+        exc_info=True,
+    )
+    detail = get_500_detail(exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": detail},
+    )
 
 
 @app.middleware("http")
@@ -149,10 +182,45 @@ async def root():
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint for Cloud Run and load balancers.
-    Returns 200 OK if the service is healthy.
+    Liveness check for Cloud Run and load balancers.
+    Returns 200 OK if the process is running.
     """
     return {"status": "healthy", "service": "asktennis-backend"}
+
+
+@app.get("/ready")
+async def readiness_check():
+    """
+    Readiness check: verifies auth DB connectivity.
+    Returns 503 if dependencies are not ready (e.g. for K8s/Cloud Run).
+    """
+    try:
+        from sqlalchemy import text
+        from services.auth_db_service import AuthDBService
+        auth_db = AuthDBService()
+        with auth_db.SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+    except Exception as e:
+        logger.warning("readiness_check_failed", error=str(e))
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not ready", "detail": "Database not available"},
+        )
+    return {"status": "ready", "service": "asktennis-backend"}
+
+
+@app.on_event("startup")
+async def startup_checks():
+    """Fail fast in production if JWT secret is missing or default."""
+    if not is_production():
+        return
+    secret = os.getenv("JWT_SECRET_KEY", "")
+    default = "dev-jwt-secret-do-not-use-in-prod"
+    if not secret or secret == default:
+        raise RuntimeError(
+            "JWT_SECRET_KEY must be set to a secure value in production. "
+            "Do not use the default dev secret."
+        )
 
 
 # Register all API routers

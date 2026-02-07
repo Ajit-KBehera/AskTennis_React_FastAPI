@@ -6,10 +6,14 @@ Endpoint: POST /api/matches
 from fastapi import APIRouter, HTTPException
 from typing import List
 import pandas as pd
+import structlog
 
 from services.database_service import DatabaseService
 from api.models import StatsRequest, MatchesResponse, Match
 from utils.filter_utils import parse_year_filter
+from utils.error_utils import get_500_detail
+
+logger = structlog.get_logger()
 
 router = APIRouter()
 
@@ -111,6 +115,8 @@ async def get_matches(request: StatsRequest):
         return MatchesResponse(matches=matches, count=len(matches))
 
     except Exception as e:
+        logger.error("matches_fetch_failed", error=str(e))
         raise HTTPException(
-            status_code=500, detail=f"Failed to fetch matches: {str(e)}"
+            status_code=500,
+            detail=get_500_detail(e),
         )
