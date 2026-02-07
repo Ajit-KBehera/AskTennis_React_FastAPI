@@ -39,34 +39,34 @@ This document outlines the primary actors and use cases for the AskTennis AI sys
 -   **Preconditions**: User is not logged in.
 -   **System Action**:
     1.  User navigates to registration page.
-    2.  User enters username and password (min 8 characters).
+    2.  User enters username and password (min 8 characters). Frontend optionally calls `GET /auth/check-username?username=...` (debounced) to show **username availability** (available/taken).
     3.  React sends POST request to `/auth/register`.
     4.  Backend validates input (Pydantic schema).
     5.  Backend checks if username already exists.
     6.  Backend hashes password with bcrypt.
     7.  Backend stores user in authentication database.
     8.  Backend returns success response.
-    9.  Frontend redirects to login page.
+    9.  Frontend shows success message and redirects to login page.
 -   **Postconditions**: User account created, ready for login.
 -   **Alternative Flow**: Username already exists → Error message displayed.
 
 #### **UC-02: User Login**
 -   **Actor**: Unauthenticated User
--   **Description**: User logs in with username and password.
+-   **Description**: User logs in with username and password; optionally chooses "Remember Me" for extended session.
 -   **Preconditions**: User has registered account.
 -   **System Action**:
     1.  User navigates to login page.
-    2.  User enters username and password.
-    3.  React sends POST request to `/auth/login`.
+    2.  User enters username and password; optionally checks **Remember Me**.
+    3.  React sends POST request to `/auth/login` (body may include `remember_me: true`).
     4.  Backend validates credentials.
     5.  Backend verifies password hash.
-    6.  Backend generates JWT token.
-    7.  Backend sets HttpOnly cookie with JWT.
+    6.  Backend generates JWT token (extended expiry if remember_me).
+    7.  Backend sets HttpOnly cookie with JWT (longer max_age if remember_me).
     8.  Backend updates last_login timestamp.
     9.  Backend returns success response.
     10. Frontend updates AuthContext with user info.
     11. Frontend redirects to main application.
--   **Postconditions**: User is authenticated, session established.
+-   **Postconditions**: User is authenticated, session established (longer if Remember Me).
 -   **Alternative Flow**: Invalid credentials → Error message displayed.
 
 #### **UC-03: User Logout**
@@ -81,14 +81,20 @@ This document outlines the primary actors and use cases for the AskTennis AI sys
     5.  Frontend redirects to login page.
 -   **Postconditions**: User is logged out, session cleared.
 
+#### **UC-03b: Check Username Availability**
+-   **Actor**: Unauthenticated User (during registration)
+-   **Description**: Frontend checks whether a chosen username is available before submitting registration.
+-   **System Action**: Frontend calls `GET /auth/check-username?username=...` (debounced). Backend returns `{ "available": true|false }`. No auth required.
+-   **Postconditions**: User sees "Username available" or "Username already taken" in the registration form.
+
 ### **Core Platform Functionality**
 
 #### **UC-04: Natural Language Query**
 -   **Actor**: Casual Fan, Analyst
 -   **Preconditions**: User is authenticated.
--   **Description**: User types a question into the Search Bar.
+-   **Description**: User asks a question via the Search Bar (typed or spoken).
 -   **System Action**:
-    1.  User types query in SearchPanel component.
+    1.  User enters query in SearchPanel: either **types** or uses **voice input** (microphone button; browser Web Speech API produces transcript, which fills the input; user may edit then submit).
     2.  React sends POST request to `/api/query` with:
         - `X-API-Key` header
         - `access_token` cookie (JWT)
@@ -105,6 +111,7 @@ This document outlines the primary actors and use cases for the AskTennis AI sys
         e. Database executes SQL.
         f. LLM synthesizes natural language answer.
         g. Result stored in cache.
+        h. Backend saves result to user’s **query history** (query_text, sql_queries, answer, data) in auth DB.
     8.  Backend returns JSON response with:
         - Answer text
         - SQL queries used
@@ -113,7 +120,7 @@ This document outlines the primary actors and use cases for the AskTennis AI sys
     9.  React displays answer in AiResponseView.
     10. React renders data tables.
     11. React shows SQL queries in expandable section.
--   **Postconditions**: Query answered, results displayed.
+-   **Postconditions**: Query answered, results displayed; result stored in user’s query history.
 -   **Alternative Flow**: 
     - Rate limit exceeded → 429 error, retry message.
     - SQL error → Error message, agent may retry.
@@ -191,6 +198,17 @@ This document outlines the primary actors and use cases for the AskTennis AI sys
         - Tournament count
     5.  User can compare multiple players.
 -   **Postconditions**: Ranking history displayed.
+
+#### **UC-08b: View Query History**
+-   **Actor**: Casual Fan, Analyst
+-   **Preconditions**: User is authenticated.
+-   **Description**: User retrieves their past AI queries and results (saved automatically after each successful query).
+-   **System Action**:
+    1.  Frontend (or future UI) calls `GET /api/query/history` with auth cookie.
+    2.  Backend validates JWT, looks up user_id, queries `query_history` table.
+    3.  Backend returns list of past queries (query_text, sql_queries, answer, data, created_at), most recent first.
+    4.  User can reuse or inspect past questions and answers (UI for this may be added later).
+-   **Postconditions**: User’s query history returned (API ready; UI optional).
 
 ### **System Maintenance**
 

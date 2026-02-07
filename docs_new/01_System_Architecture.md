@@ -15,19 +15,20 @@ The system consists of two main components:
     -   Modern, responsive UI using Tailwind CSS 4
     -   TypeScript for type safety
     -   Zustand for state management
-    -   Interactive chat interface for natural language queries
+    -   Interactive chat interface for natural language queries (typed or **voice input** via Web Speech API in SearchPanel)
     -   Advanced filtering scenarios
     -   Data visualization using Recharts and Plotly.js
-    -   JWT-based authentication with HttpOnly cookies
+    -   JWT-based authentication with HttpOnly cookies (Remember Me, username availability check)
     -   Markdown rendering with KaTeX for mathematical expressions
+    -   Per-user **query history** (AI answers stored and retrievable via API)
 -   **Target Users**: Tennis enthusiasts, analysts, researchers
 
 ### 2. **Backend** (FastAPI + Python 3.11+)
 -   **Entry Point**: `backend/main.py`
 -   **Purpose**: API server handling business logic, data retrieval, and AI processing
 -   **Key Features**:
-    -   RESTful API endpoints (`/api/query`, `/api/filters`, `/api/stats`, `/api/matches`, `/auth/login`, `/auth/register`)
-    -   Dual-layer authentication (API Key + JWT)
+    -   RESTful API endpoints (`/api/query`, `/api/query/history`, `/api/filters`, `/api/stats`, `/api/matches`, `/auth/login`, `/auth/register`, `/auth/check-username`)
+    -   Dual-layer authentication (API Key + JWT); login supports optional **remember_me** for extended session
     -   AI Agent orchestration via LangGraph
     -   Multi-database support (DuckDB, SQLite, Cloud SQL PostgreSQL)
     -   Redis caching layer
@@ -171,7 +172,7 @@ Display Results ← JSON Response ← Response Formatter
 -   **`App.tsx`**: Main application component with authentication guard and routing.
 -   **`components/`**: Reusable UI components organized by feature.
     -   **`views/`**: Page-level components (AiResponseView, StatsDashboardView).
-    -   **`search/`**: Search and query components (SearchPanel, QuickInsights).
+    -   **`search/`**: Search and query components (SearchPanel with **voice input** mic button, QuickInsights).
     -   **`charts/`**: Visualization components (StatsChart).
     -   **`analysis/`**: Analysis components (MatchesTable, Tabs).
     -   **`layout/`**: Layout components (Header, Layout, Sidebar).
@@ -185,16 +186,16 @@ Display Results ← JSON Response ← Response Formatter
 ### 2. **Backend Layer** (`backend/`)
 -   **`main.py`**: FastAPI application entry point, middleware setup, and service initialization.
 -   **`api/routers/`**: Route definitions grouping related endpoints.
-    -   `query_router.py`: AI query endpoint (`/api/query`).
+    -   `query_router.py`: AI query endpoint (`/api/query`), saves results to user’s query history; `GET /api/query/history` for per-user history.
     -   `matches_router.py`: Endpoints for match data (`/api/matches`).
     -   `filters_router.py`: Endpoints for fetching filter options (`/api/filters`).
     -   `stats_router.py`: Endpoints for statistical analysis (`/api/stats`).
-    -   `auth.py`: Authentication endpoints (`/auth/login`, `/auth/register`).
+    -   `auth.py`: Authentication endpoints (`/auth/login` with optional `remember_me`, `/auth/register`, `GET /auth/check-username` for username availability).
 -   **`services/`**: Core business logic.
     -   `query_service.py`: Handles logic for processing AI queries (`QueryProcessor`).
     -   `database_service.py`: Database abstraction layer.
     -   `auth_service.py`: Authentication logic (JWT, password hashing).
-    -   `auth_db_service.py`: Authentication database operations.
+    -   `auth_db_service.py`: Authentication database operations (users, **query_history** save/list).
     -   `cache_service.py`: Caching abstraction (Redis/DiskCache).
 -   **`config/`**: Configuration management.
     -   `config.py`: Main configuration class.
@@ -240,7 +241,7 @@ Display Results ← JSON Response ← Response Formatter
     -   DuckDB (local development, high-performance analytics)
     -   SQLite (local fallback, simple deployment)
     -   Cloud SQL PostgreSQL (production, scalable)
--   **Authentication Database**: Separate database for user authentication (SQLite or Cloud SQL).
+-   **Authentication Database**: Separate database for user authentication and per-user query history (SQLite or Cloud SQL).
 -   **`services/database_service.py`**: Abstraction layer for database interactions with automatic type detection.
 
 ### 5. **Infrastructure Layer**

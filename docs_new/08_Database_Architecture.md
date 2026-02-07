@@ -33,7 +33,7 @@ The system uses a **factory pattern** that supports three database backends:
 4. **Authentication Database** (Separate)
    - SQLite (local) or Cloud SQL (production)
    - Isolated from main data
-   - Stores user credentials and sessions
+   - Stores user credentials, sessions, and **per-user query history** (AI query results)
    - Enhanced security through separation
 
 ## 🏗️ Database Architecture
@@ -67,6 +67,8 @@ The system uses a **factory pattern** that supports three database backends:
 ├─────────────────────────────────────────────────────────────────┤
 │  SQLite (Local)  │  Cloud SQL (Production)  │  Users Table     │
 │  auth.db         │  asktennis_auth          │  (Credentials)   │
+│                  │                          │  Query History   │
+│                  │                          │  (per-user)  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

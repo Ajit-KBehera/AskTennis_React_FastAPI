@@ -52,6 +52,10 @@ The AskTennis AI system is built on a comprehensive database containing 147 year
 │  USERS TABLE                                                   │
 │  id          │  username    │  hashed_password │  created_at   │
 │  last_login  │  ...        │                  │               │
+├─────────────────────────────────────────────────────────────────┤
+│  QUERY_HISTORY TABLE                                           │
+│  id  │  user_id (FK)  │  query_text  │  sql_queries_json  │    │
+│  answer  │  data_json  │  conversation_flow_json  │  created_at │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -113,6 +117,20 @@ The AskTennis AI system is built on a comprehensive database containing 147 year
 - **Security**: 
   - Passwords never stored in plain text
   - HttpOnly cookies for session management
+
+### 6. **QUERY_HISTORY Table** (Authentication Database)
+- **Purpose**: Stores AI query results per logged-in user for history and replay
+- **Database**: Same authentication database (SQLite or Cloud SQL)
+- **Key Features**:
+  - `user_id` (FK to users.id, cascade on delete)
+  - `query_text`: natural language question
+  - `sql_queries_json`: generated SQL (JSON array)
+  - `answer`: AI-generated answer text
+  - `data_json`: result rows (JSON)
+  - `conversation_flow_json`: conversation flow (JSON)
+  - `created_at`: timestamp
+- **Indexes**: `user_id` for fast per-user lookups
+- **Usage**: Saved automatically after each successful `/api/query`; retrievable via `GET /api/query/history`
 
 ## 📈 Database Views
 

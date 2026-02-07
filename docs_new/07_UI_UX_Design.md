@@ -49,6 +49,7 @@ App.tsx (Root)
     └── Main Content Area
         ├── SearchPanel Component
         │   ├── Input Field (Natural Language)
+        │   ├── Microphone Button (Voice input via Web Speech API; transcript fills input)
         │   ├── Quick Insights (Suggested Queries)
         │   └── Submit Button
         │
@@ -284,10 +285,10 @@ Using Tailwind's spacing scale:
 ### 3. **Authentication Flow**
 
 1.  User visits app (not authenticated).
-2.  Login page displayed.
-3.  User enters credentials.
+2.  Login page displayed (Login or Register mode).
+3.  User enters credentials; in Register mode, **username availability** is shown (debounced). Optional **Remember Me** on login.
 4.  Loading state during authentication.
-5.  Success: Redirect to main app.
+5.  Success: Redirect to main app (extended session if Remember Me was checked).
 6.  Error: Display error message, allow retry.
 
 ## 🎯 Component Library
@@ -313,11 +314,11 @@ Using Tailwind's spacing scale:
 
 ### **Feature Components**
 
-1. **SearchPanel**: Natural language query input
+1. **SearchPanel**: Natural language query input (typed or **voice** via mic button using Web Speech API)
 2. **QuickInsights**: Suggested queries
 3. **MatchesTable**: Match data table
 4. **StatsChart**: Statistical charts
-5. **Login**: Authentication form
+5. **Login**: Authentication form (Remember Me, username availability check, password strength, accessibility)
 
 ## 🎨 Visual Design Details
 

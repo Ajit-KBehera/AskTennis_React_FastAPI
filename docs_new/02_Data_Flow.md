@@ -134,13 +134,14 @@ sequenceDiagram
 ```
 
 **Process Details:**
-- **Input**: User types query in React `SearchPanel` component.
+- **Input**: User enters query in React `SearchPanel` either by **typing** or by **voice** (microphone button uses the browser’s Web Speech API for speech-to-text; transcript is placed in the search box, then user submits).
 - **Authentication**: AuthContext checks for valid JWT token.
 - **Transmission**: Axios sends payload to `/api/query` with:
   - `X-API-Key` header
   - `access_token` cookie (HttpOnly)
 - **Validation**: Pydantic models validate the request body.
-- **User Context**: JWT payload provides username for request tracking.
+- **User Context**: JWT payload provides username; backend saves each successful result to that user’s **query history** (see Query History below).
+- **Query History**: After a successful response, the backend persists the query text, SQL, answer, and data to the `query_history` table for the logged-in user. Users can retrieve past queries via `GET /api/query/history`.
 
 ### 2. **Rate Limiting & Caching**
 
@@ -232,6 +233,7 @@ sequenceDiagram
     QueryProcessor->>CacheService: Store Result (TTL: 24h)
     QueryProcessor->>Observability: End Trace
     QueryProcessor-->>ReactApp: JSON { answer, data, sql, session_id }
+    Note over QueryProcessor: Save to user's query_history (auth DB)
     ReactApp->>ReactApp: Update Zustand Store
     ReactApp->>ReactApp: Render Answer & Tables
 ```
@@ -313,15 +315,24 @@ Request → Generate Request ID → Bind to Context → Log Each Step → Correl
 
 ### Login Flow
 ```
-User → Login Form → POST /auth/login → Validate Credentials → 
-Generate JWT → Set HttpOnly Cookie → Return Success → 
+User → Login Form → POST /auth/login (optional: remember_me) → Validate Credentials → 
+Generate JWT (extended expiry if remember_me) → Set HttpOnly Cookie → Return Success → 
 Frontend Updates AuthContext → Redirect to App
 ```
+- **Remember Me**: When checked, JWT and cookie use extended expiry (e.g. 30 days) for “stay logged in”.
+- **Username availability**: During registration, frontend calls `GET /auth/check-username?username=...` (debounced) to show available/taken before submit.
 
 ### Authenticated Request Flow
 ```
 User → API Request → Extract Cookie → Validate JWT → 
 Extract Username → Attach to Request Context → Process Request
+```
+
+### Query History Flow
+```
+After successful POST /api/query → Backend looks up user_id from username → 
+Save (query_text, sql_queries, answer, data, conversation_flow) to query_history → 
+User can later call GET /api/query/history → Returns list of past queries with full payload
 ```
 
 ## 🔄 Cache Flow

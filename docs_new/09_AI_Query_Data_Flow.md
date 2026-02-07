@@ -22,14 +22,15 @@ The AskTennis application uses a **LangGraph-based AI agent** served via a **Fas
 ## Architecture Components
 
 ### 1. **Frontend Layer (React 19 + TypeScript)**
--   **`SearchPanel.tsx`**: Captures user input with natural language query.
+-   **`SearchPanel.tsx`**: Captures user input with natural language query (typed or **voice** via microphone button using the browser’s Web Speech API; transcript is placed in the input, then user submits).
 -   **`api/client.ts`**: Axios-based API client with authentication headers.
 -   **`AuthContext.tsx`**: Manages authentication state and JWT tokens.
 -   **`useAiQuery.ts`**: Custom hook for AI query management.
 -   **`AiResponseView.tsx`**: Renders the JSON response (answer text, data tables, SQL).
 
 ### 2. **Backend Entry Point (`backend/main.py`)**
--   **`/api/query` Endpoint**: Receives the user's question, validates authentication, invokes the `QueryProcessor`.
+-   **`/api/query` Endpoint**: Receives the user's question, validates authentication, invokes the `QueryProcessor`. On success, saves the result (query, SQL, answer, data) to the logged-in user’s **query history** in the auth database.
+-   **`GET /api/query/history`**: Returns the authenticated user’s saved query history (list of past queries with full payload).
 -   **Middleware**: CORS, rate limiting, logging, observability.
 -   **Authentication**: API key validation, JWT token validation.
 
@@ -138,11 +139,12 @@ LLM → Database → Cache Store → Response → React UI
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                  9. RESPONSE FORMATTING & API REPLY                         │
+│                  9. RESPONSE FORMATTING & QUERY HISTORY SAVE                │
 │  QueryProcessor formats the final dictionary.                               │
+│  Backend saves (query_text, sql_queries, answer, data, conversation_flow)   │
+│  to query_history for the logged-in user (auth DB).                         │
 │  FastAPI serializes to JSON (QueryResponse model).                          │
-│  Ends OpenTelemetry trace                                                   │
-│  Logs request completion with structlog                                     │
+│  Ends OpenTelemetry trace; logs request completion with structlog.         │
 └───────────────────────────────┬─────────────────────────────────────────────┘
                                 │ JSON Response
                                 ▼

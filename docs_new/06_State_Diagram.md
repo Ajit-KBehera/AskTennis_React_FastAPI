@@ -61,15 +61,15 @@ stateDiagram-v2
 
 #### **Authentication States**
 -   **Unauthenticated**: User is not logged in, showing login page.
--   **Login**: User is on login page, entering credentials.
+-   **Login**: User is on login page, entering credentials (optional **Remember Me**; in Register mode, **username availability** is checked debounced).
 -   **Authenticating**: Credentials submitted, waiting for backend response.
 -   **LoginError**: Login failed, showing error message.
--   **Authenticated**: User is logged in, JWT token valid.
+-   **Authenticated**: User is logged in, JWT token valid (extended expiry if Remember Me was used).
 
 #### **Application States**
 -   **LoadingFilters**: Fetching list of players/tournaments from API.
--   **Idle**: App is loaded, waiting for user input. Filters available.
--   **Querying**: Waiting for AI query request (`/api/query`) to complete. Shows loading spinner.
+-   **Idle**: App is loaded, waiting for user input. Filters available. User can type in SearchPanel or use **voice input** (mic button; browser Web Speech API fills the search box).
+-   **Querying**: Waiting for AI query request (`/api/query`) to complete. Shows loading spinner. Successful results are saved to the user’s **query history** on the backend.
 -   **Filtering**: User is adjusting filters, updating filter state.
 -   **ViewingStats**: Displaying statistics dashboard or player profile.
 
