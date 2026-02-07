@@ -20,7 +20,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, onFilterChange }) => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-transparent relative custom-scrollbar">
+      <main id="main-content" className="flex-1 overflow-auto bg-transparent relative custom-scrollbar" tabIndex={-1}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-emerald-500 focus:text-white focus:rounded-lg focus:outline-none"
+        >
+          Skip to main content
+        </a>
         {/* Mobile Menu Trigger */}
         <div className="md:hidden p-4 pb-0">
           <button

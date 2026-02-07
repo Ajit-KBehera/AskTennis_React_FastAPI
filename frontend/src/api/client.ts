@@ -64,6 +64,7 @@ export const endpoints = {
   // API endpoints (prefix with /api)
   getFilters: '/api/filters',
   query: '/api/query',
+  queryHistory: '/api/query/history',
   getServeStats: '/api/stats/serve',
   getReturnStats: '/api/stats/return',
   getRankingStats: '/api/stats/ranking',
@@ -171,6 +172,33 @@ export const api = {
       { params: { username } }
     );
     return response.data;
+  },
+
+  /**
+   * Get current user's query history (saved AI queries/results)
+   */
+  getQueryHistory: async (limit = 10): Promise<{ history: Array<{
+    id: number;
+    query_text: string;
+    sql_queries: string[];
+    answer: string;
+    data: unknown[];
+    conversation_flow: unknown[];
+    created_at: string | null;
+  }> }> => {
+    const response = await apiClient.get<{ history: unknown[] }>(
+      endpoints.queryHistory,
+      { params: { limit } }
+    );
+    return response.data as { history: Array<{
+      id: number;
+      query_text: string;
+      sql_queries: string[];
+      answer: string;
+      data: unknown[];
+      conversation_flow: unknown[];
+      created_at: string | null;
+    }> };
   },
 };
 

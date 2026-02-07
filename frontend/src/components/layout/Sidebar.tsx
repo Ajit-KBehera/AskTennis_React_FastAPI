@@ -5,7 +5,7 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { apiClient, endpoints } from '../../api/client';
 import type { FilterOptionsResponse } from '../../types';
-import { Filter, RefreshCcw, X, Search, Users, Trophy } from 'lucide-react';
+import { Filter, RefreshCcw, X, Search, Users, Trophy, RotateCcw } from 'lucide-react';
 
 type OptionType = { value: string; label: string };
 
@@ -132,6 +132,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
       surface: selectedSurfaces.length > 0 ? selectedSurfaces : undefined,
       year: yearValue
     });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedPlayer('All Players');
+    setSelectedOpponent('All Opponents');
+    setSelectedTournament('All Tournaments');
+    setSelectedSurfaces(options.surfaces?.length ? options.surfaces : ['Hard', 'Clay', 'Grass', 'Carpet']);
+    setYearRange([minYear, maxYear]);
+    setUseAllYears(false);
+    onFilterChange({
+      player_name: 'All Players',
+      opponent: 'All Opponents',
+      tournament: 'All Tournaments',
+      surface: [],
+      year: 'All Years'
+    });
+    onClose?.();
   };
 
   // Convert options to react-select format
@@ -460,14 +477,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ onFilterChange, isOpen = true,
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleGenerate}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 border border-white/10 group mt-4 transform hover:-translate-y-0.5"
-          >
-            <RefreshCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-            Generate Analytics
-          </button>
+          <div className="flex gap-3 mt-4">
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="flex-1 min-h-[44px] px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white font-medium flex items-center justify-center gap-2 transition-all"
+              aria-label="Clear all filters"
+            >
+              <RotateCcw className="w-4 h-4" /> Clear
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 border border-white/10 group transform hover:-translate-y-0.5 min-h-[44px]"
+            >
+              <RefreshCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+              Generate
+            </button>
+          </div>
         </div>
       </aside>
     </>

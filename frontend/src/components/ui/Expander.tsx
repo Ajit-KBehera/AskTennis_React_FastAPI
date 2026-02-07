@@ -5,16 +5,23 @@ interface ExpanderProps {
     label: string;
     children: ReactNode;
     defaultExpanded?: boolean;
+    /** Controlled: when provided with onToggle, use this instead of internal state */
+    expanded?: boolean;
+    onToggle?: () => void;
 }
 
-const Expander: React.FC<ExpanderProps> = ({ label, children, defaultExpanded = false }) => {
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+const Expander: React.FC<ExpanderProps> = ({ label, children, defaultExpanded = false, expanded, onToggle }) => {
+    const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+    const isControlled = expanded !== undefined && onToggle !== undefined;
+    const isExpanded = isControlled ? expanded : internalExpanded;
+    const setExpanded = isControlled ? onToggle : () => setInternalExpanded((p) => !p);
 
     return (
         <div className="border border-white/10 rounded-2xl bg-slate-800/20 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-white/20">
             <button
+                type="button"
                 className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors duration-200 group"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={setExpanded}
                 aria-expanded={isExpanded}
             >
                 <div className="flex items-center gap-3">

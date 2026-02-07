@@ -109,3 +109,15 @@ body {
 .prose tr:hover td {
   @apply bg-slate-800/30;
 }
+
+/* Skeleton loading animation */
+@keyframes skeleton-shimmer {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+
+.skeleton-line {
+  @apply h-4 rounded bg-white/10;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}

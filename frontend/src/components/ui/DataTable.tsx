@@ -50,8 +50,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data, maxHeight = 400 }) =
 
     return (
         <div className="w-full border border-white/10 rounded-xl bg-slate-900/40 shadow-inner flex flex-col overflow-hidden" style={{ height: `${maxHeight}px` }}>
-            {/* Static Header */}
-            <div className="flex items-center bg-white/5 border-b border-white/10 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider backdrop-blur-sm">
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-10 flex items-center bg-slate-900/95 border-b border-white/10 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider backdrop-blur-sm">
                 {columns.map((col, index) => (
                     <div
                         key={index}
