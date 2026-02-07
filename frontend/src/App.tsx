@@ -32,6 +32,19 @@ function App() {
     const [lastSubmittedQuery, setLastSubmittedQuery] = useState('');
 
     const ai = useAiQuery();
+    const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
+
+    useEffect(() => {
+        if (ai.retryAfterSeconds == null || ai.retryAfterSeconds <= 0) {
+            setRateLimitCountdown(0);
+            return;
+        }
+        setRateLimitCountdown(ai.retryAfterSeconds);
+        const id = setInterval(() => {
+            setRateLimitCountdown((c) => (c <= 1 ? 0 : c - 1));
+        }, 1000);
+        return () => clearInterval(id);
+    }, [ai.retryAfterSeconds]);
 
     useEffect(() => {
         const loadHistory = async () => {
@@ -179,7 +192,15 @@ function App() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-bold text-red-400 mb-1 text-lg">Analysis Error</h3>
-                                <p className="text-red-300/80 mb-4">{ai.error}</p>
+                                <p className="text-red-300/80 mb-2">{ai.error}</p>
+                                {rateLimitCountdown > 0 && (
+                                    <p className="text-red-300/90 text-sm mb-4" aria-live="polite">
+                                        You can try again in <strong>{rateLimitCountdown}</strong> seconds.
+                                    </p>
+                                )}
+                                {rateLimitCountdown === 0 && ai.retryAfterSeconds != null && (
+                                    <p className="text-emerald-300/90 text-sm mb-4">You can try again now.</p>
+                                )}
                                 <div className="flex flex-wrap gap-3">
                                     <button
                                         type="button"

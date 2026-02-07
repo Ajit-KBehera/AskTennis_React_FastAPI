@@ -189,6 +189,8 @@ export interface AiQueryState {
   conversationFlow: ConversationFlowItem[];
   loading: boolean;
   error: string;
+  /** When 429, seconds until client can retry (from Retry-After); UI can show countdown */
+  retryAfterSeconds?: number;
 }
 
 // ============================================================================

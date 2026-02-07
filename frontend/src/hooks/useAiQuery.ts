@@ -11,6 +11,12 @@ const initialState: AiQueryState = {
   error: '',
 };
 
+function parseRetryAfter(value: string | undefined): number | undefined {
+  if (value == null) return undefined;
+  const n = parseInt(value, 10);
+  return Number.isNaN(n) ? undefined : Math.max(0, n);
+}
+
 export function useAiQuery() {
   const [state, setState] = useState<AiQueryState>(initialState);
 
@@ -37,11 +43,26 @@ export function useAiQuery() {
         error: '',
       });
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { detail?: string } } };
+      const axiosError = error as {
+        response?: {
+          status?: number;
+          data?: { detail?: string };
+          headers?: { 'retry-after'?: string };
+        };
+      };
+      const status = axiosError?.response?.status;
       const message =
         axiosError?.response?.data?.detail ||
         'Failed to get AI response. Please try again.';
-      setState((prev) => ({ ...prev, loading: false, error: message }));
+      const retryAfterHeader = axiosError?.response?.headers?.['retry-after'];
+      const retryAfterSeconds =
+        status === 429 ? parseRetryAfter(retryAfterHeader) ?? 60 : undefined;
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: message,
+        retryAfterSeconds,
+      }));
     }
   }, []);
 
