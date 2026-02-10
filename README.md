@@ -8,7 +8,7 @@
 - **Deep Statistical Analysis**: Powered by DuckDB, SQLite, or Cloud SQL PostgreSQL with a rich dataset covering the Open Era.
 - **Agentic AI**: Uses LangGraph to decompose complex queries into SQL steps with stateful agent execution.
 - **Modern UI**: React 19 frontend with Tailwind CSS 4 for visualizing data and interacting with the agent.
-- **User Authentication**: Secure JWT-based authentication with HttpOnly cookies and API key protection.
+- **User Authentication**: Secure JWT-based authentication with HttpOnly cookies.
 - **Multi-Database Support**: Seamlessly works with DuckDB (local), SQLite (local), or Cloud SQL PostgreSQL (production).
 - **Caching Layer**: Redis-based caching for improved performance.
 - **Observability**: OpenTelemetry tracing and structured logging with request IDs.
@@ -76,7 +76,6 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env and add:
 # - GOOGLE_API_KEY=your_google_api_key
-# - API_SECRET_KEY=your_api_secret_key (or use "dev-key" for development)
 # - JWT_SECRET_KEY=your_jwt_secret (or use default for development)
 # - DB_TYPE=duckdb (or sqlite)
 # - REDIS_URL=redis://localhost:6379/0 (optional)
@@ -102,7 +101,6 @@ npm install
 cp .env.example .env
 # Edit .env and add:
 # - VITE_API_URL=http://localhost:8000/api
-# - VITE_API_KEY=your_api_key (or "dev-key" for development)
 ```
 
 Start the development server:
@@ -127,10 +125,7 @@ docker-compose up -d
 
 ## 🔐 Authentication
 
-The API uses a **dual-layer authentication** system:
-
-1. **API Key**: Required in `X-API-Key` header for all `/api/*` endpoints
-2. **JWT Token**: Required for authenticated user sessions (stored in HttpOnly cookies)
+The API uses **JWT-based authentication** with HttpOnly cookies for secure session management.
 
 ### User Registration & Login
 
@@ -147,7 +142,6 @@ curl -X POST http://localhost:8000/auth/login \
 
 # Make authenticated API call
 curl -X GET http://localhost:8000/api/stats/players \
-  -H "X-API-Key: your-api-key" \
   --cookie "access_token=your-jwt-token"
 ```
 
@@ -295,9 +289,8 @@ Workflow: `.github/workflows/deploy-frontend.yml`
 5. `DB_USER`: Database user
 6. `BACKEND_URL`: Backend Cloud Run URL (e.g., `https://asktennis-backend-xxxxx-uc.a.run.app`)
 7. `GOOGLE_API_KEY`: Google API key for Gemini
-8. `API_SECRET_KEY`: API secret key
-9. `JWT_SECRET_KEY`: JWT signing secret
-10. `DB_PASSWORD`: Database password
+8. `JWT_SECRET_KEY`: JWT signing secret
+9. `DB_PASSWORD`: Database password
 
 **Important Notes:**
 
@@ -403,9 +396,7 @@ npm run test:coverage # With coverage
 - `GET /api/filters/players` - Get available player filters
 - `GET /api/filters/tournaments` - Get tournament filters
 
-All `/api/*` endpoints require:
-- `X-API-Key` header
-- Valid JWT token in HttpOnly cookie
+All `/api/*` endpoints require a valid JWT token in an HttpOnly cookie.
 
 ## 🛠️ Development
 

@@ -58,7 +58,6 @@ class TestQueryEndpoint:
         response = client.post(
             "/api/query",
             json={"query": "How many French Opens has Nadal won?"},
-            headers={"X-API-Key": "dev-key"},
         )
 
         # Note: May get 500 if services not initialized correctly in test
@@ -68,7 +67,7 @@ class TestQueryEndpoint:
     def test_query_endpoint_empty_query(self, client_no_mocks):
         """Test query endpoint with empty query returns validation error."""
         response = client_no_mocks.post(
-            "/api/query", json={"query": ""}, headers={"X-API-Key": "dev-key"}
+            "/api/query", json={"query": ""}
         )
         # Pydantic validation rejects empty queries with 422
         assert response.status_code == 422
@@ -76,15 +75,20 @@ class TestQueryEndpoint:
     def test_query_endpoint_missing_query_field(self, client_no_mocks):
         """Test query endpoint with missing query field."""
         response = client_no_mocks.post(
-            "/api/query", json={}, headers={"X-API-Key": "dev-key"}
+            "/api/query", json={}
         )
         # Pydantic should reject this with 422
         assert response.status_code == 422
 
-    def test_query_endpoint_unauthorized(self, client_no_mocks):
-        """Test query endpoint without API key."""
-        response = client_no_mocks.post("/api/query", json={"query": "test"})
-        assert response.status_code == 403
+    def test_query_endpoint_unauthorized(self):
+        """Test query endpoint without JWT authentication."""
+        # Create a client without authentication override to test actual auth
+        from main import app
+        from fastapi.testclient import TestClient
+        
+        client = TestClient(app)
+        response = client.post("/api/query", json={"query": "test"})
+        assert response.status_code == 401  # Unauthorized without JWT
 
 
 class TestCORSConfiguration:
@@ -129,7 +133,7 @@ class TestFiltersEndpoint:
 
     def test_filters_endpoint_returns_data(self, client_no_mocks):
         """Test that filters endpoint returns filter options."""
-        response = client_no_mocks.get("/api/filters", headers={"X-API-Key": "dev-key"})
+        response = client_no_mocks.get("/api/filters")
         # May fail if database not initialized
         assert response.status_code in [200, 500]
 
@@ -138,6 +142,5 @@ class TestFiltersEndpoint:
         response = client_no_mocks.get(
             "/api/filters",
             params={"player_name": "Roger Federer"},
-            headers={"X-API-Key": "dev-key"},
         )
         assert response.status_code in [200, 500]

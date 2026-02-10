@@ -42,13 +42,11 @@ const getBackendBaseUrl = (): string => {
 };
 
 const BACKEND_URL = getBackendBaseUrl();
-const API_KEY = import.meta.env.VITE_API_KEY || 'dev-key';
 
 export const apiClient = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
-    'X-API-Key': API_KEY,
   },
   withCredentials: true, // Required for HttpOnly cookies
 });

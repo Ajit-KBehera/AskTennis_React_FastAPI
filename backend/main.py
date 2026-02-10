@@ -24,7 +24,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from api.routers import filters_router, matches_router, stats_router, query_router, auth_router
 
 # Configuration
-from config.auth import get_api_key, get_current_user
+from config.auth import get_current_user
 from config.cors import get_cors_config
 from config.rate_limiter import limiter
 from config.observability import setup_observability
@@ -143,10 +143,10 @@ async def logging_middleware(request: Request, call_next):
 # =============================================================================
 
 
-# Main API router with /api prefix - Protected by BOTH API Key AND JWT Session
+# Main API router with /api prefix - Protected by JWT Session
 api_router = APIRouter(
     prefix="/api", 
-    dependencies=[Depends(get_api_key), Depends(get_current_user)]
+    dependencies=[Depends(get_current_user)]
 )
 
 
