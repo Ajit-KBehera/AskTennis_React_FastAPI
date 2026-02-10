@@ -174,6 +174,8 @@ export interface AiQueryResponse {
   sql_queries: string[];
   data: Record<string, unknown>[];
   conversation_flow: ConversationFlowItem[];
+  /** Conversation/session id used for multi-turn context */
+  session_id: string;
 }
 
 export interface ConversationFlowItem {
@@ -189,6 +191,8 @@ export interface AiQueryState {
   conversationFlow: ConversationFlowItem[];
   loading: boolean;
   error: string;
+  /** Current conversation/session id (if any) */
+  sessionId?: string;
   /** When 429, seconds until client can retry (from Retry-After); UI can show countdown */
   retryAfterSeconds?: number;
 }

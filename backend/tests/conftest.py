@@ -21,6 +21,7 @@ def mock_agent_graph():
         "sql_queries": ["SELECT * FROM test"],
         "data": [{"test": "data"}],
         "conversation_flow": [],
+        "session_id": "test-session",
     }
     return mock
 
@@ -34,6 +35,7 @@ def mock_query_processor():
         "sql_queries": ["SELECT 1"],
         "data": [],
         "conversation_flow": [],
+        "session_id": "test-session",
     }
     return mock
 

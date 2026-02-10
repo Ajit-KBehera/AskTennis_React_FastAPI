@@ -8,6 +8,7 @@ Endpoints:
 
 import asyncio
 import traceback
+import uuid
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Request, Depends
@@ -70,6 +71,9 @@ class QueryRequest(BaseModel):
     """Request model for AI query endpoint."""
 
     query: str = Field(..., max_length=QUERY_MAX_LENGTH)
+    # Optional conversation/session id to enable multi-turn context
+    # If omitted, backend will generate one and return it.
+    session_id: str | None = Field(default=None, max_length=64)
 
     @field_validator("query")
     @classmethod
@@ -79,6 +83,15 @@ class QueryRequest(BaseModel):
             raise ValueError("Query cannot be empty")
         return v.strip()
 
+    @field_validator("session_id")
+    @classmethod
+    def session_id_normalize(cls, v: str | None) -> str | None:
+        """Normalize optional session_id (treat empty as None)."""
+        if v is None:
+            return None
+        v = v.strip()
+        return v or None
+
 
 class QueryResponse(BaseModel):
     """Response model for AI query endpoint."""
@@ -87,6 +100,7 @@ class QueryResponse(BaseModel):
     sql_queries: List[str]
     data: List[Dict[str, Any]]
     conversation_flow: List[Any]
+    session_id: str
 
 
 # =============================================================================
@@ -122,11 +136,17 @@ async def process_query(
         )
 
     try:
+        # Client-facing conversation id (stable across requests from the same browser)
+        client_session_id = query_request.session_id or str(uuid.uuid4())[:8]
+        # Namespaced thread id used by LangGraph checkpointer (prevents cross-user mixing)
+        thread_id = f"{username}:{client_session_id}"
+
         results = await asyncio.wait_for(
             run_in_threadpool(
                 query_processor.handle_user_query,
                 query_request.query,
                 agent_graph,
+                thread_id,
             ),
             timeout=QUERY_TIMEOUT_SECONDS,
         )
@@ -149,6 +169,8 @@ async def process_query(
             sql_queries=results.get("sql_queries", []),
             data=results.get("data", []),
             conversation_flow=results.get("conversation_flow", []),
+            # Return client-facing session id (not the namespaced thread id)
+            session_id=client_session_id,
         )
 
     except asyncio.TimeoutError:

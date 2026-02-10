@@ -53,6 +53,7 @@ class TestQueryEndpoint:
             "sql_queries": ["SELECT * FROM matches WHERE winner_name = 'Rafael Nadal'"],
             "data": [{"winner_name": "Rafael Nadal", "count": 14}],
             "conversation_flow": [],
+            "session_id": "test-session",
         }
 
         response = client.post(

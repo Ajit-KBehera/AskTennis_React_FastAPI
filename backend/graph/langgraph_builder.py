@@ -3,6 +3,7 @@ LangGraph construction and node definitions.
 Extracted from agent_setup.py for better modularity.
 """
 
+import os
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage
@@ -167,9 +168,33 @@ class LangGraphBuilder:
         # Add edge from tools back to agent
         graph.add_edge("tools", "agent")
 
-        # Compile with memory
-        memory = MemorySaver()
-        runnable_graph = graph.compile(checkpointer=memory)
+        # Compile with checkpointer (enables multi-turn context via thread_id)
+        #
+        # Defaults to a persistent SQLite checkpointer so conversation memory
+        # survives server restarts. Set LANGGRAPH_CHECKPOINTER=memory to disable.
+        checkpointer_type = os.getenv("LANGGRAPH_CHECKPOINTER", "sqlite").strip().lower()
+        checkpointer = None
+
+        if checkpointer_type == "memory":
+            checkpointer = MemorySaver()
+        else:
+            # Default SQLite checkpoint location inside backend/ (repo-safe, durable).
+            default_db_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "langgraph_checkpoints.sqlite")
+            )
+            conn_string = os.getenv("LANGGRAPH_CHECKPOINT_DB", "").strip()
+            if not conn_string:
+                conn_string = f"sqlite:///{default_db_path}"
+
+            try:
+                from langgraph.checkpoint.sqlite import SqliteSaver
+
+                checkpointer = SqliteSaver.from_conn_string(conn_string)
+            except Exception:
+                # Fallback: if sqlite checkpointer isn't available, still run in-memory
+                checkpointer = MemorySaver()
+
+        runnable_graph = graph.compile(checkpointer=checkpointer)
 
         return runnable_graph
 

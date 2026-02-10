@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { apiClient, endpoints } from '../api/client';
 import { AiQueryState, AiQueryResponse } from '../types';
 
+const SESSION_ID_STORAGE_KEY = 'asktennis_session_id';
+
 const initialState: AiQueryState = {
   response: '',
   sqlQueries: [],
@@ -17,10 +19,42 @@ function parseRetryAfter(value: string | undefined): number | undefined {
   return Number.isNaN(n) ? undefined : Math.max(0, n);
 }
 
+function getStoredSessionId(): string | null {
+  try {
+    if (typeof window === 'undefined') return null;
+    return window.localStorage.getItem(SESSION_ID_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredSessionId(sessionId: string): void {
+  try {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(SESSION_ID_STORAGE_KEY, sessionId);
+  } catch {
+    // ignore (e.g. storage disabled)
+  }
+}
+
+function clearStoredSessionId(): void {
+  try {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(SESSION_ID_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function useAiQuery() {
   const [state, setState] = useState<AiQueryState>(initialState);
 
   const reset = useCallback(() => {
+    setState(initialState);
+  }, []);
+
+  const resetConversation = useCallback(() => {
+    clearStoredSessionId();
     setState(initialState);
   }, []);
 
@@ -30,15 +64,22 @@ export function useAiQuery() {
     setState({ ...initialState, loading: true });
 
     try {
+      const existingSessionId = getStoredSessionId();
       const response = await apiClient.post<AiQueryResponse>(endpoints.query, {
         query: queryText.trim(),
+        session_id: existingSessionId || undefined,
       });
+
+      if (response.data.session_id) {
+        setStoredSessionId(response.data.session_id);
+      }
 
       setState({
         response: response.data.answer || '',
         sqlQueries: response.data.sql_queries || [],
         data: response.data.data || [],
         conversationFlow: response.data.conversation_flow || [],
+        sessionId: response.data.session_id || existingSessionId || undefined,
         loading: false,
         error: '',
       });
@@ -66,5 +107,5 @@ export function useAiQuery() {
     }
   }, []);
 
-  return { ...state, submitQuery, reset };
+  return { ...state, submitQuery, reset, resetConversation };
 }
