@@ -48,6 +48,13 @@ class TennisPromptBuilder:
   - `*_mcp_stats_*` tables: Detailed statistics (serve, return, rally, shot direction, etc.)
   - Use MCP tables when questions require point-level or shot-level analysis
   - Link MCP data to matches via `match_id` or `linked_match_id` columns
+- **TOURNAMENT CATEGORIZATION:** Use `tournament_type` for specific subsets:
+  - Values: 'Main Tour', 'ATP_Qualifying', 'WTA_Qualifying', 'Grand_Slam_Qualifying', 'ATP_Challenger', 'ITF_Futures', 'ATP_Juniors', 'Exhibitions', 'Davis_Cup', 'Fed_Cup'.
+- **ERA CLASSIFICATION:** Use `era` column to distinguish historical periods:
+  - 'Open Era' (1968-Present) vs 'Closed Era' (Pre-1968).
+- **GRANULAR SET SCORES:** Use `set1`, `set2`, `set3`, `set4`, `set5` for set-specific statistics.
+  - *Example:* `WHERE set1 = '6-0'` to find "bagels".
+- **TEMPORAL DATA:** Use `event_year`, `event_month`, `event_date` for efficient date-based filtering.
 
 ### SECTION 3: DATABASE REFERENCE
 **CORE TABLES:**
@@ -69,8 +76,9 @@ class TennisPromptBuilder:
   - `*_mcp_stats_snv` - Second serve statistics
   - `*_mcp_stats_sv_break_split`, `*_mcp_stats_sv_break_total` - Serve/break point splits
 
-**TOURNAMENT LEVELS:** 'G'=Grand Slam, 'M'=Masters 1000, 'A'=ATP, 'P'=Premier, 'F'=Tour Finals.
-**ROUNDS:** 'F'=Final, 'SF'=Semi-Final, 'QF'=Quarter-Final, 'R16', 'R32', 'R64', 'R128'.
+**TOURNAMENT LEVELS:** 'G'=Grand Slam, 'M'=Masters 1000, 'A'=ATP, 'P'=Premier, 'I'=International, 'W'=WTA, 'F'=Tour Finals, 'C'=Challenger, 'D'=Davis Cup, 'O'=Olympics, 'E'=Exhibition, 'J'=Juniors, 'S'=Futures, 'BJK_Cup'.
+**TOURNAMENT TYPES:** 'Main Tour', 'ATP_Qualifying', 'WTA_Qualifying', 'Grand_Slam_Qualifying', 'ATP_Challenger', 'ITF_Futures', 'ATP_Juniors', 'Exhibitions', 'Davis_Cup', 'Fed_Cup'.
+**ROUNDS:** 'F'=Final, 'SF'=Semi-Final, 'QF'=Quarter-Final, 'R16', 'R32', 'R64', 'R128', 'RR'=Round Robin.
 **STAT COLUMNS:** `w_ace`/`l_ace` (Aces), `w_df`/`l_df` (Double Faults), `w_1stIn`/`l_1stIn` (1st Serves Made).
 **GRAND SLAMS:** Australian Open, Roland Garros, Wimbledon, US Open. Use `LOWER(tourney_name) IN (LOWER('Australian Open'), LOWER('Roland Garros'), LOWER('Wimbledon'), LOWER('US Open'))` for Grand Slam queries.
 **MCP LINKING:** MCP tables link to match tables via `match_id` or `linked_match_id`. Use JOINs to combine MCP detailed stats with match data.
@@ -117,8 +125,9 @@ Do not claim you cannot perform analysis. You have full access to SQL aggregate 
 - Ranking tables: `atp_rankings`, `wta_rankings`
 - MCP tables: 36 detailed statistics tables (18 per tour) for advanced analytics
 
-**TOURNAMENT LEVELS:** 'G'=Grand Slam, 'M'=Masters 1000, 'A'=ATP, 'P'=Premier, 'F'=Tour Finals.
-**ROUNDS:** 'F'=Final, 'SF'=Semi-Final, 'QF'=Quarter-Final, 'R16', 'R32', 'R64', 'R128'.
+**TOURNAMENT LEVELS:** 'G'=Grand Slam, 'M'=Masters 1000, 'A'=ATP, 'P'=Premier, 'I'=International, 'W'=WTA, 'F'=Tour Finals, 'C'=Challenger, 'D'=Davis Cup, 'O'=Olympics, 'E'=Exhibition, 'J'=Juniors, 'S'=Futures, 'BJK_Cup'.
+**TOURNAMENT TYPES:** 'Main Tour', 'ATP_Qualifying', 'WTA_Qualifying', 'Grand_Slam_Qualifying', 'ATP_Challenger', 'ITF_Futures', 'ATP_Juniors', 'Exhibitions', 'Davis_Cup', 'Fed_Cup'.
+**ROUNDS:** 'F'=Final, 'SF'=Semi-Final, 'QF'=Quarter-Final, 'R16', 'R32', 'R64', 'R128', 'RR'=Round Robin.
 **STAT COLUMNS:** `w_ace`/`l_ace` (Aces), `w_df`/`l_df` (Double Faults), `w_1stIn`/`l_1stIn` (1st Serves Made).
 **GRAND SLAMS:** Australian Open, Roland Garros, Wimbledon, US Open. Use `LOWER(tourney_name) IN (LOWER('Australian Open'), LOWER('Roland Garros'), LOWER('Wimbledon'), LOWER('US Open'))` for Grand Slam queries.
 

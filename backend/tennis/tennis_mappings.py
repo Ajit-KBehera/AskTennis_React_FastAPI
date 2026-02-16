@@ -146,6 +146,27 @@ TOUR_MAPPINGS = {
     "itf tour": "ITF",
     "junior tour": "ITF",
     "development": "ITF",
+    # Specific Tournament Types from ETL
+    "atp qualifying": "ATP_Qualifying",
+    "wta qualifying": "WTA_Qualifying",
+    "grand slam qualifying": "Grand_Slam_Qualifying",
+    "gs qualifying": "Grand_Slam_Qualifying",
+    "challenger qualifying": "ATP_Challenger_Qualifying",
+    "atp challenger qualifying": "ATP_Challenger_Qualifying",
+    "wta challenger qualifying": "WTA_Challenger_Qualifying",
+    "itf qualifying": "WTA_ITF_Qualifying",
+    "wta itf qualifying": "WTA_ITF_Qualifying",
+    "atp futures": "ITF_Futures",
+    "itf futures": "ITF_Futures",
+    "wta itf": "WTA_ITF",
+    "atp juniors": "ATP_Juniors",
+    "wta juniors": "WTA_Juniors",
+    "exhibition matches": "Exhibitions",
+    "exhibitions": "Exhibitions",
+    "davis cup": "Davis_Cup",
+    "fed cup": "Fed_Cup",
+    "bjk cup": "Fed_Cup",  # Mapped to Fed_Cup in DB for historical consistency
+    "billie jean king cup": "Fed_Cup",
     # Combined
     "both": "Both",
     "combined": "Both",
@@ -218,12 +239,14 @@ TOURNEY_LEVEL_MAPPINGS = {
     "E": "E",  # Exhibition
     "J": "J",  # Juniors
     "O": "O",  # Olympics
+    "S": "S",  # ITF Futures
     # WTA Levels
     "PM": "PM",  # Premier Mandatory
     "P": "P",  # Premier
     "I": "I",  # International
     "W": "W",  # WTA Tour
     "CC": "CC",  # Colgate Series
+    "BJK_Cup": "BJK_Cup",  # Billie Jean King Cup
     # Historical WTA Tiers → Modern equivalents
     "T1": "PM",  # Tier I → Premier Mandatory
     "T2": "P",  # Tier II → Premier
