@@ -4,6 +4,7 @@ Environment-based configuration for development and production.
 """
 
 import os
+from typing import Dict, Any
 from constants import ALLOWED_HOSTS
 
 def get_cors_config() -> dict:
@@ -39,7 +40,7 @@ def get_cors_config() -> dict:
             origins = ALLOWED_HOSTS
 
     # 2. Build Base Configuration
-    config = {
+    config: Dict[str, Any] = {
         "allow_origins": origins,
         "allow_credentials": credentials_allowed, # Required for HttpOnly cookies
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
