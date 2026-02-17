@@ -6,11 +6,11 @@ Extracted from agent_setup.py for better modularity.
 import os
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 import ast
 from agent.agent_state import AgentState
-from typing import List, Any, Callable
+from typing import List, Any, Callable, Dict, cast
 from tennis.tennis_schema_pruner import TennisSchemaPruner
 from tennis.tennis_prompts import TennisPromptBuilder
 
@@ -151,11 +151,11 @@ class LangGraphBuilder:
             Compiled LangGraph instance
         """
         # Create the graph
-        graph = StateGraph(AgentState)
+        graph = StateGraph(AgentState) # type: ignore
 
         # Add nodes
-        graph.add_node("agent", self.create_agent_node())
-        graph.add_node("tools", self.create_tool_node())
+        graph.add_node("agent", self.create_agent_node()) # type: ignore
+        graph.add_node("tools", self.create_tool_node()) # type: ignore
 
         # Set entry point
         graph.set_entry_point("agent")
@@ -163,7 +163,7 @@ class LangGraphBuilder:
         # Add conditional edges
         graph.add_conditional_edges(
             "agent", self.create_conditional_edges(), {"tools": "tools", "end": END}
-        )
+        ) # type: ignore
 
         # Add edge from tools back to agent
         graph.add_edge("tools", "agent")
@@ -187,7 +187,7 @@ class LangGraphBuilder:
                 conn_string = f"sqlite:///{default_db_path}"
 
             try:
-                from langgraph.checkpoint.sqlite import SqliteSaver
+                from langgraph.checkpoint.sqlite import SqliteSaver # type: ignore
 
                 checkpointer = SqliteSaver.from_conn_string(conn_string)
             except Exception:
@@ -206,7 +206,7 @@ class LangGraphBuilder:
             Agent node function
         """
 
-        def call_agent(state: AgentState):
+        def call_agent(state: AgentState) -> Dict[str, Any]:
             """Calls the LLM to decide the next step with pruned schema."""
             messages = state["messages"]
 
@@ -238,7 +238,7 @@ class LangGraphBuilder:
                 phase = "synthesis"
 
             # Phase 3: Act based on phase
-            return_state = {"user_query": user_query}  # always preserve user_query
+            return_state: Dict[str, Any] = {"user_query": user_query}  # always preserve user_query
 
             if phase == "synthesis":
                 # Use synthesis prompt with trimmed messages
@@ -249,8 +249,8 @@ class LangGraphBuilder:
                 current_messages = trimmed_messages
             else:  # phase == "query_generation"
                 # Prune schema, create dynamic prompt
-                pruned_schema = self.schema_pruner.prune_schema(user_query)
-                system_prompt = self.prompt_template_factory(pruned_schema, user_query)
+                pruned_schema = self.schema_pruner.prune_schema(user_query or "")
+                system_prompt = self.prompt_template_factory(pruned_schema, user_query or "")
 
                 return_state["phase"] = "query_generation"
                 return_state["pruned_schema"] = pruned_schema
@@ -265,7 +265,7 @@ class LangGraphBuilder:
                 prompt_template.format_prompt(messages=current_messages)
             )
 
-            return_state["messages"] = [response]
+            return_state["messages"] = cast(List[BaseMessage], [response])
             return return_state
 
         return call_agent
@@ -278,10 +278,14 @@ class LangGraphBuilder:
             Tool node function
         """
 
-        def tool_node(state: AgentState):
+        def tool_node(state: AgentState) -> Dict[str, Any]:
             """Custom tool node that executes tools."""
             messages = state["messages"]
             last_message = messages[-1]
+            
+            truncated_result = None
+            parsed_result = None
+            truncated = False
 
             if hasattr(last_message, "tool_calls") and last_message.tool_calls:
                 for tool_call in last_message.tool_calls:
@@ -327,8 +331,6 @@ class LangGraphBuilder:
                                     query = tool_input.get("query")
                                     if query:
                                         return_state["sql_queries"] = [query]
-
-                                    truncated = False
 
                                     # Check if result is a string representation of a list
                                     if isinstance(result, str):
@@ -394,18 +396,19 @@ class LangGraphBuilder:
                                 # data_list should be a list of dicts for the frontend to parse correctly.
                                 # If it was sql_db_query, we prefer the raw list form to avoid re-parsing strings with notes.
                                 if tool_name == "sql_db_query":
-                                    data_to_send = []
-                                    if 'truncated_result' in locals():
+                                    data_to_send: Any = []
+                                    if truncated_result is not None:
                                         data_to_send = truncated_result
-                                    elif 'parsed_result' in locals():
+                                    elif parsed_result is not None:
                                         data_to_send = parsed_result
                                     elif isinstance(result, list):
                                         data_to_send = result
                                     else:
                                         # Fallback to parsing result if possible
                                         try:
+                                            # result is likely a string here
                                             data_to_send = ast.literal_eval(str(result))
-                                        except:
+                                        except Exception:
                                             data_to_send = [result]
                                             
                                     return_state["data_list"] = data_to_send
@@ -439,10 +442,11 @@ class LangGraphBuilder:
         def should_continue(state: AgentState):
             """Decide whether to continue with tools or finish."""
             # The ReAct agent returns an AIMessage with tool_calls if it needs to act.
+            last_message = state["messages"][-1]
             if (
-                isinstance(state["messages"][-1], AIMessage)
-                and hasattr(state["messages"][-1], "tool_calls")
-                and state["messages"][-1].tool_calls
+                isinstance(last_message, AIMessage)
+                and hasattr(last_message, "tool_calls")
+                and last_message.tool_calls
             ):
                 return "tools"
             return "end"
