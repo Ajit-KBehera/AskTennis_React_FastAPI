@@ -383,20 +383,26 @@ def get_ranking_context(
     # Get SQL templates
     sql_templates = RANKING_SQL_TEMPLATES.get(question_type, {})
 
+    recommendations = [
+        "Use window functions (RANK(), DENSE_RANK()) for complex multi-year comparisons.",
+        "Ensure player_id is indexed for rank history lookups.",
+        "Filter date ranges in WHERE clause before applying window functions to limit dataset size.",
+    ]
+
+    if data_source:
+        recommendations = [
+            f"Use table: {data_source['primary_table']}",
+            f"Tour separation: {data_source['tour_separation']}",
+            f"Join required: {data_source['join_required']}",
+        ] + recommendations
+
     return {
         "question_type": question_type.value,
         "data_source": data_source,
         "tour": tour,
         "year": year,
         "sql_templates": sql_templates,
-        "recommendations": [
-            f"Use table: {data_source['primary_table']}",
-            f"Tour separation: {data_source['tour_separation']}",
-            f"Join required: {data_source['join_required']}",
-            "Use window functions (RANK(), DENSE_RANK()) for complex multi-year comparisons.",
-            "Ensure player_id is indexed for rank history lookups.",
-            "Filter date ranges in WHERE clause before applying window functions to limit dataset size.",
-        ],
+        "recommendations": recommendations,
     }
 
 
@@ -426,9 +432,9 @@ def get_ranking_sql_approach(
         "tour": tour,
         "year": year,
         "key_considerations": {
-            "tour_separation": data_source["tour_separation"],
-            "join_required": data_source["join_required"],
-            "primary_table": data_source["primary_table"],
+            "tour_separation": data_source["tour_separation"] if data_source else True,
+            "join_required": data_source["join_required"] if data_source else True,
+            "primary_table": data_source["primary_table"] if data_source else "matches",
         },
     }
 

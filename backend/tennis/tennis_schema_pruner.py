@@ -237,7 +237,7 @@ class TennisSchemaPruner:
         pruned_schema_parts = []
 
         # Use cached table blocks instead of re-parsing
-        table_blocks = self._cached_table_blocks
+        table_blocks = self._cached_table_blocks or {}
 
         # Detect which match tables exist in the schema
         has_unified_matches = "matches" in table_blocks
@@ -309,7 +309,7 @@ class TennisSchemaPruner:
         needed = set()
 
         # Check which match tables exist in the schema
-        table_blocks = self._cached_table_blocks
+        table_blocks = self._cached_table_blocks or {}
         has_unified_matches = "matches" in table_blocks
         has_atp_matches = "atp_matches" in table_blocks
         has_wta_matches = "wta_matches" in table_blocks

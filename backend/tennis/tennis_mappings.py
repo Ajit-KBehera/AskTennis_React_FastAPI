@@ -5,7 +5,7 @@ Optimized for production-level LLM applications with reduced latency and token u
 """
 
 from langchain_core.tools import tool
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 from functools import lru_cache
 import re
 from .ranking_analysis import get_ranking_context, extract_ranking_parameters
@@ -460,7 +460,7 @@ class TennisMappingTools:
 
         @tool
         def analyze_ranking_question(
-            question: str, year: int = None, tour: str = None
+            question: str, year: Optional[int] = None, tour: Optional[str] = None
         ) -> Dict[str, Any]:
             """
             Analyzes ranking questions and provides optimized SQL templates.
