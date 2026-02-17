@@ -2,7 +2,7 @@ import json
 from sqlalchemy.orm import sessionmaker, Session
 from config.database.database_factory import DatabaseFactory
 from api.auth_models import User, QueryHistory, Base
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, cast
 
 class AuthDBService:
     def __init__(self):
@@ -39,7 +39,7 @@ class AuthDBService:
         user = db.query(User).filter(User.id == user_id).first()
         if user:
             from datetime import datetime, timezone
-            user.last_login = datetime.now(timezone.utc)
+            user.last_login = cast(Any, datetime.now(timezone.utc))
             db.commit()
 
     def save_query_history(
@@ -82,10 +82,10 @@ class AuthDBService:
             result.append({
                 "id": r.id,
                 "query_text": r.query_text,
-                "sql_queries": json.loads(r.sql_queries_json) if r.sql_queries_json else [],
+                "sql_queries": json.loads(cast(str, r.sql_queries_json)) if r.sql_queries_json else [],
                 "answer": r.answer or "",
-                "data": json.loads(r.data_json) if r.data_json else [],
-                "conversation_flow": json.loads(r.conversation_flow_json) if r.conversation_flow_json else [],
+                "data": json.loads(cast(str, r.data_json)) if r.data_json else [],
+                "conversation_flow": json.loads(cast(str, r.conversation_flow_json)) if r.conversation_flow_json else [],
                 "created_at": r.created_at.isoformat() if r.created_at else None,
             })
         return result

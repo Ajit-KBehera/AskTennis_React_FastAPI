@@ -1,5 +1,6 @@
 import os
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from typing import cast
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from services.auth_db_service import AuthDBService
@@ -37,7 +38,7 @@ def login(
     db: Session = Depends(auth_db.get_db),
 ):
     user = auth_db.get_user_by_username(db, username=user_in.username)
-    if not user or not AuthService.verify_password(user_in.password, user.hashed_password):
+    if not user or not AuthService.verify_password(user_in.password, cast(str, user.hashed_password)):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     if user_in.remember_me:
@@ -57,11 +58,11 @@ def login(
         value=access_token,
         httponly=True,
         secure=is_prod,
-        samesite="None" if is_prod else "Lax",
+        samesite="none" if is_prod else "lax",
         max_age=max_age_seconds,
     )
 
-    auth_db.update_last_login(db, user.id)
+    auth_db.update_last_login(db, cast(int, user.id))
     return {"message": "Login successful", "username": user.username}
 
 from config.auth import get_current_user
