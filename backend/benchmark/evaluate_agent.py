@@ -5,7 +5,7 @@ import re
 import time
 import argparse
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # Add the backend directory to sys.path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -48,7 +48,7 @@ def load_gold_standard() -> Dict[int, Any]:
     return {}
 
 
-def run_benchmark(limit: int = 5, question_ids: List[int] = None):
+def run_benchmark(limit: int = 5, question_ids: Optional[List[int]] = None):
     print(f"--- Loading Questions from {QUESTION_FILE} ---")
     all_questions = parse_questions(QUESTION_FILE)
     print(f"Found {len(all_questions)} questions.")
