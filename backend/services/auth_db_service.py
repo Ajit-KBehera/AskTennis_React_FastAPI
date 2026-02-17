@@ -38,8 +38,8 @@ class AuthDBService:
     def update_last_login(self, db: Session, user_id: int):
         user = db.query(User).filter(User.id == user_id).first()
         if user:
-            from datetime import datetime
-            user.last_login = datetime.utcnow()
+            from datetime import datetime, timezone
+            user.last_login = datetime.now(timezone.utc)
             db.commit()
 
     def save_query_history(
