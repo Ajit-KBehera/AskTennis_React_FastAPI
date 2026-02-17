@@ -12,7 +12,7 @@ from langchain_community.tools import (
 )
 from langchain_core.tools import tool
 from langchain_core.callbacks import CallbackManagerForToolRun
-from typing import Dict, Any, List, Optional, Union, Sequence
+from typing import Dict, Any, List, Optional, Union, Sequence, cast
 
 from config.database.base import DatabaseConfig
 
@@ -29,7 +29,7 @@ class CustomQuerySQLDatabaseTool(QuerySQLDatabaseTool):
         run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> Union[str, Sequence[Dict[str, Any]]]:
         """Execute the query with column names included, return the results or an error message."""
-        return self.db.run_no_throw(query, include_columns=True)
+        return cast(Union[str, Sequence[Dict[str, Any]]], self.db.run_no_throw(query, include_columns=True))
 
 
 class LLMFactory:
