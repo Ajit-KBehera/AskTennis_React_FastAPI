@@ -3,7 +3,7 @@ Cloud SQL database configuration.
 Handles GCP Cloud SQL (PostgreSQL/MySQL) database setup and connection.
 """
 
-from typing import Optional
+from typing import Optional, cast
 from sqlalchemy import create_engine, Engine
 
 # Cloud SQL imports (optional - only needed for Cloud SQL)
@@ -89,7 +89,7 @@ class CloudSQLConfig(DatabaseConfig):
             """Get a connection to the Cloud SQL instance."""
             if self.db_engine == "postgresql":
                 return connector.connect(
-                    self.instance_connection_name,
+                    cast(str, self.instance_connection_name),
                     "pg8000",
                     user=self.db_user,
                     password=self.db_password,
@@ -97,7 +97,7 @@ class CloudSQLConfig(DatabaseConfig):
                 )
             else:  # mysql
                 return connector.connect(
-                    self.instance_connection_name,
+                    cast(str, self.instance_connection_name),
                     "pymysql",
                     user=self.db_user,
                     password=self.db_password,
