@@ -87,8 +87,8 @@ class ServeStatsResponse(BaseModel):
     radar_chart: Optional[PlotlyChart] = None
     # Raw data for frontend visualization
     matches: Optional[List[dict]] = None
-    aggregated_stats: Optional[Dict[str, float]] = None
-    aggregated_opponent_stats: Optional[Dict[str, float]] = None
+    aggregated_stats: Optional[Dict[str, float | None]] = None
+    aggregated_opponent_stats: Optional[Dict[str, float | None]] = None
     error: Optional[str] = None
 
 
@@ -100,8 +100,8 @@ class ReturnStatsResponse(BaseModel):
     radar_chart: Optional[PlotlyChart] = None
     # Raw data for frontend visualization
     matches: Optional[List[dict]] = None
-    aggregated_stats: Optional[Dict[str, float]] = None
-    aggregated_opponent_stats: Optional[Dict[str, float]] = None
+    aggregated_stats: Optional[Dict[str, float | None]] = None
+    aggregated_opponent_stats: Optional[Dict[str, float | None]] = None
     error: Optional[str] = None
 
 

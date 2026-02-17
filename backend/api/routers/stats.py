@@ -9,7 +9,7 @@ Endpoints:
 from fastapi import APIRouter, HTTPException
 import pandas as pd
 import numpy as np
-from typing import Dict, Any, List
+from typing import Dict, Any, List, cast
 
 from services.database_service import DatabaseService
 from api.models import (
@@ -48,8 +48,8 @@ def convert_df_to_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     # Replace NaN/Infinity with None for JSON compatibility
     if df.empty:
         return []
-    df_clean = df.where(pd.notnull(df), None)
-    return df_clean.to_dict("records")
+    df_clean = df.replace({np.nan: None})
+    return cast(List[Dict[str, Any]], df_clean.to_dict("records"))
 
 
 @router.post("/serve", response_model=ServeStatsResponse)
