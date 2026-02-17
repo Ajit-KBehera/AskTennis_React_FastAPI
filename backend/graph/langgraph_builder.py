@@ -366,9 +366,6 @@ class LangGraphBuilder:
 
                                     # Cache the result (TTL: 24 hours)
                                     if query:
-                                        # Store original result in cache, not truncated one if possible?
-                                        # Actually, for analysis we want the data.
-                                        # Let's cache the RESULT that we are returning.
                                         cache_key = hashlib.md5(
                                             f"sql_query:{query}".encode()
                                         ).hexdigest()
@@ -387,10 +384,35 @@ class LangGraphBuilder:
                                         hint = "\n\n[Note: Query validation successful. Use sql_db_query with this exact query to retrieve data.]"
                                         result = result_str + hint
 
+                                # Prepare state updates
+                                # We store the RAW result (possibly truncated but unadorned) in data_list
+                                # and the potentially annotated string in the message content for the AI.
                                 return_state["messages"] = [
                                     AIMessage(content=str(result), tool_calls=[])
                                 ]
-                                return_state["data_list"] = [result]
+                                
+                                # data_list should be a list of dicts for the frontend to parse correctly.
+                                # If it was sql_db_query, we prefer the raw list form to avoid re-parsing strings with notes.
+                                if tool_name == "sql_db_query":
+                                    data_to_send = []
+                                    if 'truncated_result' in locals():
+                                        data_to_send = truncated_result
+                                    elif 'parsed_result' in locals():
+                                        data_to_send = parsed_result
+                                    elif isinstance(result, list):
+                                        data_to_send = result
+                                    else:
+                                        # Fallback to parsing result if possible
+                                        try:
+                                            data_to_send = ast.literal_eval(str(result))
+                                        except:
+                                            data_to_send = [result]
+                                            
+                                    return_state["data_list"] = data_to_send
+                                else:
+                                    # For other tools, just pass result as is (QueryProcessor will safe_parse)
+                                    return_state["data_list"] = [result] if not isinstance(result, list) else result
+                                
                                 return return_state
                             except Exception as e:
                                 return {
