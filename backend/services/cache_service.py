@@ -50,7 +50,8 @@ class RedisCacheService(CacheService):
         try:
             data = self.redis.get(key)
             if data:
-                return pickle.loads(data)
+                from typing import cast
+                return pickle.loads(cast(bytes, data))
         except Exception:
             print("Error reading from Redis")
         return None

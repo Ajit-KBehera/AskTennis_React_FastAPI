@@ -6,7 +6,7 @@ Moved from ui/processing/ for better architectural separation.
 
 import uuid
 from langchain_core.messages import HumanMessage
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from utils.string_utils import safe_parse
 
 
@@ -23,7 +23,7 @@ class QueryProcessor:
         pass
 
     def handle_user_query(
-        self, user_question: str, agent_graph, session_id: str = None
+        self, user_question: str, agent_graph, session_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Handle user query processing and return results."""
         if not session_id:

@@ -4,7 +4,7 @@ Provides dynamic data for dropdowns and analysis
 """
 
 import pandas as pd
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Any, cast, Hashable
 from functools import lru_cache
 from sqlalchemy import Engine, text
 
@@ -411,7 +411,7 @@ class DatabaseService:
                 ]
 
     @lru_cache(maxsize=128)
-    def get_player_year_range(_self, player_name: str) -> Tuple[int, int]:
+    def get_player_year_range(_self, player_name: Optional[str] = None) -> Tuple[int, int]:
         """Get the year range (min and max event_year) for a specific player.
 
         Args:
@@ -562,7 +562,7 @@ class DatabaseService:
             return all_surfaces  # Fallback to all surfaces on error
 
     @lru_cache(maxsize=128)
-    def get_opponents_for_player(_self, player_name: str) -> List[str]:
+    def get_opponents_for_player(_self, player_name: Optional[str] = None) -> List[str]:
         """Get opponents for a specific player."""
         # Sanitize input: trim whitespace and handle empty strings
         player_name = _self._sanitize_string(player_name)
@@ -895,13 +895,14 @@ class DatabaseService:
         surfaces_tuple = tuple(surfaces) if surfaces else None
 
         # Handle year conversion
-        year_val = year
+        year_val: Any = year
         year_is_range = True  # Default assumption for tuple
 
         if isinstance(year, list):
             year_val = tuple(year)
             year_is_range = False  # List converted to tuple is explicitly NOT a range
         elif isinstance(year, tuple):
+            year_val = year
             year_is_range = True  # Original tuple is valid range
 
         # Call internal cached method
@@ -922,7 +923,7 @@ class DatabaseService:
     @lru_cache(maxsize=128)
     def get_player_ranking_timeline(
         _self,
-        player_name: str,
+        player_name: Optional[str] = None,
         year: Optional[Union[int, str, Tuple[int, int], List[int]]] = None,
     ) -> pd.DataFrame:
         """
