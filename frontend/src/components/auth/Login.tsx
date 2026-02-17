@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../store/AuthContext';
-import { api } from '../api/client';
+import { useAuth } from '../../store/AuthContext';
+import { api } from '../../api/client';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
