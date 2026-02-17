@@ -9,7 +9,7 @@ Endpoints:
 import asyncio
 import traceback
 import uuid
-from typing import List, Dict, Any
+from typing import List, Dict, Any, cast
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.concurrency import run_in_threadpool
@@ -143,7 +143,7 @@ async def process_query(
 
         results = await asyncio.wait_for(
             run_in_threadpool(
-                query_processor.handle_user_query,
+                cast(Any, query_processor).handle_user_query,
                 query_request.query,
                 agent_graph,
                 thread_id,
@@ -156,7 +156,7 @@ async def process_query(
         if user:
             _auth_db.save_query_history(
                 db,
-                user_id=user.id,
+                user_id=cast(int, user.id),
                 query_text=query_request.query,
                 sql_queries=results.get("sql_queries", []),
                 answer=results.get("answer", ""),
@@ -208,5 +208,5 @@ async def get_query_history(
     user = _auth_db.get_user_by_username(db, username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    history = _auth_db.get_query_history_for_user(db, user.id, limit=min(limit, 100))
+    history = _auth_db.get_query_history_for_user(db, cast(int, user.id), limit=min(limit, 100))
     return {"history": history}
