@@ -10,7 +10,7 @@ import { TennisLoader } from './components/ui/TennisLoader';
 import { useAiQuery } from './hooks/useAiQuery';
 import { api } from './api/client';
 import { useAuth } from './store/AuthContext';
-import Login from './components/Login';
+import Login from './components/auth/Login';
 import { MessageCircle, BarChart3, RefreshCw, Edit3, Users } from 'lucide-react';
 
 function App() {
