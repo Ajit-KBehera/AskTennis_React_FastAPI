@@ -8,14 +8,17 @@ This module initializes the application and wires up all components.
 # =============================================================================
 # IMPORTS
 # =============================================================================
-from fastapi import FastAPI, APIRouter, Request, Depends
+from fastapi import FastAPI, APIRouter, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
+from fastapi.routing import APIRoute
 import time
 import uuid
 import structlog
 import os
+import contextlib
+from typing import Any, Dict, List, Union, Optional
 from dotenv import load_dotenv
 from slowapi.errors import RateLimitExceeded
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -39,6 +42,22 @@ load_dotenv()
 environment = os.getenv("ENVIRONMENT", "development").lower()
 show_docs = environment != "production"
 
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for startup and shutdown checks."""
+    # STARTUP: Fail fast in production if JWT secret is missing or default
+    if is_production():
+        secret = os.getenv("JWT_SECRET_KEY", "")
+        default = "dev-jwt-secret-do-not-use-in-prod"
+        if not secret or secret == default:
+            raise RuntimeError(
+                "JWT_SECRET_KEY must be set to a secure value in production. "
+                "Do not use the default dev secret."
+            )
+    yield
+    # SHUTDOWN: Cleanup logic if needed
+
+
 app = FastAPI(
     title="AskTennis API",
     description="AI-powered tennis statistics and analytics API",
@@ -46,6 +65,7 @@ app = FastAPI(
     docs_url="/docs" if show_docs else None,
     redoc_url="/redoc" if show_docs else None,
     openapi_url="/openapi.json" if show_docs else None,
+    lifespan=lifespan,
 )
 
 # =============================================================================
@@ -58,7 +78,8 @@ app.state.limiter = limiter
 RATE_LIMIT_RETRY_AFTER_SECONDS = 60
 
 
-async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: Exception):
     """Return 429 with Retry-After header for client countdown."""
     return JSONResponse(
         status_code=429,
@@ -66,16 +87,13 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
         headers={"Retry-After": str(RATE_LIMIT_RETRY_AFTER_SECONDS)},
     )
 
-
-app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
-
 # CORS (Cross-Origin Resource Sharing)
 cors_config = get_cors_config()
 app.add_middleware(CORSMiddleware, **cors_config)
 
 # OpenTelemetry Tracing
 tracer = setup_observability()
-FastAPIInstrumentor.instrument_app(app)
+FastAPIInstrumentor.instrument_app(app)  # type: ignore
 
 # Structured Logging
 configure_logging()
@@ -156,24 +174,26 @@ async def root():
     Root endpoint - returns a welcome message.
     In development, it also lists available endpoints.
     """
-    response = {
+    response: Dict[str, Any] = {
         "message": "Welcome to AskTennis API",
         "version": "1.0.0",
     }
 
     if environment != "production":
-        endpoints = []
+        available_endpoints: List[Dict[str, Any]] = []
         for route in app.routes:
             if hasattr(route, "path") and route.path.startswith("/api"):
-                methods = (
-                    [m for m in route.methods if m not in ["OPTIONS", "HEAD"]]
-                    if hasattr(route, "methods")
-                    else []
+                # Handle different route types (APIRoute, Mount, etc.)
+                methods = []
+                if hasattr(route, "methods"):
+                    methods = [m for m in route.methods if m not in ["OPTIONS", "HEAD"]]
+                
+                route_name = getattr(route, "name", "unknown")
+                
+                available_endpoints.append(
+                    {"path": route.path, "methods": methods, "name": route_name}
                 )
-                endpoints.append(
-                    {"path": route.path, "methods": methods, "name": route.name}
-                )
-        response["endpoints"] = endpoints
+        response["endpoints"] = available_endpoints
         response["docs_url"] = "/docs"
 
     return response
@@ -207,20 +227,6 @@ async def readiness_check():
             content={"status": "not ready", "detail": "Database not available"},
         )
     return {"status": "ready", "service": "asktennis-backend"}
-
-
-@app.on_event("startup")
-async def startup_checks():
-    """Fail fast in production if JWT secret is missing or default."""
-    if not is_production():
-        return
-    secret = os.getenv("JWT_SECRET_KEY", "")
-    default = "dev-jwt-secret-do-not-use-in-prod"
-    if not secret or secret == default:
-        raise RuntimeError(
-            "JWT_SECRET_KEY must be set to a secure value in production. "
-            "Do not use the default dev secret."
-        )
 
 
 # Register all API routers
