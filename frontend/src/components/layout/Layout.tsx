@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
-import { useAppStore } from '../../store/useAppStore';
+import { useUiStore } from '../../store/useUiStore';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,7 +8,7 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, onFilterChange }) => {
-  const { sidebarOpen, closeSidebar, openSidebar } = useAppStore();
+  const { sidebarOpen, closeSidebar, openSidebar } = useUiStore();
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-950">

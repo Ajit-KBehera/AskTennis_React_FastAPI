@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface AppState {
+interface UiState {
     theme: 'light' | 'dark';
     sidebarOpen: boolean;
     toggleSidebar: () => void;
@@ -9,7 +9,7 @@ interface AppState {
     setTheme: (theme: 'light' | 'dark') => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useUiStore = create<UiState>((set) => ({
     theme: 'light', // Default theme
     // Default sidebar state: closed on mobile (< 768px), open on desktop
     sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
