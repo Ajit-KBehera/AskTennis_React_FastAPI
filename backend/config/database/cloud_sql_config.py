@@ -29,89 +29,41 @@ class CloudSQLConfig(DatabaseConfig):
         db_user: Optional[str] = None,
         db_password: Optional[str] = None,
         db_name: Optional[str] = None,
-        db_engine: Optional[str] = None,
+        db_engine: str = "postgresql",
     ):
         """
         Initialize Cloud SQL configuration.
-
-        Args:
-            instance_connection_name: Cloud SQL instance connection name (format: project:region:instance)
-            db_user: Database user name
-            db_password: Database password
-            db_name: Database name (default: 'tennis_data_with_mcp')
-            db_engine: Database engine type ('postgresql' or 'mysql', default: 'postgresql')
         """
-        # Get configuration from secrets/env vars if not provided
-        self.instance_connection_name = instance_connection_name or self._get_secret(
-            "INSTANCE_CONNECTION_NAME"
-        )
+        self.instance_connection_name = instance_connection_name or self._get_secret("INSTANCE_CONNECTION_NAME")
         self.db_user = db_user or self._get_secret("DB_USER")
         self.db_password = db_password or self._get_secret("DB_PASSWORD")
-        self.db_name = db_name or self._get_secret(
-            "DB_NAME", default="tennis_data_with_mcp"
-        )
-
-        # Normalize db_engine (lowercase, strip whitespace)
-        db_engine_raw = db_engine or self._get_secret("DB_ENGINE", default="postgresql")
-        if db_engine_raw:
-            self.db_engine = db_engine_raw.lower().strip()
-        else:
-            self.db_engine = "postgresql"
-
-        # Validate db_engine
-        if self.db_engine not in ["postgresql", "mysql"]:
-            raise ValueError(
-                f"Invalid DB_ENGINE value: '{db_engine_raw}'. "
-                "Must be 'postgresql' or 'mysql' (case-insensitive)."
-            )
+        self.db_name = db_name or self._get_secret("DB_NAME", default="tennis_data_with_mcp")
+        self.db_engine = "postgresql"
 
     def get_engine(self) -> Engine:
         """
         Create and return a SQLAlchemy Engine for Cloud SQL.
-
-        Returns:
-            SQLAlchemy Engine instance
-
-        Raises:
-            ImportError: If cloud-sql-python-connector is not installed
         """
         if not CLOUD_SQL_AVAILABLE:
             raise ImportError(
                 "cloud-sql-python-connector is not installed. "
-                "Install it with: pip install cloud-sql-python-connector[pg8000] "
-                "or pip install cloud-sql-python-connector[pymysql]"
+                "Install it with: pip install cloud-sql-python-connector[pg8000]"
             )
 
-        # Initialize Cloud SQL Connector with credentials
         connector = self._create_connector()
 
         def getconn():
             """Get a connection to the Cloud SQL instance."""
-            if self.db_engine == "postgresql":
-                return connector.connect(
-                    cast(str, self.instance_connection_name),
-                    "pg8000",
-                    user=self.db_user,
-                    password=self.db_password,
-                    db=self.db_name,
-                )
-            else:  # mysql
-                return connector.connect(
-                    cast(str, self.instance_connection_name),
-                    "pymysql",
-                    user=self.db_user,
-                    password=self.db_password,
-                    db=self.db_name,
-                )
-
-        # Create SQLAlchemy engine with the connector
-        if self.db_engine == "postgresql":
-            engine_url = "postgresql+pg8000://"
-        else:  # mysql
-            engine_url = "mysql+pymysql://"
+            return connector.connect(
+                cast(str, self.instance_connection_name),
+                "pg8000",
+                user=self.db_user,
+                password=self.db_password,
+                db=self.db_name,
+            )
 
         return create_engine(
-            engine_url,
+            "postgresql+pg8000://",
             creator=getconn,
             pool_pre_ping=True,
             pool_recycle=3600,
