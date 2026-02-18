@@ -280,6 +280,7 @@ class LangGraphBuilder:
 
         def tool_node(state: AgentState) -> Dict[str, Any]:
             """Custom tool node that executes tools."""
+            print("--- Entering tool_node ---")
             messages = state["messages"]
             last_message = messages[-1]
             
@@ -291,6 +292,7 @@ class LangGraphBuilder:
                 for tool_call in last_message.tool_calls:
                     tool_name = tool_call["name"]
                     tool_input = tool_call["args"]
+                    print(f"--- Calling tool: {tool_name} ---")
 
                     # Find the tool and execute it
                     for tool in self.tools:

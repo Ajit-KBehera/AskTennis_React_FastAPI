@@ -44,24 +44,27 @@ class RedisCacheService(CacheService):
 
     def __init__(self, redis_url: str):
         self.redis = redis.from_url(redis_url)
-        print(f"--- Redis Cache initialized at {redis_url} ---")
+        print(f"--- Redis Cache successfully connected to {redis_url} ---")
 
     def get(self, key: str) -> Optional[Any]:
         try:
             data = self.redis.get(key)
             if data:
                 from typing import cast
+                print(f"--- Redis Cache Hit: {key} ---")
                 return pickle.loads(cast(bytes, data))
-        except Exception:
-            print("Error reading from Redis")
+            print(f"--- Redis Cache Miss: {key} ---")
+        except Exception as e:
+            print(f"Error reading from Redis: {e}")
         return None
 
     def set(self, key: str, value: Any, expire: int = 86400) -> None:
         try:
             pickled_value = pickle.dumps(value)
             self.redis.set(key, pickled_value, ex=expire)
-        except Exception:
-            print("Error writing to Redis")
+            print(f"--- Redis Cache Set: {key} (expires in {expire}s) ---")
+        except Exception as e:
+            print(f"Error writing to Redis: {e}")
 
 
 class CacheFactory:
