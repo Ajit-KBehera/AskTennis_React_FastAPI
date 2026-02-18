@@ -25,13 +25,11 @@ jobs:
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
-              - 'docker-compose.yml'
             frontend:
               - 'frontend/**'
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
-              - 'docker-compose.yml'
 
   # 2. Backend Pipeline
   backend-test:
