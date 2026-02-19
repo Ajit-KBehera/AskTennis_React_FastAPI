@@ -26,11 +26,11 @@ class DuckDBConfig(DatabaseConfig):
             self.db_path = db_path
         else:
             # Convert default sqlite path to duckdb if needed, or use as is if it's just a path
-            # DEFAULT_DB_PATH is usually "sqlite:///{DB_FILE_PATH}"
+            # DEFAULT_TENNIS_DB_PATH is usually "sqlite:///{TENNIS_DB_FILE_PATH}"
             # We need to extract the file path and use "duckdb:///"
-            from constants import DB_FILE_PATH
+            from constants import TENNIS_DB_FILE_PATH
 
-            self.db_path = f"duckdb:///{DB_FILE_PATH}"
+            self.db_path = f"duckdb:///{TENNIS_DB_FILE_PATH}"
 
         # Ensure proper URI format for SQLAlchemy
         if not self.db_path.startswith("duckdb://"):
