@@ -7,7 +7,7 @@ from typing import Optional
 import os
 from constants import (AUTH_DB_NAME, AUTH_DB_USER, AUTH_DB_PASSWORD,
                        TENNIS_DB_NAME, TENNIS_DB_USER, TENNIS_DB_PASSWORD,
-                       AUTH_DB_FILE_NAME)
+                       AUTH_DB_FILE_NAME, DEFAULT_AUTH_DB_PATH)
 
 from .base import DatabaseConfig
 from .sqlite_config import SQLiteConfig
@@ -107,7 +107,7 @@ class DatabaseFactory:
             )
         
         # Fallback to local auth sqlite file
-        auth_db_path = os.getenv("AUTH_DB_PATH", f"sqlite:///{AUTH_DB_FILE_NAME}")
+        auth_db_path = os.getenv("AUTH_DB_PATH", DEFAULT_AUTH_DB_PATH)
         return SQLiteConfig(auth_db_path)
 
     @staticmethod

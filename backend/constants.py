@@ -7,24 +7,25 @@ import os
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# Database Configuration
-TENNIS_DB_FILE_NAME = os.getenv("DB_FILE_NAME", "tennis.db")
-AUTH_DB_FILE_NAME = os.getenv("AUTH_DB_FILE_NAME", "auth.db")
+# Tennis Database Configuration (Local)
+TENNIS_DB_FILE_NAME = os.getenv("DB_FILE_NAME", "tennis_data_with_mcp.db")
+TENNIS_DB_FILE_PATH = os.path.join(PROJECT_ROOT, TENNIS_DB_FILE_NAME)
+DEFAULT_TENNIS_DB_PATH = f"sqlite:///{TENNIS_DB_FILE_PATH}"
+
+# Auth Database Configuration (Local)
+AUTH_DB_FILE_NAME = os.getenv("AUTH_DB_FILE_NAME", "asktennis_auth.db")
+AUTH_DB_FILE_PATH = os.path.join(PROJECT_ROOT, AUTH_DB_FILE_NAME)
+DEFAULT_AUTH_DB_PATH = f"sqlite:///{AUTH_DB_FILE_PATH}"
 
 # Tennis Database (Main)
 TENNIS_DB_NAME = os.getenv("TENNIS_DB_NAME")
 TENNIS_DB_USER = os.getenv("TENNIS_DB_USER")
 TENNIS_DB_PASSWORD = os.getenv("TENNIS_DB_PASSWORD")
 
-# Auth Database
+# Auth Database (Main)
 AUTH_DB_NAME = os.getenv("AUTH_DB_NAME")
 AUTH_DB_USER = os.getenv("AUTH_DB_USER")
 AUTH_DB_PASSWORD = os.getenv("AUTH_DB_PASSWORD")
-
-TENNIS_DB_FILE_PATH = os.path.join(PROJECT_ROOT, TENNIS_DB_FILE_NAME)
-AUTH_DB_FILE_PATH = os.path.join(PROJECT_ROOT, AUTH_DB_FILE_NAME)
-DEFAULT_TENNIS_DB_PATH = f"sqlite:///{TENNIS_DB_FILE_PATH}"
-DEFAULT_AUTH_DB_PATH = f"sqlite:///{AUTH_DB_FILE_PATH}"
 
 # LLM Configuration
 DEFAULT_MODEL = "gemini-3-flash-preview"
