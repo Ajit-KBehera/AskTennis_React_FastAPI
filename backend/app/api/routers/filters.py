@@ -7,8 +7,8 @@ from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 import structlog
 
-from app.services.database_service import DatabaseService
-from app.api.models import FilterOptionsResponse, YearRange
+from app.infrastructure.repositories.tennis_repository import DatabaseService
+from app.api.schemas.tennis_schemas import FilterOptionsResponse, YearRange
 from app.utils.error_utils import get_500_detail
 
 logger = structlog.get_logger()

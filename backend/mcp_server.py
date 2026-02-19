@@ -7,7 +7,7 @@ from sqlalchemy import text, inspect
 # Add backend directory to path so we can import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.database_service import DatabaseService
+from app.infrastructure.repositories.tennis_repository import DatabaseService
 
 # Initialize MCP Server
 mcp = FastMCP("AskTennis Data Service")

@@ -8,8 +8,8 @@ from typing import List
 import pandas as pd
 import structlog
 
-from app.services.database_service import DatabaseService
-from app.api.models import StatsRequest, MatchesResponse, Match
+from app.infrastructure.repositories.tennis_repository import DatabaseService
+from app.api.schemas.tennis_schemas import StatsRequest, MatchesResponse, Match
 from app.utils.filter_utils import parse_year_filter
 from app.utils.error_utils import get_500_detail
 

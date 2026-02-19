@@ -15,8 +15,8 @@ except ImportError:
     # python-dotenv not installed, environment variables must be set manually
     pass
 
-from .database.database_factory import DatabaseFactory
-from .database.base import DatabaseConfig
+from app.infrastructure.database.database_factory import DatabaseFactory
+from app.infrastructure.database.base import DatabaseConfig
 
 
 class Config:

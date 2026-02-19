@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, cast
 
-from app.services.database_service import DatabaseService
-from app.api.models import (
+from app.infrastructure.repositories.tennis_repository import DatabaseService
+from app.api.schemas.tennis_schemas import (
     ServeStatsRequest,
     ServeStatsResponse,
     ReturnStatsRequest,

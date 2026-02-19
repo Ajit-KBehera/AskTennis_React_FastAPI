@@ -14,7 +14,7 @@ from langchain_core.tools import tool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from typing import Dict, Any, List, Optional, Union, Sequence, cast
 
-from app.core.config.database.base import DatabaseConfig
+from app.infrastructure.database.base import DatabaseConfig
 
 
 class CustomQuerySQLDatabaseTool(QuerySQLDatabaseTool):

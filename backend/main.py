@@ -27,7 +27,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from app.api.routers import filters_router, matches_router, stats_router, query_router, auth_router
 
 # Configuration
-from app.core.config.auth import get_current_user
+from app.api.dependencies import get_current_user
 from app.core.config.cors import get_cors_config
 from app.core.config.rate_limiter import limiter
 from app.core.config.observability import setup_observability
@@ -216,7 +216,7 @@ async def readiness_check():
     """
     try:
         from sqlalchemy import text
-        from app.services.auth_db_service import AuthDBService
+        from app.infrastructure.repositories.user_repository import AuthDBService
         auth_db = AuthDBService()
         with auth_db.SessionLocal() as session:
             session.execute(text("SELECT 1"))

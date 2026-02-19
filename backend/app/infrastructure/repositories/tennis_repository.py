@@ -8,8 +8,8 @@ from typing import List, Optional, Tuple, Union, Any, cast, Hashable
 from functools import lru_cache
 from sqlalchemy import Engine, text
 
-from app.core.config.database.base import DatabaseConfig
-from app.core.config.database.database_factory import DatabaseFactory
+from app.infrastructure.database.base import DatabaseConfig
+from app.infrastructure.database.database_factory import DatabaseFactory
 
 
 class DatabaseService:

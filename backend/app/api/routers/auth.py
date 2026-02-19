@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from typing import cast
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from app.services.auth_db_service import AuthDBService
+from app.infrastructure.repositories.user_repository import AuthDBService
 from app.services.auth_service import AuthService
-from app.api.auth_schemas import UserCreate, UserResponse, Token, LoginRequest
-from app.api.auth_models import User
+from app.api.schemas.auth_schemas import UserCreate, UserResponse, Token, LoginRequest
+from app.infrastructure.database.models import User
 from app.core.constants import ACCESS_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_DAYS_REMEMBER_ME
 
 router = APIRouter()
@@ -65,7 +65,7 @@ def login(
     auth_db.update_last_login(db, cast(int, user.id))
     return {"message": "Login successful", "username": user.username}
 
-from app.core.config.auth import get_current_user
+from app.api.dependencies import get_current_user
 
 @router.get("/me", response_model=UserResponse)
 def get_me(

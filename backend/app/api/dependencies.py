@@ -7,7 +7,7 @@ import os
 from typing import cast
 from fastapi import HTTPException, Request
 from app.services.auth_service import AuthService
-from app.services.auth_db_service import AuthDBService
+from app.infrastructure.repositories.user_repository import AuthDBService
 
 async def get_current_user(request: Request):
     """

@@ -16,7 +16,7 @@ from app.domain.tennis.tennis_prompts import TennisPromptBuilder
 
 # import diskcache  # Replaced by CacheService
 import hashlib
-from app.services.cache_service import CacheFactory
+from app.infrastructure.cache.redis_cache import CacheFactory
 
 
 class LangGraphBuilder:

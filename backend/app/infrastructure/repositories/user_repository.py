@@ -1,7 +1,7 @@
 import json
 from sqlalchemy.orm import sessionmaker, Session
-from app.core.config.database.database_factory import DatabaseFactory
-from app.api.auth_models import User, QueryHistory, Base
+from app.infrastructure.database.database_factory import DatabaseFactory
+from app.infrastructure.database.models import User, QueryHistory, Base
 from typing import Optional, List, Dict, Any, cast
 
 class AuthDBService:

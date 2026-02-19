@@ -17,11 +17,11 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 import structlog
 
-from app.core.config.auth import get_current_user
+from app.api.dependencies import get_current_user
 from app.core.config.rate_limiter import limiter, get_query_rate_limit_string
 from app.domain.agent.agent_factory import setup_langgraph_agent
 from app.services.query_service import QueryProcessor
-from app.services.auth_db_service import AuthDBService
+from app.infrastructure.repositories.user_repository import AuthDBService
 from app.core.constants import QUERY_TIMEOUT_SECONDS
 from app.utils.error_utils import get_500_detail
 
