@@ -5,7 +5,7 @@ Handles local SQLite database setup and connection.
 
 from typing import Optional
 from sqlalchemy import create_engine, Engine
-from constants import DEFAULT_DB_PATH
+from constants import DEFAULT_TENNIS_DB_PATH
 from .base import DatabaseConfig
 
 
@@ -21,9 +21,9 @@ class SQLiteConfig(DatabaseConfig):
 
         Args:
             db_path: Database file path or connection string.
-                    If None, uses DEFAULT_DB_PATH from constants.
+                    If None, uses DEFAULT_TENNIS_DB_PATH from constants.
         """
-        self.db_path = db_path or DEFAULT_DB_PATH
+        self.db_path = db_path or DEFAULT_TENNIS_DB_PATH
 
         # Ensure proper URI format
         if not self.db_path.startswith("sqlite://"):

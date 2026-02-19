@@ -5,7 +5,9 @@ Provides a single source of truth for database type detection and configuration.
 
 from typing import Optional
 import os
-from constants import AUTH_DB_NAME
+from constants import (AUTH_DB_NAME, AUTH_DB_USER, AUTH_DB_PASSWORD,
+                       TENNIS_DB_NAME, TENNIS_DB_USER, TENNIS_DB_PASSWORD,
+                       AUTH_DB_FILE_NAME)
 
 from .base import DatabaseConfig
 from .sqlite_config import SQLiteConfig
@@ -44,7 +46,7 @@ class DatabaseFactory:
         Create a database configuration instance based on environment settings.
 
         Args:
-            db_path: Optional database path (for SQLite/DuckDB). If None, uses DEFAULT_DB_PATH.
+            db_path: Optional database path (for SQLite/DuckDB). If None, uses DEFAULT_TENNIS_DB_PATH.
             force_sqlite: Force SQLite configuration even if Cloud SQL is available
             force_cloud_sql: Force Cloud SQL configuration (will fail if config is missing)
 
@@ -67,7 +69,11 @@ class DatabaseFactory:
 
         if use_cloud_sql:
             # Create Cloud SQL configuration
-            config = CloudSQLConfig()
+            config = CloudSQLConfig(
+                db_name=TENNIS_DB_NAME,
+                db_user=TENNIS_DB_USER,
+                db_password=TENNIS_DB_PASSWORD,
+            )
             if not config.validate():
                 if force_cloud_sql:
                     raise ValueError(
@@ -94,10 +100,14 @@ class DatabaseFactory:
         Uses Cloud SQL if available, otherwise falls back to SQLite.
         """
         if not force_sqlite and DatabaseFactory._is_cloud_sql_config():
-            return DatabaseFactory.create_cloud_sql_config(db_name=AUTH_DB_NAME)
+            return DatabaseFactory.create_cloud_sql_config(
+                db_name=AUTH_DB_NAME,
+                db_user=AUTH_DB_USER,
+                db_password=AUTH_DB_PASSWORD,
+            )
         
         # Fallback to local auth sqlite file
-        auth_db_path = os.getenv("AUTH_DB_PATH", "sqlite:///auth.db")
+        auth_db_path = os.getenv("AUTH_DB_PATH", f"sqlite:///{AUTH_DB_FILE_NAME}")
         return SQLiteConfig(auth_db_path)
 
     @staticmethod
@@ -113,7 +123,7 @@ class DatabaseFactory:
         db_user: Optional[str] = None,
         db_password: Optional[str] = None,
         db_name: Optional[str] = None,
-        db_engine: Optional[str] = None,
+        db_engine: str = "postgresql",
     ) -> CloudSQLConfig:
         """
         Create a Cloud SQL configuration instance.

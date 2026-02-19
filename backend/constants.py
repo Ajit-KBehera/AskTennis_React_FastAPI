@@ -5,16 +5,26 @@ Centralizes all hardcoded values and configuration settings.
 
 import os
 
-# Database Configuration
-DB_FILE_NAME = "tennis_data_with_mcp.db"
-AUTH_DB_NAME = "asktennis_auth"
-# Use absolute path to ensure database file is found regardless of working directory
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-DB_FILE_PATH = os.path.join(PROJECT_ROOT, DB_FILE_NAME)
-DEFAULT_DB_PATH = f"sqlite:///{DB_FILE_PATH}"
 
-# Project Paths (if needed elsewhere)
-# PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)) # Can create circular imports if not careful, so keeping simple
+# Database Configuration
+TENNIS_DB_FILE_NAME = os.getenv("DB_FILE_NAME", "tennis.db")
+AUTH_DB_FILE_NAME = os.getenv("AUTH_DB_FILE_NAME", "auth.db")
+
+# Tennis Database (Main)
+TENNIS_DB_NAME = os.getenv("TENNIS_DB_NAME")
+TENNIS_DB_USER = os.getenv("TENNIS_DB_USER")
+TENNIS_DB_PASSWORD = os.getenv("TENNIS_DB_PASSWORD")
+
+# Auth Database
+AUTH_DB_NAME = os.getenv("AUTH_DB_NAME")
+AUTH_DB_USER = os.getenv("AUTH_DB_USER")
+AUTH_DB_PASSWORD = os.getenv("AUTH_DB_PASSWORD")
+
+TENNIS_DB_FILE_PATH = os.path.join(PROJECT_ROOT, TENNIS_DB_FILE_NAME)
+AUTH_DB_FILE_PATH = os.path.join(PROJECT_ROOT, AUTH_DB_FILE_NAME)
+DEFAULT_TENNIS_DB_PATH = f"sqlite:///{TENNIS_DB_FILE_PATH}"
+DEFAULT_AUTH_DB_PATH = f"sqlite:///{AUTH_DB_FILE_PATH}"
 
 # LLM Configuration
 DEFAULT_MODEL = "gemini-3-flash-preview"
