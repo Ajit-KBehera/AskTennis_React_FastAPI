@@ -262,7 +262,6 @@ Automatic deployment to Google Cloud Platform Cloud Run on every push to `main`:
 - **Database**: Cloud SQL PostgreSQL (production)
 - **Secrets**: Managed via Google Cloud Secret Manager
   - `GOOGLE_API_KEY`
-  - `API_SECRET_KEY`
   - `JWT_SECRET_KEY`
   - `DB_PASSWORD`
 - **Auto-scaling**: Scales to zero when idle, up to 10 instances under load
@@ -397,7 +396,7 @@ npm run test:coverage # With coverage
 
 ### AI Query
 
-- `POST /api/query` - Natural language query (requires API key + JWT)
+- `POST /api/query` - Natural language query (requires JWT)
 
 ### Statistics
 

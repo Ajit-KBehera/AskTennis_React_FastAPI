@@ -66,7 +66,6 @@ jobs:
         env:
           REDIS_URL: redis://localhost:6379/0
           GOOGLE_API_KEY: "mock-key"
-          API_SECRET_KEY: "dev-key"
         run: pytest -v
 
   deploy-backend:
@@ -124,7 +123,6 @@ jobs:
             --set-env-vars "RATE_LIMIT_PER_MINUTE=30" \
             --set-env-vars "QUERY_RATE_LIMIT_PER_MINUTE=10" \
             --set-secrets "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
-            --set-secrets "API_SECRET_KEY=API_SECRET_KEY:latest" \
             --set-secrets "JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
             --set-secrets "TENNIS_DB_PASSWORD=TENNIS_DB_PASSWORD:latest" \
             --set-secrets "AUTH_DB_PASSWORD=AUTH_DB_PASSWORD:latest" \
@@ -180,7 +178,6 @@ jobs:
           IMAGE_LATEST="${IMAGE_NAME}:latest"
           docker build \
             --build-arg VITE_API_URL=${{ secrets.BACKEND_URL }}/api \
-            --build-arg VITE_API_KEY=${{ secrets.API_SECRET_KEY }} \
             -t ${IMAGE_TAG} -t ${IMAGE_LATEST} .
           docker push ${IMAGE_TAG}
           docker push ${IMAGE_LATEST}
