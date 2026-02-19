@@ -10,6 +10,8 @@
 - **Modern UI**: React 19 frontend with Tailwind CSS 4 for visualizing data and interacting with the agent.
 - **User Authentication**: Secure JWT-based authentication with HttpOnly cookies.
 - **Multi-Database Support**: Seamlessly works with DuckDB (local), SQLite (local), or Cloud SQL PostgreSQL (production).
+  - **Tennis Data**: Stores match statistics, player info, and tournament data.
+  - **Auth Data**: dedicated database for user credentials and sessions.
 - **Caching Layer**: Redis-based caching for improved performance.
 - **Observability**: OpenTelemetry tracing and structured logging with request IDs.
 - **Rate Limiting**: Configurable rate limits for API protection.
@@ -20,8 +22,8 @@
 ### Backend
 
 - **Framework**: FastAPI (Python 3.11+)
-- **Databases**: 
-  - DuckDB (local development)
+- **Databases**:
+  - DuckDB (local development, read-optimized)
   - SQLite (local fallback)
   - Cloud SQL PostgreSQL (production)
 - **AI/Agents**: LangGraph, LangChain, Google Gemini
@@ -55,7 +57,7 @@
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11+ (Tested with 3.13)
 - Node.js 20+
 - Redis (for caching, optional in development)
 - Docker & Docker Compose (optional, for containerized setup)
@@ -78,6 +80,8 @@ cp .env.example .env
 # - GOOGLE_API_KEY=your_google_api_key
 # - JWT_SECRET_KEY=your_jwt_secret (or use default for development)
 # - DB_TYPE=duckdb (or sqlite)
+# - DB_FILE_NAME=tennis.db (optional default)
+# - AUTH_DB_FILE_NAME=auth.db (optional default)
 # - REDIS_URL=redis://localhost:6379/0 (optional)
 ```
 
@@ -236,11 +240,11 @@ This project uses **GitHub Actions** for Continuous Integration and Continuous D
 
 The CI pipeline runs on every push and pull request to `main`:
 
-- **Backend**: 
+- **Backend**:
   - Installs Python 3.11 dependencies
   - Runs pytest test suite
   - Uses Redis service for caching tests
-- **Frontend**: 
+- **Frontend**:
   - Installs Node.js 20 dependencies
   - Runs ESLint
   - Runs Vitest test suite
@@ -306,20 +310,29 @@ Workflow: `.github/workflows/deploy-frontend.yml`
 
 ## 🗄️ Database Configuration
 
-The application supports multiple database backends via a factory pattern:
+The application supports multiple database backends via a factory pattern and differentiates between **Tennis Data** (stats/matches) and **Auth Data** (users/sessions).
+
+### Configuration Variables
+
+- `DB_TYPE`: `duckdb` (default), `sqlite`, or `cloudsql`.
+- `DB_FILE_NAME`: Filename for the Tennis DB (default: `tennis.db`).
+- `AUTH_DB_FILE_NAME`: Filename for the Auth DB (default: `auth.db`).
+- `DB_PATH`: Override path for Tennis DB (e.g., `duckdb:///custom/path.db`).
 
 ### Local Development
 
-**DuckDB** (default):
+**DuckDB** (Recommended for analysis):
+
 ```bash
 export DB_TYPE=duckdb
-export DB_PATH=duckdb:///data/tennis_data_with_mcp.db
+# Uses backend/tennis.db by default
 ```
 
 **SQLite**:
+
 ```bash
 export DB_TYPE=sqlite
-export DB_PATH=sqlite:///tennis_data.db
+# Uses backend/tennis.db by default
 ```
 
 ### Production (Cloud SQL)
@@ -331,8 +344,6 @@ export DB_NAME=tennis_db
 export DB_USER=db_user
 export DB_PASSWORD=db_password  # From Secret Manager
 ```
-
-The `DatabaseFactory` automatically detects the database type from environment variables and creates the appropriate configuration.
 
 ## 🔧 Utility Scripts
 
@@ -353,6 +364,7 @@ python backend/mcp_server.py
 ```
 
 The MCP server provides:
+
 - `list_tables()`: List all database tables
 - `query_tennis_database(sql_query)`: Execute read-only SQL queries
 - `get_database_schema()`: Get database schema definition
@@ -379,20 +391,25 @@ npm run test:coverage # With coverage
 ## 📊 API Endpoints
 
 ### Authentication
+
 - `POST /auth/register` - Register new user
 - `POST /auth/login` - Login (sets HttpOnly cookie)
 
 ### AI Query
+
 - `POST /api/query` - Natural language query (requires API key + JWT)
 
 ### Statistics
+
 - `GET /api/stats/players` - Get player statistics
 - `GET /api/stats/matches` - Get match statistics
 
 ### Matches
+
 - `GET /api/matches` - Query matches with filters
 
 ### Filters
+
 - `GET /api/filters/players` - Get available player filters
 - `GET /api/filters/tournaments` - Get tournament filters
 
