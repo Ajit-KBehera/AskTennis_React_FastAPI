@@ -216,7 +216,7 @@ def calculate_match_return_stats(df):
 
     if "is_winner" not in df.columns:
         raise ValueError(
-            "is_winner column must be pre-calculated. Use add_player_match_columns() from utils.df_utils before calling this function."
+            "is_winner column must be pre-calculated. Use add_player_match_columns() from app.utils.df_utils before calling this function."
         )
 
     # Calculate player return statistics
@@ -258,7 +258,7 @@ def calculate_aggregated_player_return_stats(
                 "player_name is required when stats columns are not present in the DataFrame"
             )
         # Pre-calculate is_winner, opponent, result columns before calling calculate_match_return_stats
-        from utils.df_utils import add_player_match_columns
+        from app.utils.df_utils import add_player_match_columns
 
         df = add_player_match_columns(df, player_name, case_sensitive)
         df_with_stats = calculate_match_return_stats(df)

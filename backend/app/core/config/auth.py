@@ -6,8 +6,8 @@ Handles JWT-based authentication via HttpOnly cookies.
 import os
 from typing import cast
 from fastapi import HTTPException, Request
-from services.auth_service import AuthService
-from services.auth_db_service import AuthDBService
+from app.services.auth_service import AuthService
+from app.services.auth_db_service import AuthDBService
 
 async def get_current_user(request: Request):
     """

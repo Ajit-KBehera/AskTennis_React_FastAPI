@@ -3,7 +3,7 @@ Unit tests for API models (Pydantic validation).
 """
 import pytest
 from pydantic import ValidationError
-from api.routers.query import QueryRequest
+from app.api.routers.query import QueryRequest
 
 class TestQueryModels:
     def test_query_request_valid(self):

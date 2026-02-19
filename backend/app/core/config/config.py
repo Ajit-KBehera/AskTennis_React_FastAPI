@@ -4,7 +4,7 @@ Consolidates all configuration logic into a single class.
 """
 
 import os
-from constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+from app.core.constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 
 # Load environment variables from .env file (for local development)
 try:

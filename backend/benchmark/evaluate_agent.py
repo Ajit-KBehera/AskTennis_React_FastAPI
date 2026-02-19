@@ -10,8 +10,8 @@ from typing import List, Dict, Any, Optional
 # Add the backend directory to sys.path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from agent.agent_factory import setup_langgraph_agent
-from services.query_service import QueryProcessor
+from app.domain.agent.agent_factory import setup_langgraph_agent
+from app.services.query_service import QueryProcessor
 
 QUESTION_FILE = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../question_bank/TENNIS_ANALYTICAL_QUESTIONS_MCP.md")

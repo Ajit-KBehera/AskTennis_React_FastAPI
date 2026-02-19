@@ -5,7 +5,7 @@ Environment-based configuration for development and production.
 
 import os
 from typing import Dict, Any
-from constants import ALLOWED_HOSTS
+from app.core.constants import ALLOWED_HOSTS
 
 def get_cors_config() -> dict:
     """

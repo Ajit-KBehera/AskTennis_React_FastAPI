@@ -4,7 +4,7 @@ Unit tests for QueryProcessor logic.
 import pytest
 from unittest.mock import MagicMock
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
-from services.query_service import QueryProcessor
+from app.services.query_service import QueryProcessor
 
 class TestQueryProcessor:
     @pytest.fixture

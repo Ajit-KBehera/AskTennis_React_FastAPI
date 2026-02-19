@@ -5,16 +5,21 @@ Centralizes all hardcoded values and configuration settings.
 
 import os
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+# Base Directories
+# __file__ is backend/app/core/constants.py
+CORE_DIR = os.path.dirname(os.path.abspath(__file__))
+APP_DIR = os.path.dirname(CORE_DIR)
+BACKEND_DIR = os.path.dirname(APP_DIR)
+DATA_DIR = os.path.join(BACKEND_DIR, "data")
 
 # Tennis Database Configuration (Local)
 TENNIS_DB_FILE_NAME = os.getenv("DB_FILE_NAME", "tennis_data_with_mcp.db")
-TENNIS_DB_FILE_PATH = os.path.join(PROJECT_ROOT, TENNIS_DB_FILE_NAME)
+TENNIS_DB_FILE_PATH = os.path.join(DATA_DIR, TENNIS_DB_FILE_NAME)
 DEFAULT_TENNIS_DB_PATH = f"sqlite:///{TENNIS_DB_FILE_PATH}"
 
 # Auth Database Configuration (Local)
 AUTH_DB_FILE_NAME = os.getenv("AUTH_DB_FILE_NAME", "asktennis_auth.db")
-AUTH_DB_FILE_PATH = os.path.join(PROJECT_ROOT, AUTH_DB_FILE_NAME)
+AUTH_DB_FILE_PATH = os.path.join(DATA_DIR, AUTH_DB_FILE_NAME)
 DEFAULT_AUTH_DB_PATH = f"sqlite:///{AUTH_DB_FILE_PATH}"
 
 # Tennis Database (Main)

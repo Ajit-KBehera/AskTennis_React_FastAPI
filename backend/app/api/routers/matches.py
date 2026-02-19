@@ -8,10 +8,10 @@ from typing import List
 import pandas as pd
 import structlog
 
-from services.database_service import DatabaseService
-from api.models import StatsRequest, MatchesResponse, Match
-from utils.filter_utils import parse_year_filter
-from utils.error_utils import get_500_detail
+from app.services.database_service import DatabaseService
+from app.api.models import StatsRequest, MatchesResponse, Match
+from app.utils.filter_utils import parse_year_filter
+from app.utils.error_utils import get_500_detail
 
 logger = structlog.get_logger()
 

@@ -5,7 +5,7 @@ Provides a single source of truth for database type detection and configuration.
 
 from typing import Optional
 import os
-from constants import (AUTH_DB_NAME, AUTH_DB_USER, AUTH_DB_PASSWORD,
+from app.core.constants import (AUTH_DB_NAME, AUTH_DB_USER, AUTH_DB_PASSWORD,
                        TENNIS_DB_NAME, TENNIS_DB_USER, TENNIS_DB_PASSWORD,
                        AUTH_DB_FILE_NAME, DEFAULT_AUTH_DB_PATH)
 

@@ -3,9 +3,9 @@ Unit tests for the AuthService (Hashing and JWT logic).
 """
 import pytest
 from datetime import timedelta
-from services.auth_service import AuthService
+from app.services.auth_service import AuthService
 from jose import jwt
-from constants import JWT_SECRET_KEY, JWT_ALGORITHM
+from app.core.constants import JWT_SECRET_KEY, JWT_ALGORITHM
 
 class TestAuthService:
     def test_password_hashing(self):

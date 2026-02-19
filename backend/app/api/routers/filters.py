@@ -7,9 +7,9 @@ from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 import structlog
 
-from services.database_service import DatabaseService
-from api.models import FilterOptionsResponse, YearRange
-from utils.error_utils import get_500_detail
+from app.services.database_service import DatabaseService
+from app.api.models import FilterOptionsResponse, YearRange
+from app.utils.error_utils import get_500_detail
 
 logger = structlog.get_logger()
 

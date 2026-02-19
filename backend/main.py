@@ -24,15 +24,15 @@ from slowapi.errors import RateLimitExceeded
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # API Routers
-from api.routers import filters_router, matches_router, stats_router, query_router, auth_router
+from app.api.routers import filters_router, matches_router, stats_router, query_router, auth_router
 
 # Configuration
-from config.auth import get_current_user
-from config.cors import get_cors_config
-from config.rate_limiter import limiter
-from config.observability import setup_observability
-from config.logging_config import configure_logging
-from utils.error_utils import is_production, get_500_detail
+from app.core.config.auth import get_current_user
+from app.core.config.cors import get_cors_config
+from app.core.config.rate_limiter import limiter
+from app.core.config.observability import setup_observability
+from app.core.config.logging_config import configure_logging
+from app.utils.error_utils import is_production, get_500_detail
 
 # =============================================================================
 # ENVIRONMENT SETUP
@@ -216,7 +216,7 @@ async def readiness_check():
     """
     try:
         from sqlalchemy import text
-        from services.auth_db_service import AuthDBService
+        from app.services.auth_db_service import AuthDBService
         auth_db = AuthDBService()
         with auth_db.SessionLocal() as session:
             session.execute(text("SELECT 1"))

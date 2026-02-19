@@ -5,10 +5,10 @@ Orchestrates all components to create the complete LangGraph agent.
 
 import functools
 import logging
-from config.config import Config
-from llm.llm_setup import LLMFactory
-from tennis.tennis_core import TennisMappingTools, TennisPromptBuilder
-from graph.langgraph_builder import LangGraphBuilder
+from app.core.config.config import Config
+from app.infrastructure.llm.llm_setup import LLMFactory
+from app.domain.tennis.tennis_core import TennisMappingTools, TennisPromptBuilder
+from app.domain.agent.graph.langgraph_builder import LangGraphBuilder
 
 # Set up logging
 logger = logging.getLogger(__name__)

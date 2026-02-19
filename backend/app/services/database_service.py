@@ -8,8 +8,8 @@ from typing import List, Optional, Tuple, Union, Any, cast, Hashable
 from functools import lru_cache
 from sqlalchemy import Engine, text
 
-from config.database.base import DatabaseConfig
-from config.database.database_factory import DatabaseFactory
+from app.core.config.database.base import DatabaseConfig
+from app.core.config.database.database_factory import DatabaseFactory
 
 
 class DatabaseService:
@@ -46,7 +46,7 @@ class DatabaseService:
 
         self.db_config = db_config
 
-        # Use provided engine or create one from config
+        # Use provided engine or create one from app.core.config
         if db_engine is None:
             self.db_engine = db_config.get_engine()
         else:

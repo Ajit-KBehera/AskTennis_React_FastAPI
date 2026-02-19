@@ -4,9 +4,9 @@ Tests for DuckDB configuration and DatabaseFactory.
 
 import os
 from unittest.mock import patch
-from config.database.database_factory import DatabaseFactory
-from config.database.duckdb_config import DuckDBConfig
-from config.database.sqlite_config import SQLiteConfig
+from app.core.config.database.database_factory import DatabaseFactory
+from app.core.config.database.duckdb_config import DuckDBConfig
+from app.core.config.database.sqlite_config import SQLiteConfig
 
 
 class TestDatabaseFactoryTypes:
@@ -52,7 +52,7 @@ class TestDuckDBConfig:
         config = DuckDBConfig("duckdb:///valid.db")
         assert config.validate() is True
 
-    @patch("config.database.duckdb_config.create_engine")
+    @patch("app.core.config.database.duckdb_config.create_engine")
     def test_get_engine_read_only(self, mock_create_engine):
         """Test that get_engine sets read_only=True."""
         config = DuckDBConfig("duckdb:///test.db")

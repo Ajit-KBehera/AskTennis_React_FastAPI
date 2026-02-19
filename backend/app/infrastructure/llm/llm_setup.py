@@ -14,7 +14,7 @@ from langchain_core.tools import tool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from typing import Dict, Any, List, Optional, Union, Sequence, cast
 
-from config.database.base import DatabaseConfig
+from app.core.config.database.base import DatabaseConfig
 
 
 class CustomQuerySQLDatabaseTool(QuerySQLDatabaseTool):
@@ -59,7 +59,7 @@ class LLMFactory:
             api_key=api_key, model=model, temperature=temperature
         )
 
-        # Create database connection from config
+        # Create database connection from app.core.config
         db = LLMFactory.create_database_connection_from_config(db_config)
 
         # Create tools directly from database

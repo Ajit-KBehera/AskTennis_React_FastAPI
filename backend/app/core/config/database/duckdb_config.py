@@ -28,7 +28,7 @@ class DuckDBConfig(DatabaseConfig):
             # Convert default sqlite path to duckdb if needed, or use as is if it's just a path
             # DEFAULT_TENNIS_DB_PATH is usually "sqlite:///{TENNIS_DB_FILE_PATH}"
             # We need to extract the file path and use "duckdb:///"
-            from constants import TENNIS_DB_FILE_PATH
+            from app.core.constants import TENNIS_DB_FILE_PATH
 
             self.db_path = f"duckdb:///{TENNIS_DB_FILE_PATH}"
 

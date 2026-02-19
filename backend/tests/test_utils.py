@@ -2,7 +2,7 @@
 Unit tests for helper utility functions.
 """
 import pytest
-from utils.string_utils import safe_parse
+from app.utils.string_utils import safe_parse
 
 class TestStringUtils:
     def test_safe_parse_list(self):

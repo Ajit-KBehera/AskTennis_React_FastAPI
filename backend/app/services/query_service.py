@@ -7,7 +7,7 @@ Moved from ui/processing/ for better architectural separation.
 import uuid
 from langchain_core.messages import HumanMessage
 from typing import Dict, Any, List, Optional
-from utils.string_utils import safe_parse
+from app.utils.string_utils import safe_parse
 
 
 class QueryProcessor:

@@ -2,7 +2,7 @@
 Integration tests for AuthDBService using an in-memory database.
 """
 import pytest
-from api.auth_models import User
+from app.api.auth_models import User
 
 class TestAuthDBIntegration:
     def test_create_and_get_user(self, auth_db_service_mock, test_db_session):

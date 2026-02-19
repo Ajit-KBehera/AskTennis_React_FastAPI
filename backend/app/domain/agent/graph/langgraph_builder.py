@@ -9,14 +9,14 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 import ast
-from agent.agent_state import AgentState
+from app.domain.agent.agent_state import AgentState
 from typing import List, Any, Callable, Dict, cast
-from tennis.tennis_schema_pruner import TennisSchemaPruner
-from tennis.tennis_prompts import TennisPromptBuilder
+from app.domain.tennis.tennis_schema_pruner import TennisSchemaPruner
+from app.domain.tennis.tennis_prompts import TennisPromptBuilder
 
 # import diskcache  # Replaced by CacheService
 import hashlib
-from services.cache_service import CacheFactory
+from app.services.cache_service import CacheFactory
 
 
 class LangGraphBuilder:

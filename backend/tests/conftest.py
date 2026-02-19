@@ -65,20 +65,20 @@ def mock_db_service():
 def client(mock_agent_graph, mock_query_processor):
     """Create a test client with mocked dependencies."""
     # Reset lazy-loaded singletons in query router
-    import api.routers.query as query_module
+    import app.api.routers.query as query_module
 
     query_module._agent_graph = None
     query_module._query_processor = None
 
     # Patch the correct module location (after refactoring to query router)
     with patch(
-        "api.routers.query.setup_langgraph_agent", return_value=mock_agent_graph
+        "app.api.routers.query.setup_langgraph_agent", return_value=mock_agent_graph
     ):
         with patch(
-            "api.routers.query.QueryProcessor", return_value=mock_query_processor
+            "app.api.routers.query.QueryProcessor", return_value=mock_query_processor
         ):
             from main import app
-            from config.auth import get_current_user
+            from app.core.config.auth import get_current_user
             
             # Override authentication for tests
             app.dependency_overrides[get_current_user] = lambda: "testuser"
@@ -96,7 +96,7 @@ def client_no_mocks():
     Use this for testing endpoints that don't require the agent/processor.
     """
     from main import app
-    from config.auth import get_current_user
+    from app.core.config.auth import get_current_user
     
     # Override authentication for tests
     app.dependency_overrides[get_current_user] = lambda: "testuser"
@@ -112,7 +112,7 @@ def test_db_session():
     """Fixture for a clean, in-memory auth database session."""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from api.auth_models import Base
+    from app.api.auth_models import Base
     
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
@@ -128,13 +128,13 @@ def test_db_session():
 @pytest.fixture
 def auth_db_service_mock():
     """AuthDBService instance configured to use an in-memory test database."""
-    from services.auth_db_service import AuthDBService
+    from app.services.auth_db_service import AuthDBService
     from sqlalchemy import create_engine
     
     # Create an in-memory engine
     test_engine = create_engine("sqlite:///:memory:")
     
-    with patch("config.database.database_factory.DatabaseFactory.create_auth_config") as mock_create:
+    with patch("app.core.config.database.database_factory.DatabaseFactory.create_auth_config") as mock_create:
         # Create a mock config that returns our test engine
         mock_config = MagicMock()
         mock_config.get_engine.return_value = test_engine

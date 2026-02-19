@@ -3,12 +3,12 @@ Tests for DatabaseService abstraction.
 """
 import pytest
 from unittest.mock import MagicMock, patch
-from services.database_service import DatabaseService
+from app.services.database_service import DatabaseService
 
 class TestDatabaseService:
     @pytest.fixture
     def mock_db_factory(self):
-        with patch("services.database_service.DatabaseFactory.create_config") as mock:
+        with patch("app.services.database_service.DatabaseFactory.create_config") as mock:
             config = MagicMock()
             mock.return_value = config
             yield config

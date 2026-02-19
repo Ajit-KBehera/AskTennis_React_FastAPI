@@ -8,8 +8,8 @@ analysis tools.
 
 import numpy as np
 
-# Import utility function from utils
-from utils.df_utils import add_player_match_columns
+# Import utility function from app.utils
+from app.utils.df_utils import add_player_match_columns
 
 
 def _calculate_player_serve_stats(df):

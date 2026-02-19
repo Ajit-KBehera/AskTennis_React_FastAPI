@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, cast
 
-from services.database_service import DatabaseService
-from api.models import (
+from app.services.database_service import DatabaseService
+from app.api.models import (
     ServeStatsRequest,
     ServeStatsResponse,
     ReturnStatsRequest,
@@ -20,15 +20,15 @@ from api.models import (
     RankingStatsRequest,
     RankingStatsResponse,
 )
-from utils.filter_utils import parse_year_filter
+from app.utils.filter_utils import parse_year_filter
 
 # Import stats calculation functions
-from analysis.serve_stats import (
+from app.domain.analysis.serve_stats import (
     calculate_match_serve_stats,
     calculate_aggregated_player_serve_stats,
     calculate_aggregated_opponent_serve_stats,
 )
-from analysis.return_stats import (
+from app.domain.analysis.return_stats import (
     calculate_match_return_stats,
     calculate_aggregated_player_return_stats,
     calculate_aggregated_opponent_return_stats,
@@ -93,7 +93,7 @@ async def get_serve_stats(request: ServeStatsRequest):
             )
 
         # Calculate raw statistics for frontend
-        from utils.df_utils import add_player_match_columns
+        from app.utils.df_utils import add_player_match_columns
 
         stats_df = add_player_match_columns(df, player)
 
@@ -187,7 +187,7 @@ async def get_return_stats(request: ReturnStatsRequest):
             )
 
         # Calculate raw statistics
-        from utils.df_utils import add_player_match_columns
+        from app.utils.df_utils import add_player_match_columns
 
         stats_df = add_player_match_columns(df, player)
 
