@@ -105,3 +105,41 @@ def client_no_mocks():
         yield TestClient(app)
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def test_db_session():
+    """Fixture for a clean, in-memory auth database session."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from api.auth_models import Base
+    
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(bind=engine)
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@pytest.fixture
+def auth_db_service_mock():
+    """AuthDBService instance configured to use an in-memory test database."""
+    from services.auth_db_service import AuthDBService
+    from sqlalchemy import create_engine
+    
+    # Create an in-memory engine
+    test_engine = create_engine("sqlite:///:memory:")
+    
+    with patch("config.database.database_factory.DatabaseFactory.create_auth_config") as mock_create:
+        # Create a mock config that returns our test engine
+        mock_config = MagicMock()
+        mock_config.get_engine.return_value = test_engine
+        mock_create.return_value = mock_config
+        
+        # Initialize service (will run create_all on the test_engine)
+        service = AuthDBService()
+        return service
