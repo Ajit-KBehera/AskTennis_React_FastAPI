@@ -19,6 +19,7 @@ class AuthService:
         return hashed.decode('utf-8')
 
 
+
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
