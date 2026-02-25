@@ -25,11 +25,13 @@ jobs:
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
+              - 'README.md'
             frontend:
               - 'frontend/**'
               - '.github/workflows/**'
               - 'package.json'
               - 'package-lock.json'
+              - 'README.md'
 
   # 2. Backend Pipeline
   backend-test:
@@ -66,7 +68,7 @@ jobs:
         env:
           REDIS_URL: redis://localhost:6379/0
           GOOGLE_API_KEY: "mock-key"
-        run: pytest -v
+        run: python3 -m pytest
 
   deploy-backend:
     needs: [changes, backend-test]
@@ -102,7 +104,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image $IMAGE_TAG \
+            --image ${{ env.IMAGE_TAG }} \
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
@@ -185,7 +187,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image $IMAGE_TAG \
+            --image ${{ env.IMAGE_TAG }} \
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
