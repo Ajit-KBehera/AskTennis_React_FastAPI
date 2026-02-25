@@ -260,6 +260,8 @@ The project includes containerization support via **Docker** and **Docker Compos
 
 ## Alternative Tech Stack Recommendations
 
+**Implementation status:** All recommendations in this section are exploratory and currently **not implemented** in the AskTennis codebase.
+
 ### 🎯 Recommendation 1: Production Hardening Stack
 
 **Goal:** Security, Scalability, and Enterprise Readiness
