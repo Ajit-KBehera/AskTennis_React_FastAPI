@@ -4,7 +4,10 @@ Handles GCP Cloud SQL (PostgreSQL/MySQL) database setup and connection.
 """
 
 from typing import Optional, cast
+import structlog
 from sqlalchemy import create_engine, Engine
+
+logger = structlog.get_logger()
 
 # Cloud SQL imports (optional - only needed for Cloud SQL)
 try:
@@ -99,16 +102,17 @@ class CloudSQLConfig(DatabaseConfig):
                         service_account_path
                     )
                 connector = Connector(credentials=credentials)
-                print(
-                    f"DEBUG: Using service account credentials from {service_account_path}"
+                logger.debug(
+                    "using_service_account_credentials",
+                    path=service_account_path
                 )
             else:
                 # Fall back to default connector (will try ADC/metadata service)
                 connector = Connector()
-                print("DEBUG: Using default connector (ADC/metadata service)")
+                logger.debug("using_default_connector")
         except Exception as e:
             # If credential setup fails, fall back to default connector
-            print(f"DEBUG: Credential setup failed, using default connector: {e}")
+            logger.error("credential_setup_failed", error=str(e))
             connector = Connector()
 
         return connector

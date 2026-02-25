@@ -4,7 +4,10 @@ Consolidates all configuration logic into a single class.
 """
 
 import os
+import structlog
 from app.core.constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+
+logger = structlog.get_logger()
 
 # Load environment variables from .env file (for local development)
 try:
@@ -50,10 +53,11 @@ class Config:
         env_vars = [
             k for k in os.environ.keys() if "GOOGLE" in k or "API" in k or "KEY" in k
         ]
-        print(
-            f"DEBUG: Available environment variables containing 'GOOGLE', 'API', or 'KEY': {env_vars}"
+        logger.debug(
+            "available_env_vars",
+            relevant_vars=env_vars,
+            google_api_key_exists=api_key is not None
         )
-        print(f"DEBUG: GOOGLE_API_KEY env var exists: {api_key is not None}")
 
         # If we get here, the API key is not found
         error_msg = (

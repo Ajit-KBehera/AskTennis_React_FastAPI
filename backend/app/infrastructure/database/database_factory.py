@@ -5,6 +5,7 @@ Provides a single source of truth for database type detection and configuration.
 
 from typing import Optional
 import os
+import structlog
 from app.core.constants import (AUTH_DB_NAME, AUTH_DB_USER, AUTH_DB_PASSWORD,
                        TENNIS_DB_NAME, TENNIS_DB_USER, TENNIS_DB_PASSWORD,
                        AUTH_DB_FILE_NAME, DEFAULT_AUTH_DB_PATH)
@@ -81,9 +82,7 @@ class DatabaseFactory:
                         "Please set INSTANCE_CONNECTION_NAME, DB_USER, and DB_PASSWORD."
                     )
                 # Fall back to SQLite if not forced
-                print(
-                    "WARNING: Cloud SQL configuration incomplete, falling back to SQLite"
-                )
+                logger.warning("cloud_sql_config_incomplete_falling_back_to_sqlite")
                 return SQLiteConfig(db_path)
             return config
         elif db_type == "duckdb" or (db_path and db_path.startswith("duckdb://")):

@@ -11,6 +11,9 @@ import os
 # Add backend to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Provide dummy API key for tests that don't mock it
+os.environ["GOOGLE_API_KEY"] = "dummy-key-for-testing"
+
 
 @pytest.fixture
 def mock_agent_graph():
@@ -64,40 +67,33 @@ def mock_db_service():
 @pytest.fixture
 def client(mock_agent_graph, mock_query_processor):
     """Create a test client with mocked dependencies."""
-    # Reset lazy-loaded singletons in query router
-    import app.api.routers.query as query_module
+    from main import app
+    from app.api.dependencies import get_current_user
+    from app.api.routers.query import get_ai_services
 
-    query_module._agent_graph = None
-    query_module._query_processor = None
+    # Override AI services dependency
+    app.dependency_overrides[get_ai_services] = lambda: (mock_agent_graph, mock_query_processor)
+    # Override authentication for tests
+    app.dependency_overrides[get_current_user] = lambda: "testuser"
 
-    # Patch the correct module location (after refactoring to query router)
-    with patch(
-        "app.api.routers.query.setup_langgraph_agent", return_value=mock_agent_graph
-    ):
-        with patch(
-            "app.api.routers.query.QueryProcessor", return_value=mock_query_processor
-        ):
-            from main import app
-            from app.api.dependencies import get_current_user
-            
-            # Override authentication for tests
-            app.dependency_overrides[get_current_user] = lambda: "testuser"
-            
-            try:
-                yield TestClient(app)
-            finally:
-                app.dependency_overrides.clear()
+    try:
+        yield TestClient(app)
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture
-def client_no_mocks():
+def client_no_mocks(mock_agent_graph, mock_query_processor):
     """
-    Create a test client without mocks.
-    Use this for testing endpoints that don't require the agent/processor.
+    Create a test client without most mocks, but still overriding AI services
+    to avoid heavy initialization in test environment.
     """
     from main import app
     from app.api.dependencies import get_current_user
+    from app.api.routers.query import get_ai_services
     
+    # Override AI services dependency to avoid DB/LLM init
+    app.dependency_overrides[get_ai_services] = lambda: (mock_agent_graph, mock_query_processor)
     # Override authentication for tests
     app.dependency_overrides[get_current_user] = lambda: "testuser"
     

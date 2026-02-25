@@ -154,51 +154,28 @@ curl -X GET http://localhost:8000/api/stats/players \
 ```
 AskTennis/
 ├── backend/                    # FastAPI application
-│   ├── agent/                  # LangGraph agent definitions
-│   │   ├── agent_factory.py   # Agent creation and configuration
-│   │   └── agent_state.py     # Agent state management
-│   ├── api/                    # API routers and endpoints
-│   │   ├── routers/           # Route handlers
-│   │   │   ├── auth.py        # Authentication endpoints
-│   │   │   ├── query.py       # AI query endpoint
-│   │   │   ├── stats.py       # Statistics endpoints
-│   │   │   ├── matches.py     # Match data endpoints
-│   │   │   └── filters.py     # Filter options endpoints
-│   │   ├── models.py          # SQLAlchemy models
-│   │   └── auth_models.py     # User authentication models
-│   ├── services/              # Core business logic
-│   │   ├── query_service.py   # AI query processing
-│   │   ├── database_service.py # Database abstraction
-│   │   ├── auth_service.py    # Authentication logic
-│   │   ├── auth_db_service.py # Auth database operations
-│   │   └── cache_service.py   # Redis caching
-│   ├── config/                # Configuration modules
-│   │   ├── config.py          # Main configuration
-│   │   ├── auth.py             # Authentication config
-│   │   ├── cors.py             # CORS configuration
-│   │   ├── rate_limiter.py     # Rate limiting
-│   │   ├── observability.py    # OpenTelemetry setup
-│   │   └── database/           # Database configurations
-│   │       ├── database_factory.py # Database factory pattern
-│   │       ├── duckdb_config.py   # DuckDB config
-│   │       ├── sqlite_config.py   # SQLite config
-│   │       └── cloud_sql_config.py # Cloud SQL config
-│   ├── tennis/                 # Tennis domain logic
-│   │   ├── tennis_core.py     # Core tennis calculations
-│   │   ├── tennis_prompts.py  # LLM prompts
-│   │   └── tennis_schema_pruner.py # Schema optimization
-│   ├── graph/                  # LangGraph definitions
-│   │   └── langgraph_builder.py
-│   ├── llm/                    # LLM setup
-│   │   └── llm_setup.py
-│   ├── analysis/               # Statistical analysis
-│   │   ├── return_stats.py    # Return statistics
-│   │   └── serve_stats.py      # Serve statistics
-│   ├── utils/                  # Utility functions
+│   ├── app/                    # Application core logic
+│   │   ├── api/                # API routers and endpoints
+│   │   │   ├── routers/        # Route handlers (auth, query, stats, etc.)
+│   │   │   └── dependencies.py # FastAPI dependencies
+│   │   ├── core/               # App configuration and constants
+│   │   │   ├── config/         # Config modules (CORS, logging, etc.)
+│   │   │   └── constants.py    # Global constants
+│   │   ├── domain/             # Domain logic
+│   │   │   ├── agent/          # LangGraph agent definitions
+│   │   │   ├── tennis/         # Tennis-specific logic and prompts
+│   │   │   └── analysis/       # Statistical analysis logic
+│   │   ├── infrastructure/     # Infrastructure layer
+│   │   │   ├── database/       # Database configs and factory
+│   │   │   ├── cache/          # Redis/Disk caching
+│   │   │   ├── llm/            # LLM setup and SQL tools
+│   │   │   └── repositories/   # Data access services
+│   │   ├── services/           # Application services
+│   │   └── utils/              # Utility functions
 │   ├── tests/                  # Test suite
 │   ├── benchmark/              # Agent evaluation benchmarks
-│   ├── mcp_server.py           # MCP server implementation
 │   ├── main.py                 # Application entry point
+│   ├── mcp_server.py           # MCP server implementation
 │   ├── requirements.txt        # Python dependencies
 │   └── Dockerfile              # Backend container image
 ├── frontend/                   # React application

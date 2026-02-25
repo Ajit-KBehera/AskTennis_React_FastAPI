@@ -6,7 +6,10 @@ Provides dynamic data for dropdowns and analysis
 import pandas as pd
 from typing import List, Optional, Tuple, Union, Any, cast, Hashable
 from functools import lru_cache
+import structlog
 from sqlalchemy import Engine, text
+
+logger = structlog.get_logger()
 
 from app.infrastructure.database.base import DatabaseConfig
 from app.infrastructure.database.database_factory import DatabaseFactory
@@ -868,8 +871,7 @@ class DatabaseService:
             return df
 
         except Exception as e:
-            # logger.error(f"Error fetching matches: {e}") # logger not defined in this scope based on provided snippets
-            print(f"Error fetching matches: {e}")
+            logger.error("error_fetching_matches", error=str(e))
             return pd.DataFrame()
 
     def get_matches_with_filters(

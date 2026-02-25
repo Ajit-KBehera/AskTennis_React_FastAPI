@@ -179,9 +179,24 @@ export interface AiQueryResponse {
 }
 
 export interface ConversationFlowItem {
-  role: string;
+  type: string;
   content: string;
+  tool_calls?: Array<{ name: string; args: any }>;
   [key: string]: unknown;
+}
+
+export interface QueryHistoryItem {
+  id: number;
+  query_text: string;
+  sql_queries: string[];
+  answer: string;
+  data: any[];
+  conversation_flow: any[];
+  created_at: string | null;
+}
+
+export interface QueryHistoryResponse {
+  history: QueryHistoryItem[];
 }
 
 export interface AiQueryState {

@@ -9,7 +9,7 @@ Endpoints:
 import asyncio
 import traceback
 import uuid
-from typing import List, Dict, Any, cast
+from typing import List, Dict, Any, cast, Tuple
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.concurrency import run_in_threadpool
@@ -32,30 +32,25 @@ from app.utils.error_utils import get_500_detail
 router = APIRouter()
 logger = structlog.get_logger()
 
-# Lazy-loaded service singletons
-_agent_graph = None
-_query_processor = None
+# Service singletons
 _auth_db = AuthDBService()
+_query_processor = QueryProcessor()
 
 
-def get_services():
+def get_ai_services() -> Tuple[Any, QueryProcessor]:
     """
-    Lazy initialization of AI services.
-    Services are initialized on first request, not at import time.
-    This improves startup time and testability.
+    FastAPI dependency to get AI services.
+    Uses cached setup_langgraph_agent and singleton QueryProcessor.
     """
-    global _agent_graph, _query_processor
-
-    if _agent_graph is None:
-        try:
-            _agent_graph = setup_langgraph_agent()
-            _query_processor = QueryProcessor()
-            logger.info("query_services_initialized")
-        except Exception as e:
-            logger.error("query_services_init_failed", error=str(e))
-            raise
-
-    return _agent_graph, _query_processor
+    try:
+        # setup_langgraph_agent is already @lru_cache(maxsize=1)
+        agent_graph = setup_langgraph_agent()
+        return agent_graph, _query_processor
+    except Exception as e:
+        logger.error("ai_services_init_failed", error=str(e))
+        raise HTTPException(
+            status_code=503, detail="AI services unavailable. Please try again later."
+        )
 
 
 # =============================================================================
@@ -115,6 +110,7 @@ async def process_query(
     query_request: QueryRequest,
     username: str = Depends(get_current_user),
     db: Session = Depends(_auth_db.get_db),
+    ai_services: Tuple[Any, QueryProcessor] = Depends(get_ai_services),
 ):
     """
     AI query endpoint - processes natural language questions about tennis.
@@ -128,12 +124,7 @@ async def process_query(
 
     Rate limited and requires API key authentication.
     """
-    try:
-        agent_graph, query_processor = get_services()
-    except Exception:
-        raise HTTPException(
-            status_code=503, detail="AI services unavailable. Please try again later."
-        )
+    agent_graph, query_processor = ai_services
 
     try:
         # Client-facing conversation id (stable across requests from the same browser)

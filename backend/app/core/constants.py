@@ -56,3 +56,9 @@ ACCESS_TOKEN_EXPIRE_DAYS_REMEMBER_ME = 30  # 30 days when "Remember me" is check
 
 # Query timeout (seconds) for AI agent invoke
 QUERY_TIMEOUT_SECONDS = int(os.getenv("QUERY_TIMEOUT_SECONDS", "300"))
+
+# SQL Query Results Truncation (rows)
+SQL_TRUNCATION_LIMIT = int(os.getenv("SQL_TRUNCATION_LIMIT", "100"))
+
+# Cache Configuration
+CACHE_DEFAULT_TTL = int(os.getenv("CACHE_DEFAULT_TTL", "86400"))  # 24 hours
