@@ -4,6 +4,9 @@ import os
 import diskcache
 import redis
 import pickle
+import structlog
+
+logger = structlog.get_logger()
 
 
 class CacheService(ABC):
@@ -30,7 +33,7 @@ class DiskCacheService(CacheService):
             cache_dir = os.path.join(base_dir, cache_dir)
 
         self.cache = diskcache.Cache(cache_dir)
-        print(f"--- Cache initialized at {cache_dir} ---")
+        logger.info("disk_cache_initialized", cache_dir=cache_dir)
 
     def get(self, key: str) -> Optional[Any]:
         return self.cache.get(key)
@@ -44,27 +47,27 @@ class RedisCacheService(CacheService):
 
     def __init__(self, redis_url: str):
         self.redis = redis.from_url(redis_url)
-        print(f"--- Redis Cache successfully connected to {redis_url} ---")
+        logger.info("redis_cache_connected", redis_url=redis_url)
 
     def get(self, key: str) -> Optional[Any]:
         try:
             data = self.redis.get(key)
             if data:
                 from typing import cast
-                print(f"--- Redis Cache Hit: {key} ---")
+                logger.debug("redis_cache_hit", key=key)
                 return pickle.loads(cast(bytes, data))
-            print(f"--- Redis Cache Miss: {key} ---")
+            logger.debug("redis_cache_miss", key=key)
         except Exception as e:
-            print(f"Error reading from Redis: {e}")
+            logger.error("redis_cache_read_error", key=key, error=str(e))
         return None
 
     def set(self, key: str, value: Any, expire: int = 86400) -> None:
         try:
             pickled_value = pickle.dumps(value)
             self.redis.set(key, pickled_value, ex=expire)
-            print(f"--- Redis Cache Set: {key} (expires in {expire}s) ---")
+            logger.debug("redis_cache_set", key=key, expire=expire)
         except Exception as e:
-            print(f"Error writing to Redis: {e}")
+            logger.error("redis_cache_write_error", key=key, error=str(e))
 
 
 class CacheFactory:

@@ -10,7 +10,10 @@ import type {
   ReturnStatsResponse,
   RankingStatsResponse,
   MatchesResponse,
-
+  QueryHistoryResponse,
+  AuthCredentials,
+  AuthResponse,
+  UserResponse,
 } from '../types';
 
 // Automatically detect API URL based on environment
@@ -132,32 +135,32 @@ export const api = {
   /**
    * Auth: Login
    */
-  login: async (credentials: any): Promise<any> => {
-    const response = await apiClient.post(endpoints.login, credentials);
+  login: async (credentials: AuthCredentials): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>(endpoints.login, credentials);
     return response.data;
   },
 
   /**
    * Auth: Register
    */
-  register: async (credentials: any): Promise<any> => {
-    const response = await apiClient.post(endpoints.register, credentials);
+  register: async (credentials: AuthCredentials): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>(endpoints.register, credentials);
     return response.data;
   },
 
   /**
    * Auth: Logout
    */
-  logout: async (): Promise<any> => {
-    const response = await apiClient.post(endpoints.logout);
+  logout: async (): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(endpoints.logout);
     return response.data;
   },
 
   /**
    * Auth: Get Current User
    */
-  getMe: async (): Promise<any> => {
-    const response = await apiClient.get(endpoints.getMe);
+  getMe: async (): Promise<UserResponse> => {
+    const response = await apiClient.get<UserResponse>(endpoints.getMe);
     return response.data;
   },
 
@@ -175,28 +178,12 @@ export const api = {
   /**
    * Get current user's query history (saved AI queries/results)
    */
-  getQueryHistory: async (limit = 10): Promise<{ history: Array<{
-    id: number;
-    query_text: string;
-    sql_queries: string[];
-    answer: string;
-    data: unknown[];
-    conversation_flow: unknown[];
-    created_at: string | null;
-  }> }> => {
-    const response = await apiClient.get<{ history: unknown[] }>(
+  getQueryHistory: async (limit = 10): Promise<QueryHistoryResponse> => {
+    const response = await apiClient.get<QueryHistoryResponse>(
       endpoints.queryHistory,
       { params: { limit } }
     );
-    return response.data as { history: Array<{
-      id: number;
-      query_text: string;
-      sql_queries: string[];
-      answer: string;
-      data: unknown[];
-      conversation_flow: unknown[];
-      created_at: string | null;
-    }> };
+    return response.data;
   },
 };
 

@@ -9,14 +9,18 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 import ast
+import structlog
 from app.domain.agent.agent_state import AgentState
 from typing import List, Any, Callable, Dict, cast
+from app.core.constants import SQL_TRUNCATION_LIMIT, CACHE_DEFAULT_TTL
 from app.domain.tennis.tennis_schema_pruner import TennisSchemaPruner
 from app.domain.tennis.tennis_prompts import TennisPromptBuilder
 
 # import diskcache  # Replaced by CacheService
 import hashlib
 from app.infrastructure.cache.redis_cache import CacheFactory
+
+logger = structlog.get_logger()
 
 
 class LangGraphBuilder:
@@ -54,7 +58,6 @@ class LangGraphBuilder:
         self.llm_with_tools = llm_with_tools
         self.prompt_template_factory = prompt_template_factory
         self.db = db
-        self.full_schema = full_schema
         self.full_schema = full_schema
         self.schema_pruner = TennisSchemaPruner(full_schema)
 
@@ -280,7 +283,7 @@ class LangGraphBuilder:
 
         def tool_node(state: AgentState) -> Dict[str, Any]:
             """Custom tool node that executes tools."""
-            print("--- Entering tool_node ---")
+            logger.debug("entering_tool_node")
             messages = state["messages"]
             last_message = messages[-1]
             
@@ -292,7 +295,7 @@ class LangGraphBuilder:
                 for tool_call in last_message.tool_calls:
                     tool_name = tool_call["name"]
                     tool_input = tool_call["args"]
-                    print(f"--- Calling tool: {tool_name} ---")
+                    logger.info("calling_tool", tool_name=tool_name)
 
                     # Find the tool and execute it
                     for tool in self.tools:
@@ -310,9 +313,7 @@ class LangGraphBuilder:
                                         # Check cache
                                         cached_result = self.cache.get(cache_key)
                                         if cached_result:
-                                            print(
-                                                f"--- Serving from cache: {query[:50]}... ---"
-                                            )
+                                            logger.info("serving_from_cache", query_preview=query[:50])
                                             return_state = {}
                                             return_state["sql_queries"] = [query]
                                             return_state["messages"] = [
@@ -325,10 +326,9 @@ class LangGraphBuilder:
                                             return return_state
 
                                 result = tool.invoke(tool_input)
-                                # print(tool_name, "\n\n", tool_input, "\n\n", result, "\n\n")
                                 return_state = {}
 
-                                # If it's a database query, truncate results to 100 rows maximum
+                                # If it's a database query, truncate results to SQL_TRUNCATION_LIMIT rows maximum
                                 if tool_name == "sql_db_query":
                                     query = tool_input.get("query")
                                     if query:
@@ -346,11 +346,11 @@ class LangGraphBuilder:
                                                 )
                                                 if (
                                                     isinstance(parsed_result, list)
-                                                    and len(parsed_result) > 100
+                                                    and len(parsed_result) > SQL_TRUNCATION_LIMIT
                                                 ):
-                                                    # Truncate to first 100 rows
+                                                    # Truncate to first SQL_TRUNCATION_LIMIT rows
                                                     truncated_result = parsed_result[
-                                                        :100
+                                                        :SQL_TRUNCATION_LIMIT
                                                     ]
                                                     result = str(truncated_result)
                                                     truncated = True
@@ -358,22 +358,22 @@ class LangGraphBuilder:
                                                 # If parsing fails, keep original result
                                                 pass
                                     # Check if result is already a list
-                                    elif isinstance(result, list) and len(result) > 100:
-                                        result = result[:100]
+                                    elif isinstance(result, list) and len(result) > SQL_TRUNCATION_LIMIT:
+                                        result = result[:SQL_TRUNCATION_LIMIT]
                                         truncated = True
 
                                     # Add truncation note if results were truncated
                                     if truncated:
                                         result_str = str(result)
-                                        truncation_note = "\n\n[Note: Results truncated to 100 rows. Original query returned more rows.]"
+                                        truncation_note = f"\n\n[Note: Results truncated to {SQL_TRUNCATION_LIMIT} rows. Original query returned more rows.]"
                                         result = result_str + truncation_note
 
-                                    # Cache the result (TTL: 24 hours)
+                                    # Cache the result (TTL: CACHE_DEFAULT_TTL)
                                     if query:
                                         cache_key = hashlib.md5(
                                             f"sql_query:{query}".encode()
                                         ).hexdigest()
-                                        self.cache.set(cache_key, result, expire=86400)
+                                        self.cache.set(cache_key, result, expire=CACHE_DEFAULT_TTL)
 
                                 # If sql_db_query_checker returned formatted SQL, add a hint to execute
                                 if (

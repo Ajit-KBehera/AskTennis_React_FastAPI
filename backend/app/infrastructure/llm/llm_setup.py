@@ -10,6 +10,7 @@ from langchain_community.tools import (
     InfoSQLDatabaseTool,
     ListSQLDatabaseTool,
 )
+import re
 from langchain_core.tools import tool
 from langchain_core.callbacks import CallbackManagerForToolRun
 from typing import Dict, Any, List, Optional, Union, Sequence, cast
@@ -145,6 +146,13 @@ class LLMFactory:
                 return (
                     f"Error: Query must start with SELECT or WITH. Got: {query[:50]}..."
                 )
+
+            # Check for forbidden keywords (for security/safety)
+            forbidden = ["DELETE", "UPDATE", "INSERT", "DROP", "ALTER", "TRUNCATE"]
+            for word in forbidden:
+                # Use regex for whole word match to avoid false positives like 'updated_at'
+                if re.search(rf"\b{word}\b", query_upper):
+                    return f"Error: Forbidden keyword detected: {word}"
 
             # Return formatted query (the actual validation happens when executing)
             # This tool mainly serves to format and prepare the query

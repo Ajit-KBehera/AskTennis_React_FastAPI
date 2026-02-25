@@ -23,7 +23,7 @@ def setup_langgraph_agent():
     Returns:
         Compiled LangGraph agent ready for use
     """
-    print("--- Initializing LangGraph Agent with Gemini ---")
+    logger.info("initializing_langgraph_agent", model="Gemini")
 
     # Load unified application configuration (includes database setup)
     config = Config()
@@ -63,5 +63,5 @@ def setup_langgraph_agent():
     # Build the runnable LangGraph agent with all dependencies
     runnable_graph = graph_builder.build_graph()
 
-    print("--- LangGraph Agent Compiled Successfully with Gemini ---")
+    logger.info("langgraph_agent_compiled_successfully")
     return runnable_graph

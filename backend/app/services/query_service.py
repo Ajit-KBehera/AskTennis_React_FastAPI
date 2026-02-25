@@ -64,6 +64,9 @@ class QueryProcessor:
             }
 
         except Exception as e:
+            # Re-raise with a more descriptive message if it's not already one
+            if "An error occurred while processing your request" in str(e):
+                raise
             raise Exception(f"An error occurred while processing your request: {e}")
 
     def _serialize_messages(self, messages: List[Any]) -> List[Dict[str, Any]]:
