@@ -229,7 +229,7 @@ async def readiness_check():
     return {"status": "ready", "service": "asktennis-backend"}
 
 
-# Register all API routers
+# Register all API routers 
 api_router.include_router(query_router, tags=["AI Query"])
 api_router.include_router(filters_router, tags=["Filters"])
 api_router.include_router(matches_router, tags=["Matches"])
@@ -240,7 +240,7 @@ app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(api_router)
 
 # =============================================================================
-# DEVELOPMENT SERVER
+# DEVELOPMENT SERVER (for local development)
 # =============================================================================
 if __name__ == "__main__":
     import uvicorn
