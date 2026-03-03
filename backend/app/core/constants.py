@@ -5,6 +5,8 @@ Centralizes all hardcoded values and configuration settings.
 
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
 # Base Directories
 # __file__ is backend/app/core/constants.py
 CORE_DIR = os.path.dirname(os.path.abspath(__file__))
