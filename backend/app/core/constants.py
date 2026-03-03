@@ -33,7 +33,7 @@ AUTH_DB_USER = os.getenv("AUTH_DB_USER")
 AUTH_DB_PASSWORD = os.getenv("AUTH_DB_PASSWORD")
 
 # LLM Configuration
-DEFAULT_MODEL = "gemini-3-flash-preview"
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-3-flash-preview")
 DEFAULT_TEMPERATURE = 0
 
 # Application Configuration
