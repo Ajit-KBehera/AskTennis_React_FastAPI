@@ -18,14 +18,14 @@ class TennisPromptBuilder:
 1. **MAPPING:** Use `resolve_tennis_terms(['term1', 'term2'])` for all surfaces, rounds, tournaments, etc. in one batch. Handles fuzzy matching.
 2. **VALIDATION:** Use `sql_db_query_checker` ONCE.
 3. **EXECUTION:** Use `sql_db_query`. **DO NOT** re-validate.
-4. **FALLBACK:** Use `LOWER(column) LIKE LOWER('%name%')` if no results.
+4. **FALLBACK:** If an initial exact match returns no rows, retry with `LOWER(column) LIKE LOWER('%name%')` for fuzzy, case-insensitive matching.
 
 ### SQL & DATA RULES
 - **TABLES:** `atp_matches` (ATP), `wta_matches` (WTA). If tour unspecified, `UNION ALL` both with matching columns.
 - **MCP DATA:** Detailed point/shot stats in `atp_mcp_*` and `wta_mcp_*` tables (42 total). Join via `match_id` or `linked_match_id`. Use for point-level analysis.
 - **CATEGORIZATION:** Filter by `tournament_type` for Qualies, Challenger, Futures, Juniors, etc.
 - **RANKING:** Use `analyze_ranking_question` for official; `atp_matches`/`wta_matches` for match-time.
-- **NAMES/COMPAT:** Use `LOWER()` for all player/tournament names. For player stats, check both `winner_name` and `loser_name`.
+ - **NAMES/COMPAT:** For any player or tournament filter, **always** compare using `LOWER()` on both the column and the literal (for `=`, `IN`, and `LIKE`), e.g. `WHERE LOWER(winner_name) = LOWER('Roger Federer')` or `WHERE LOWER(tourney_name) LIKE LOWER('%wimbledon%')`. For single-player stats, always check both `winner_name` and `loser_name`.
 - **ERA:** 'Open Era' (1968+) vs 'Closed Era' (Pre-1968).
 - **DATE/SETS:** Use `event_year`, `event_month`, `event_date`. Use `set1` to `set5` for granular scores.
 
