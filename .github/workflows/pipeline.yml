@@ -124,6 +124,7 @@ jobs:
             --set-env-vars "QUERY_RATE_LIMIT_PER_MINUTE=10" \
             --set-secrets "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
             --set-secrets "JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
+            --set-secrets "DEFAULT_MODEL=DEFAULT_MODEL:latest" \
             --set-secrets "TENNIS_DB_PASSWORD=TENNIS_DB_PASSWORD:latest" \
             --set-secrets "AUTH_DB_PASSWORD=AUTH_DB_PASSWORD:latest" \
             --add-cloudsql-instances ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
