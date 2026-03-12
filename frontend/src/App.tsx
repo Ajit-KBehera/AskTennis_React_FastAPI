@@ -170,7 +170,6 @@ function App() {
                     <div className="space-y-6 my-8">
                         <div className="glass-card rounded-2xl p-12 flex flex-col justify-center items-center gap-4">
                             <TennisLoader />
-                            <p className="text-slate-400 text-sm">Analyzing tennis data…</p>
                         </div>
                         <div className="glass-panel rounded-3xl p-8 space-y-4" aria-hidden>
                             <div className="skeleton-line w-3/4 max-w-md" />
