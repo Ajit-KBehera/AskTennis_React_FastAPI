@@ -5,13 +5,16 @@
 ## ✨ Features
 
 - **Natural Language Querying**: Ask questions like _"Who has the best win rate on grass in the last 5 years?"_ and get instant answers powered by LangGraph agents.
+- **Voice Input**: Speak your questions using the built-in Web Speech API microphone button in the search panel.
+- **Multi-Turn Conversations**: Maintain context across follow-up questions within the same session using persistent LangGraph checkpointing.
+- **Query History**: Every AI query is saved per user and can be retrieved via the API or browsed in the UI.
 - **Deep Statistical Analysis**: Powered by DuckDB, SQLite, or Cloud SQL PostgreSQL with a rich dataset covering the Open Era.
 - **Agentic AI**: Uses LangGraph to decompose complex queries into SQL steps with stateful agent execution.
 - **Modern UI**: React 19 frontend with Tailwind CSS 4 for visualizing data and interacting with the agent.
-- **User Authentication**: Secure JWT-based authentication with HttpOnly cookies.
+- **User Authentication**: Secure JWT-based authentication with HttpOnly cookies, including a "Remember Me" option for extended sessions.
 - **Multi-Database Support**: Seamlessly works with DuckDB (local), SQLite (local), or Cloud SQL PostgreSQL (production).
   - **Tennis Data**: Stores match statistics, player info, and tournament data.
-  - **Auth Data**: dedicated database for user credentials and sessions.
+  - **Auth Data**: Dedicated database for user credentials and sessions.
 - **Caching Layer**: Redis-based caching for improved performance.
 - **Observability**: OpenTelemetry tracing and structured logging with request IDs.
 - **Rate Limiting**: Configurable rate limits for API protection.
@@ -47,7 +50,7 @@
 
 ### Infrastructure
 
-- **Containerization**: Docker, Docker Compose
+- **Containerization**: Docker (each service has its own `Dockerfile`)
 - **CI/CD**: GitHub Actions
 - **Deployment**: Google Cloud Platform (Cloud Run)
 - **Database**: Cloud SQL PostgreSQL (production)
@@ -60,7 +63,7 @@
 - Python 3.11+ (Tested with 3.13)
 - Node.js 20+
 - Redis (for caching, optional in development)
-- Docker & Docker Compose (optional, for containerized setup)
+- Docker (optional, for containerized setup)
 
 ### 1. Backend Setup
 
@@ -101,10 +104,11 @@ cd frontend
 # Install dependencies
 npm install
 
-# Set up environment variables
+# Set up environment variables (optional for local dev)
 cp .env.example .env
-# Edit .env and add:
-# - VITE_API_URL=http://localhost:8000/api
+# The app auto-detects the backend at http://localhost:8000 by default.
+# Set VITE_API_URL only if your backend runs on a different address:
+# VITE_API_URL=http://localhost:8000/api
 ```
 
 Start the development server:
@@ -112,19 +116,6 @@ Start the development server:
 ```bash
 npm run dev
 # App running at http://localhost:5173
-```
-
-### 3. Docker Compose Setup (Alternative)
-
-For a complete containerized setup with Redis:
-
-```bash
-# From project root
-docker-compose up -d
-
-# Backend: http://localhost:8000
-# Frontend: http://localhost:80
-# Redis: localhost:6379
 ```
 
 ## 🔐 Authentication
@@ -145,91 +136,106 @@ curl -X POST http://localhost:8000/auth/login \
   -d '{"username": "testuser", "password": "securepassword123"}'
 
 # Make authenticated API call
-curl -X GET http://localhost:8000/api/stats/players \
+curl -X GET http://localhost:8000/api/filters \
   --cookie "access_token=your-jwt-token"
 ```
 
 ## 📂 Project Structure
 
 ```
-AskTennis/
-├── backend/                    # FastAPI application
-│   ├── agent/                  # LangGraph agent definitions
-│   │   ├── agent_factory.py   # Agent creation and configuration
-│   │   └── agent_state.py     # Agent state management
-│   ├── api/                    # API routers and endpoints
-│   │   ├── routers/           # Route handlers
-│   │   │   ├── auth.py        # Authentication endpoints
-│   │   │   ├── query.py       # AI query endpoint
-│   │   │   ├── stats.py       # Statistics endpoints
-│   │   │   ├── matches.py     # Match data endpoints
-│   │   │   └── filters.py     # Filter options endpoints
-│   │   ├── models.py          # SQLAlchemy models
-│   │   └── auth_models.py     # User authentication models
-│   ├── services/              # Core business logic
-│   │   ├── query_service.py   # AI query processing
-│   │   ├── database_service.py # Database abstraction
-│   │   ├── auth_service.py    # Authentication logic
-│   │   ├── auth_db_service.py # Auth database operations
-│   │   └── cache_service.py   # Redis caching
-│   ├── config/                # Configuration modules
-│   │   ├── config.py          # Main configuration
-│   │   ├── auth.py             # Authentication config
-│   │   ├── cors.py             # CORS configuration
-│   │   ├── rate_limiter.py     # Rate limiting
-│   │   ├── observability.py    # OpenTelemetry setup
-│   │   └── database/           # Database configurations
-│   │       ├── database_factory.py # Database factory pattern
-│   │       ├── duckdb_config.py   # DuckDB config
-│   │       ├── sqlite_config.py   # SQLite config
-│   │       └── cloud_sql_config.py # Cloud SQL config
-│   ├── tennis/                 # Tennis domain logic
-│   │   ├── tennis_core.py     # Core tennis calculations
-│   │   ├── tennis_prompts.py  # LLM prompts
-│   │   └── tennis_schema_pruner.py # Schema optimization
-│   ├── graph/                  # LangGraph definitions
-│   │   └── langgraph_builder.py
-│   ├── llm/                    # LLM setup
-│   │   └── llm_setup.py
-│   ├── analysis/               # Statistical analysis
-│   │   ├── return_stats.py    # Return statistics
-│   │   └── serve_stats.py      # Serve statistics
-│   ├── utils/                  # Utility functions
-│   ├── tests/                  # Test suite
-│   ├── benchmark/              # Agent evaluation benchmarks
-│   ├── mcp_server.py           # MCP server implementation
-│   ├── main.py                 # Application entry point
-│   ├── requirements.txt        # Python dependencies
-│   └── Dockerfile              # Backend container image
-├── frontend/                   # React application
+AskTennis_React_FastAPI/
+├── backend/                         # FastAPI application
+│   ├── app/                         # Main application package
+│   │   ├── api/                     # API layer
+│   │   │   ├── routers/             # Route handlers
+│   │   │   │   ├── auth.py          # Authentication endpoints
+│   │   │   │   ├── query.py         # AI query & history endpoints
+│   │   │   │   ├── stats.py         # Statistics endpoints
+│   │   │   │   ├── matches.py       # Match data endpoints
+│   │   │   │   └── filters.py       # Filter options endpoint
+│   │   │   ├── schemas/             # Pydantic request/response models
+│   │   │   │   ├── auth_schemas.py  # Auth schemas
+│   │   │   │   └── tennis_schemas.py # Tennis data schemas
+│   │   │   └── dependencies.py      # Shared FastAPI dependencies (JWT auth)
+│   │   ├── core/                    # Cross-cutting concerns
+│   │   │   ├── config/              # Configuration modules
+│   │   │   │   ├── config.py        # App settings
+│   │   │   │   ├── cors.py          # CORS configuration
+│   │   │   │   ├── logging_config.py # Structured logging (structlog)
+│   │   │   │   ├── observability.py # OpenTelemetry setup
+│   │   │   │   └── rate_limiter.py  # Rate limiting (slowapi)
+│   │   │   └── constants.py         # App-wide constants
+│   │   ├── domain/                  # Business / domain logic
+│   │   │   ├── agent/               # LangGraph agent
+│   │   │   │   ├── agent_factory.py # Agent creation and configuration
+│   │   │   │   ├── agent_state.py   # Agent state definition
+│   │   │   │   └── graph/
+│   │   │   │       └── langgraph_builder.py # Graph construction
+│   │   │   ├── analysis/            # Statistical analysis
+│   │   │   │   ├── serve_stats.py   # Serve statistics calculations
+│   │   │   │   └── return_stats.py  # Return statistics calculations
+│   │   │   └── tennis/              # Tennis domain logic
+│   │   │       ├── tennis_core.py   # Core tennis calculations
+│   │   │       ├── tennis_prompts.py # LLM prompts
+│   │   │       ├── tennis_mappings.py # Data mappings
+│   │   │       ├── tennis_schema_pruner.py # Schema optimization for LLM
+│   │   │       └── ranking_analysis.py # Ranking timeline logic
+│   │   ├── infrastructure/          # External services and data access
+│   │   │   ├── cache/
+│   │   │   │   └── redis_cache.py   # Redis caching layer
+│   │   │   ├── database/            # Database backends
+│   │   │   │   ├── database_factory.py # Factory (DuckDB / SQLite / Cloud SQL)
+│   │   │   │   ├── duckdb_config.py
+│   │   │   │   ├── sqlite_config.py
+│   │   │   │   ├── cloud_sql_config.py
+│   │   │   │   ├── models.py        # SQLAlchemy ORM models
+│   │   │   │   └── base.py          # Declarative base
+│   │   │   ├── llm/
+│   │   │   │   └── llm_setup.py     # LLM initialisation (Google Gemini)
+│   │   │   └── repositories/
+│   │   │       ├── tennis_repository.py # Tennis data queries
+│   │   │       └── user_repository.py   # Auth DB operations & query history
+│   │   ├── services/                # Application services
+│   │   │   ├── query_service.py     # AI query orchestration
+│   │   │   └── auth_service.py      # JWT & password helpers
+│   │   └── utils/                   # Shared utilities
+│   │       ├── df_utils.py
+│   │       ├── error_utils.py
+│   │       ├── filter_utils.py
+│   │       └── string_utils.py
+│   ├── tests/                       # pytest test suite
+│   ├── benchmark/                   # Agent evaluation benchmarks
+│   │   ├── evaluate_agent.py
+│   │   └── gold_standard.json
+│   ├── mcp_server.py                # Model Context Protocol server
+│   ├── main.py                      # Application entry point
+│   ├── requirements.txt             # Python dependencies
+│   └── Dockerfile                   # Backend container image
+├── frontend/                        # React application
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   │   ├── views/         # Page views
-│   │   │   ├── charts/        # Chart components
-│   │   │   ├── analysis/      # Analysis components
-│   │   │   ├── search/        # Search components
-│   │   │   ├── layout/        # Layout components
-│   │   │   └── ui/            # UI components
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── store/             # State management (Zustand)
-│   │   ├── api/               # API client
-│   │   ├── types/             # TypeScript types
-│   │   └── utils/             # Utility functions
-│   ├── public/                # Static assets
-│   ├── package.json           # Node dependencies
-│   ├── vite.config.ts         # Vite configuration
-│   ├── Dockerfile             # Frontend container image
-│   └── nginx.conf.template    # Nginx config for production
+│   │   ├── components/              # React components
+│   │   │   ├── views/               # Page-level views
+│   │   │   ├── charts/              # Chart components (Recharts / Plotly)
+│   │   │   ├── analysis/            # Analysis UI (matches table, tabs)
+│   │   │   ├── search/              # Search panel with voice input
+│   │   │   ├── layout/              # Header, sidebar, layout wrapper
+│   │   │   └── ui/                  # Shared UI components
+│   │   ├── hooks/                   # Custom React hooks
+│   │   ├── store/                   # State management (Zustand + AuthContext)
+│   │   ├── api/                     # Axios API client + typed helpers
+│   │   ├── types/                   # TypeScript type definitions
+│   │   └── utils/                   # Utility functions
+│   ├── public/                      # Static assets
+│   ├── package.json                 # Node dependencies
+│   ├── vite.config.ts               # Vite configuration
+│   ├── Dockerfile                   # Frontend container image
+│   └── nginx.conf.template          # Nginx config for production
+├── mds/                             # Architecture & design documentation
 ├── .github/
-│   └── workflows/             # GitHub Actions workflows
-│       ├── ci.yml             # Continuous Integration
-│       ├── deploy-backend.yml # Backend deployment
-│       └── deploy-frontend.yml # Frontend deployment
-├── docker-compose.yml          # Docker Compose configuration
-├── bundler.py                  # Utility to bundle code for AI analysis
-└── question_bank/              # Benchmark questions
-    ├── TENNIS_ANALYTICAL_QUESTIONS.md
-    └── TENNIS_ANALYTICAL_QUESTIONS_MCP.md
+│   └── workflows/
+│       └── pipeline.yml             # CI + CD (test → build → deploy to Cloud Run)
+├── bundler.py                       # Utility to bundle code for LLM analysis
+└── package.json                     # Root scripts (npm run dev / backend / frontend)
 ```
 
 ## 🤖 CI/CD & Deployment
@@ -246,11 +252,10 @@ The CI pipeline runs on every push and pull request to `main`:
   - Uses Redis service for caching tests
 - **Frontend**:
   - Installs Node.js 20 dependencies
-  - Runs ESLint
   - Runs Vitest test suite
   - Builds production bundle
 
-Workflow: `.github/workflows/ci.yml`
+Workflow: `.github/workflows/pipeline.yml`
 
 ### Continuous Deployment to GCP Cloud Run
 
@@ -263,23 +268,21 @@ Automatic deployment to Google Cloud Platform Cloud Run on every push to `main`:
 - **Secrets**: Managed via Google Cloud Secret Manager
   - `GOOGLE_API_KEY`
   - `JWT_SECRET_KEY`
-  - `DB_PASSWORD`
+  - `TENNIS_DB_PASSWORD` / `AUTH_DB_PASSWORD`
 - **Auto-scaling**: Scales to zero when idle, up to 10 instances under load
 - **Resources**: 2 CPU, 2Gi memory
 - **Timeout**: 300 seconds
-
-Workflow: `.github/workflows/deploy-backend.yml`
 
 #### Frontend Deployment
 
 - **Service**: `asktennis-frontend`
 - **Static Assets**: Served via Nginx
-- **Build-time Configuration**: `VITE_API_URL` must be set as GitHub secret `BACKEND_URL`
+- **Build-time Configuration**: `VITE_API_URL` is baked in at Docker build time from the `BACKEND_URL` GitHub secret
 - **Auto-scaling**: Scales to zero when idle, up to 5 instances under load
 - **Resources**: 1 CPU, 512Mi memory
 - **Timeout**: 60 seconds
 
-Workflow: `.github/workflows/deploy-frontend.yml`
+Both CI and CD pipelines are defined in `.github/workflows/pipeline.yml`.
 
 #### Deployment Setup
 
@@ -288,24 +291,12 @@ Workflow: `.github/workflows/deploy-frontend.yml`
 1. `GCP_SA_KEY`: Google Cloud Service Account JSON key
 2. `GCP_PROJECT_ID`: GCP project ID
 3. `CLOUD_SQL_CONNECTION_NAME`: Cloud SQL instance connection name
-4. `DB_NAME`: Database name
-5. `DB_USER`: Database user
+4. `TENNIS_DB_NAME` / `TENNIS_DB_USER` / `TENNIS_DB_PASSWORD`: Tennis database credentials
+5. `AUTH_DB_NAME` / `AUTH_DB_USER` / `AUTH_DB_PASSWORD`: Auth database credentials
 6. `BACKEND_URL`: Backend Cloud Run URL (e.g., `https://asktennis-backend-xxxxx-uc.a.run.app`)
 7. `GOOGLE_API_KEY`: Google API key for Gemini
 8. `JWT_SECRET_KEY`: JWT signing secret
-9. `DB_PASSWORD`: Database password
-
-**Important Notes:**
-
-- The frontend must know the backend URL at **build time** (Vite inlines `VITE_API_URL`)
-- After first backend deployment, get the backend URL from the workflow output or:
-  ```bash
-  gcloud run services describe asktennis-backend \
-    --region us-central1 \
-    --format 'value(status.url)'
-  ```
-- Set `BACKEND_URL` GitHub secret and redeploy frontend to bake in the correct API URL
-- **CORS**: Backend allows Cloud Run frontend origins matching `https://asktennis-frontend-*.run.app`. For custom domains, update `ALLOWED_ORIGINS` env var on backend Cloud Run service
+9. `DEFAULT_MODEL`: (optional) override the default Gemini model
 
 ## 🗄️ Database Configuration
 
@@ -389,30 +380,40 @@ npm run test:coverage # With coverage
 
 ## 📊 API Endpoints
 
-### Authentication
+### Public
 
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login (sets HttpOnly cookie)
+- `GET /health` - Liveness check
+- `GET /ready` - Readiness check (verifies DB connectivity)
+- `GET /` - Welcome message + endpoint listing (development only)
 
-### AI Query
+### Authentication (`/auth`)
 
-- `POST /api/query` - Natural language query (requires JWT)
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login; sets HttpOnly JWT cookie (`remember_me` supported)
+- `POST /auth/logout` - Clear the JWT cookie
+- `GET /auth/me` - Get current user info (requires JWT)
+- `GET /auth/check-username?username=` - Check username availability
 
-### Statistics
+### AI Query (`/api`)
 
-- `GET /api/stats/players` - Get player statistics
-- `GET /api/stats/matches` - Get match statistics
+- `POST /api/query` - Natural language tennis query (LangGraph agent, rate-limited)
+- `GET /api/query/history` - Retrieve the logged-in user's saved query history
 
-### Matches
+### Statistics (`/api/stats`)
 
-- `GET /api/matches` - Query matches with filters
+- `POST /api/stats/serve` - Serve statistics charts for a player
+- `POST /api/stats/return` - Return statistics charts for a player
+- `POST /api/stats/ranking` - Ranking timeline chart for a player
 
-### Filters
+### Matches (`/api`)
 
-- `GET /api/filters/players` - Get available player filters
-- `GET /api/filters/tournaments` - Get tournament filters
+- `POST /api/matches` - Filtered match data
 
-All `/api/*` endpoints require a valid JWT token in an HttpOnly cookie.
+### Filters (`/api`)
+
+- `GET /api/filters` - Filter options (players, opponents, tournaments, surfaces, year range)
+
+All `/api/*` and `/auth/me` endpoints require a valid JWT token in an HttpOnly cookie.
 
 ## 🛠️ Development
 
