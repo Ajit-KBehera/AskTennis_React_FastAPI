@@ -44,7 +44,7 @@ def get_cors_config() -> dict:
         "allow_origins": origins,
         "allow_credentials": credentials_allowed, # Required for HttpOnly cookies
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Set-Cookie", "Authorization"], # Explicit headers for cookies and tokens
+        "allow_headers": ["Content-Type", "Set-Cookie", "Authorization", "Accept", "Origin", "X-Requested-With"], # Explicit headers required for allow_credentials=True
         "expose_headers": [
             "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"
         ],

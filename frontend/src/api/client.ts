@@ -54,8 +54,12 @@ export const apiClient = axios.create({
 // Add a request interceptor to attach the Bearer token as a fallback for browsers that block 3rd party cookies
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('asktennis_token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    if (config.headers && typeof config.headers.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers = { ...config.headers, Authorization: `Bearer ${token}` } as any;
+    }
   }
   return config;
 });
