@@ -63,7 +63,7 @@ def login(
     )
 
     auth_db.update_last_login(db, cast(int, user.id))
-    return {"message": "Login successful", "username": user.username}
+    return {"message": "Login successful", "username": user.username, "access_token": access_token}
 
 from app.api.dependencies import get_current_user
 

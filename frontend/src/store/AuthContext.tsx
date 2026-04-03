@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 // Not logged in or session expired
                 setUser(null);
                 localStorage.removeItem('asktennis_user');
+                localStorage.removeItem('asktennis_token');
             } finally {
                 setIsLoading(false);
             }
@@ -38,6 +39,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const response = await api.login(credentials);
         setUser(response.username);
         localStorage.setItem('asktennis_user', response.username);
+        if (response.access_token) {
+            localStorage.setItem('asktennis_token', response.access_token);
+        }
     };
 
     const register = async (credentials: AuthCredentials) => {
@@ -48,6 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await api.logout();
         setUser(null);
         localStorage.removeItem('asktennis_user');
+        localStorage.removeItem('asktennis_token');
     };
 
     return (

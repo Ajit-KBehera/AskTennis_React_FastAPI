@@ -51,6 +51,15 @@ export const apiClient = axios.create({
   withCredentials: true, // Required for HttpOnly cookies
 });
 
+// Add a request interceptor to attach the Bearer token as a fallback for browsers that block 3rd party cookies
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('asktennis_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const endpoints = {
   // Auth endpoints (prefix with /auth)
   login: '/auth/login',
