@@ -19,7 +19,7 @@ These files live at `backend/` and bootstrap the application.
 
 Responsible _only_ for HTTP request handling, data validation, and response formatting. It contains no business logic or SQL.
 
-- **`dependencies.py`**: Centralizes FastAPI `Depends` injectables. Contains `get_current_user`, isolating JWT token extraction and verification from the endpoint code.
+- **`dependencies.py`**: Centralizes FastAPI `Depends` injectables. Contains `get_current_user`, isolating JWT token extraction (from HttpOnly cookies or Bearer token fallback) and verification from the endpoint code.
 - **`routers/`**: The HTTP handlers.
   - `auth.py`: Registration, login, and token generation endpoints.
   - `query.py`: The main AI endpoint (`/query`). It extracts the request and passes it to the `QueryProcessor` service.
@@ -37,7 +37,7 @@ Responsible for application-wide, cross-cutting configurations that affect the e
 - **`constants.py`**: The single source of truth for hardcoded values (e.g., DB file names, default LLM models, token expiration times).
 - **`config/`**:
   - `config.py`: The unified `Config` class that loads `.env` variables and validates API keys (e.g., `GOOGLE_API_KEY`).
-  - `cors.py`: Configures Cross-Origin Resource Sharing rules.
+  - `cors.py`: Configures Cross-Origin Resource Sharing rules, including Authorization header support for token fallback.
   - `logging_config.py` & `observability.py`: Set up `structlog`, JSON logging formatting, and LangSmith tracing.
   - `rate_limiter.py`: Defines the SlowAPI rate limiter to prevent abuse on the `/query` endpoint.
 

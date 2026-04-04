@@ -16,13 +16,13 @@ The AskTennis AI system processes natural language tennis queries through a soph
 └─────────────────────────────────────────────────────────────────┘
                                 │ HTTP POST
                                 │ Headers: X-API-Key
-                                │ Cookie: access_token (JWT)
+                                │ Cookie: access_token (JWT) OR Authorization: Bearer
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    AUTHENTICATION LAYER                        │
 ├─────────────────────────────────────────────────────────────────┤
 │  API Key Check  →  JWT Validation  →  User Context            │
-│  (X-API-Key)     (HttpOnly Cookie)   (Username)               │
+│  (X-API-Key)     (Cookie/Bearer)   (Username)                 │
 └─────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
@@ -125,7 +125,7 @@ sequenceDiagram
     User->>ReactApp: "Who won Wimbledon 2023?"
     ReactApp->>AuthContext: Check Authentication
     AuthContext-->>ReactApp: User Authenticated
-    ReactApp->>FASTAPI: POST /api/query<br/>(X-API-Key + Cookie)
+    ReactApp->>FASTAPI: POST /api/query<br/>(X-API-Key + Cookie/Bearer)
     FASTAPI->>AuthService: Validate API Key
     AuthService-->>FASTAPI: Valid
     FASTAPI->>AuthService: Validate JWT Token
@@ -138,7 +138,7 @@ sequenceDiagram
 - **Authentication**: AuthContext checks for valid JWT token.
 - **Transmission**: Axios sends payload to `/api/query` with:
   - `X-API-Key` header
-  - `access_token` cookie (HttpOnly)
+  - `access_token` cookie (HttpOnly) or Authorization Bearer token
 - **Validation**: Pydantic models validate the request body.
 - **User Context**: JWT payload provides username; backend saves each successful result to that user’s **query history** (see Query History below).
 - **Query History**: After a successful response, the backend persists the query text, SQL, answer, and data to the `query_history` table for the logged-in user. Users can retrieve past queries via `GET /api/query/history`.
@@ -324,7 +324,7 @@ Frontend Updates AuthContext → Redirect to App
 
 ### Authenticated Request Flow
 ```
-User → API Request → Extract Cookie → Validate JWT → 
+User → API Request → Extract Cookie/Bearer Token → Validate JWT → 
 Extract Username → Attach to Request Context → Process Request
 ```
 

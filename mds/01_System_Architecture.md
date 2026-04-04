@@ -19,7 +19,7 @@ The system consists of two main components:
   - Interactive chat interface for natural language queries (typed or **voice input** via Web Speech API in SearchPanel)
   - Advanced filtering scenarios
   - Data visualization using Recharts and Plotly.js
-  - JWT-based authentication with HttpOnly cookies (Remember Me, username availability check)
+  - JWT-based authentication with HttpOnly cookies and Bearer token fallback (Remember Me, username availability check)
   - Markdown rendering with KaTeX for mathematical expressions
   - Per-user **query history** (AI answers stored and retrievable via API)
 - **Target Users**: Tennis enthusiasts, analysts, researchers
@@ -54,7 +54,7 @@ The system consists of two main components:
 │  AuthContext   │  Views        │  Types         │  Hooks        │
 └─────────────────────────────────────────────────────────────────┘
                                 │ HTTP / JSON
-                                │ HttpOnly Cookie (JWT)
+                                │ HttpOnly Cookie or Bearer Token (JWT)
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        BACKEND LAYER                           │
@@ -318,10 +318,10 @@ sequenceDiagram
 
 - **Backend**:
   - JWT-based authentication.
-  - HttpOnly cookies for JWT tokens.
+  - HttpOnly cookies for JWT tokens with Bearer token fallback for mobile/cross-origin clients.
   - Bcrypt password hashing.
   - Rate limiting per endpoint.
-  - CORS configuration for production.
+  - CORS configuration allowing Authorization headers for token support in production.
   - HTTP Exceptions with detail messages for API errors.
 - **Frontend**:
   - TypeScript for type safety.

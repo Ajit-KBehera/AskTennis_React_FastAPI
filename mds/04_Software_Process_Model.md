@@ -76,7 +76,7 @@ AskTennis AI follows an **Agile Software Development Life Cycle (SDLC)**, specif
 7.  **Deploy**: Automated deployment via GitHub Actions.
 
 ### Authentication Feature Flow
-1.  **Design**: Plan authentication flow (JWT, HttpOnly cookies).
+1.  **Design**: Plan authentication flow (JWT, HttpOnly cookies, Bearer token fallback).
 2.  **Backend**: Implement auth endpoints (`/auth/login`, `/auth/register`).
 3.  **Database**: Set up authentication database (separate from main DB).
 4.  **Frontend**: Implement login component and AuthContext.
