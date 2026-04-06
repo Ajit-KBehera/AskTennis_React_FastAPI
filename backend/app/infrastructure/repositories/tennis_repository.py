@@ -774,14 +774,21 @@ class DatabaseService:
                     LIMIT {self.DEFAULT_QUERY_LIMIT}
                     """
                 else:
-                    # New schema: use UNION ALL for both tours
-                    query = f"""
+                    # New schema: DO NOT use UNION ALL with SELECT *.
+                    # In production (Cloud SQL), ATP/WTA tables can differ in column sets/order
+                    # which can make UNION fail and incorrectly look like "no matches".
+                    # Instead, query each table separately and concatenate in pandas.
+                    atp_query = f"""
                     SELECT *
-                    FROM (
-                        SELECT * FROM atp_matches WHERE {where_clause}
-                        UNION ALL
-                        SELECT * FROM wta_matches WHERE {where_clause}
-                    )
+                    FROM atp_matches
+                    WHERE {where_clause}
+                    ORDER BY tourney_date ASC, match_num ASC
+                    LIMIT {self.DEFAULT_QUERY_LIMIT}
+                    """
+                    wta_query = f"""
+                    SELECT *
+                    FROM wta_matches
+                    WHERE {where_clause}
                     ORDER BY tourney_date ASC, match_num ASC
                     LIMIT {self.DEFAULT_QUERY_LIMIT}
                     """
@@ -851,19 +858,40 @@ class DatabaseService:
                     LIMIT {self.DEFAULT_QUERY_LIMIT}
                     """
 
-            # If using UNION ALL with separate tables, duplicate params for each table
-            # This must be done BEFORE formatting the query
-            if schema_type == "separate" and where_clause != "1=1" and params:
-                # Duplicate params for UNION ALL (each table needs the same params)
-                params = params * 2
-
-            # Format query for database type (convert ? to %s for PostgreSQL/MySQL)
-            query = self._format_sql_query(query)
-
             with self._get_connection() as conn:
-                df = pd.read_sql_query(
-                    query, conn, params=tuple(self._format_params(params))
-                )
+                if return_all_columns and schema_type == "separate":
+                    # Separate-table full-column fetch: run two queries, then concat
+                    atp_query_fmt = self._format_sql_query(atp_query)
+                    wta_query_fmt = self._format_sql_query(wta_query)
+
+                    atp_df = pd.read_sql_query(
+                        atp_query_fmt, conn, params=tuple(self._format_params(params))
+                    )
+                    wta_df = pd.read_sql_query(
+                        wta_query_fmt, conn, params=tuple(self._format_params(params))
+                    )
+
+                    if atp_df.empty and wta_df.empty:
+                        return pd.DataFrame()
+
+                    df = pd.concat([atp_df, wta_df], ignore_index=True, sort=False)
+
+                    # Best-effort sort to preserve chronological order (works even if a column is missing)
+                    sort_cols = [c for c in ["tourney_date", "match_num"] if c in df.columns]
+                    if sort_cols:
+                        df = df.sort_values(sort_cols, ascending=True, kind="mergesort").reset_index(drop=True)
+                else:
+                    # If using UNION ALL with separate tables (selected-column queries),
+                    # duplicate params for each table. This must be done BEFORE formatting the query.
+                    if schema_type == "separate" and where_clause != "1=1" and params:
+                        params = params * 2
+
+                    # Format query for database type (convert ? to %s for PostgreSQL/MySQL)
+                    query = self._format_sql_query(query)
+
+                    df = pd.read_sql_query(
+                        query, conn, params=tuple(self._format_params(params))
+                    )
 
             return df
 
