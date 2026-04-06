@@ -94,6 +94,40 @@ def _missing_columns(df: pd.DataFrame, required_cols: List[str]) -> List[str]:
     return [c for c in required_cols if c not in df.columns]
 
 
+def _coerce_numeric_columns(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    """
+    Coerce numeric-like columns to proper numeric dtypes.
+    Cloud SQL/pg8000 can return Decimal/object dtypes; numpy ops in stats code
+    expect numeric arrays.
+    """
+    df = df.copy()
+    for col in columns:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+def _serve_return_numeric_columns() -> List[str]:
+    return [
+        "w_svpt",
+        "l_svpt",
+        "w_1stIn",
+        "l_1stIn",
+        "w_1stWon",
+        "l_1stWon",
+        "w_2ndWon",
+        "l_2ndWon",
+        "w_ace",
+        "l_ace",
+        "w_df",
+        "l_df",
+        "w_bpFaced",
+        "l_bpFaced",
+        "w_bpSaved",
+        "l_bpSaved",
+    ]
+
+
 def convert_df_to_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """Convert DataFrame to list of dicts, replacing NaN with None."""
     # Replace NaN/Infinity with None for JSON compatibility
@@ -152,6 +186,9 @@ async def get_serve_stats(request: ServeStatsRequest):
                     + (" ..." if len(missing_cols) > 8 else "")
                 )
             )
+
+        # Normalize numeric dtypes for Cloud SQL/object columns.
+        df = _coerce_numeric_columns(df, _serve_return_numeric_columns())
 
         # Calculate raw statistics for frontend
         from app.utils.df_utils import add_player_match_columns
@@ -255,6 +292,9 @@ async def get_return_stats(request: ReturnStatsRequest):
                     + (" ..." if len(missing_cols) > 8 else "")
                 )
             )
+
+        # Normalize numeric dtypes for Cloud SQL/object columns.
+        df = _coerce_numeric_columns(df, _serve_return_numeric_columns())
 
         # Calculate raw statistics
         from app.utils.df_utils import add_player_match_columns
