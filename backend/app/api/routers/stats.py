@@ -43,6 +43,57 @@ except Exception:
     db_service = None
 
 
+def _build_common_filters(request):
+    """Normalize common filters used by serve/return endpoints."""
+    player = request.player_name
+    opponent = (
+        request.opponent
+        if request.opponent != DatabaseService.ALL_OPPONENTS
+        else None
+    )
+    tournament = (
+        request.tournament
+        if request.tournament != DatabaseService.ALL_TOURNAMENTS
+        else None
+    )
+    surfaces = request.surface if request.surface and len(request.surface) > 0 else None
+    year = parse_year_filter(request.year) if request.year else None
+    return player, opponent, tournament, surfaces, year
+
+
+def _required_columns_for_serve() -> List[str]:
+    return [
+        "winner_name",
+        "loser_name",
+        "event_year",
+        "w_svpt",
+        "l_svpt",
+        "w_1stIn",
+        "l_1stIn",
+        "w_1stWon",
+        "l_1stWon",
+        "w_2ndWon",
+        "l_2ndWon",
+        "w_ace",
+        "l_ace",
+        "w_df",
+        "l_df",
+        "w_bpFaced",
+        "l_bpFaced",
+        "w_bpSaved",
+        "l_bpSaved",
+    ]
+
+
+def _required_columns_for_return() -> List[str]:
+    # Return stats rely on the same raw serve/break-point columns.
+    return _required_columns_for_serve()
+
+
+def _missing_columns(df: pd.DataFrame, required_cols: List[str]) -> List[str]:
+    return [c for c in required_cols if c not in df.columns]
+
+
 def convert_df_to_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """Convert DataFrame to list of dicts, replacing NaN with None."""
     # Replace NaN/Infinity with None for JSON compatibility
@@ -61,21 +112,7 @@ async def get_serve_stats(request: ServeStatsRequest):
         raise HTTPException(status_code=500, detail="Database service not initialized")
 
     try:
-        player = request.player_name
-        opponent = (
-            request.opponent
-            if request.opponent != DatabaseService.ALL_OPPONENTS
-            else None
-        )
-        tournament = (
-            request.tournament
-            if request.tournament != DatabaseService.ALL_TOURNAMENTS
-            else None
-        )
-        surfaces = (
-            request.surface if request.surface and len(request.surface) > 0 else None
-        )
-        year = parse_year_filter(request.year) if request.year else None
+        player, opponent, tournament, surfaces, year = _build_common_filters(request)
 
         # Get matches from database
         df = db_service.get_matches_with_filters(
@@ -88,8 +125,32 @@ async def get_serve_stats(request: ServeStatsRequest):
         )
 
         if df.empty:
+            # Diagnose whether this is truly "no matches" or a full-column fetch issue.
+            basic_df = db_service.get_matches_with_filters(
+                player=player,
+                opponent=opponent,
+                tournament=tournament,
+                year=year,
+                surfaces=surfaces,
+                return_all_columns=False,
+            )
+            if not basic_df.empty:
+                return ServeStatsResponse(
+                    error=(
+                        "Serve stats unavailable in this deployment: match rows exist, "
+                        "but full stats columns could not be fetched."
+                    )
+                )
+            return ServeStatsResponse(error="No matches found for the specified filters")
+
+        missing_cols = _missing_columns(df, _required_columns_for_serve())
+        if missing_cols:
             return ServeStatsResponse(
-                error="No matches found for the specified filters"
+                error=(
+                    "Serve stats unavailable: required columns missing in production DB/schema. "
+                    f"Missing columns: {', '.join(missing_cols[:8])}"
+                    + (" ..." if len(missing_cols) > 8 else "")
+                )
             )
 
         # Calculate raw statistics for frontend
@@ -155,21 +216,7 @@ async def get_return_stats(request: ReturnStatsRequest):
         raise HTTPException(status_code=500, detail="Database service not initialized")
 
     try:
-        player = request.player_name
-        opponent = (
-            request.opponent
-            if request.opponent != DatabaseService.ALL_OPPONENTS
-            else None
-        )
-        tournament = (
-            request.tournament
-            if request.tournament != DatabaseService.ALL_TOURNAMENTS
-            else None
-        )
-        surfaces = (
-            request.surface if request.surface and len(request.surface) > 0 else None
-        )
-        year = parse_year_filter(request.year) if request.year else None
+        player, opponent, tournament, surfaces, year = _build_common_filters(request)
 
         # Get matches from database
         df = db_service.get_matches_with_filters(
@@ -182,8 +229,31 @@ async def get_return_stats(request: ReturnStatsRequest):
         )
 
         if df.empty:
+            basic_df = db_service.get_matches_with_filters(
+                player=player,
+                opponent=opponent,
+                tournament=tournament,
+                year=year,
+                surfaces=surfaces,
+                return_all_columns=False,
+            )
+            if not basic_df.empty:
+                return ReturnStatsResponse(
+                    error=(
+                        "Return stats unavailable in this deployment: match rows exist, "
+                        "but full stats columns could not be fetched."
+                    )
+                )
+            return ReturnStatsResponse(error="No matches found for the specified filters")
+
+        missing_cols = _missing_columns(df, _required_columns_for_return())
+        if missing_cols:
             return ReturnStatsResponse(
-                error="No matches found for the specified filters"
+                error=(
+                    "Return stats unavailable: required columns missing in production DB/schema. "
+                    f"Missing columns: {', '.join(missing_cols[:8])}"
+                    + (" ..." if len(missing_cols) > 8 else "")
+                )
             )
 
         # Calculate raw statistics
