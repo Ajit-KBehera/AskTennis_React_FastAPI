@@ -1,5 +1,4 @@
-import os
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException
 from typing import cast
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -33,7 +32,6 @@ def register(user_in: UserCreate, db: Session = Depends(auth_db.get_db)):
 
 @router.post("/login")
 def login(
-    response: Response,
     user_in: LoginRequest,
     db: Session = Depends(auth_db.get_db),
 ):
@@ -52,18 +50,14 @@ def login(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
-    is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=is_prod,
-        samesite="none" if is_prod else "lax",
-        max_age=max_age_seconds,
-    )
-
     auth_db.update_last_login(db, cast(int, user.id))
-    return {"message": "Login successful", "username": user.username, "access_token": access_token}
+    return {
+        "message": "Login successful",
+        "username": user.username,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": max_age_seconds,
+    }
 
 from app.api.dependencies import get_current_user
 
@@ -78,6 +72,5 @@ def get_me(
     return user
 
 @router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie(key="access_token")
+def logout():
     return {"message": "Logged out"}

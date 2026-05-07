@@ -74,9 +74,13 @@ class CacheFactory:
     def get_service() -> CacheService:
         """
         Returns a CacheService instance.
-        Returns RedisCacheService if REDIS_URL is set, otherwise DiskCacheService.
+        Returns RedisCacheService if REDIS_URL is set.
+        In Appwrite deployments, REDIS_URL is mandatory because function
+        filesystems are ephemeral.
         """
         redis_url = os.getenv("REDIS_URL")
         if redis_url:
             return RedisCacheService(redis_url)
+        if os.getenv("ENVIRONMENT", "").lower() == "production" or os.getenv("APPWRITE") == "true":
+            raise ValueError("REDIS_URL is required in production/Appwrite deployments")
         return DiskCacheService()

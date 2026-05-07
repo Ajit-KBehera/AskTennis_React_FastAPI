@@ -13,32 +13,13 @@ import type {
 
 } from '../types';
 
-// Automatically detect API URL based on environment
-// Priority: env variable > production backend > local development
+// Appwrite Sites should always provide an explicit API URL at build time.
 const getBackendBaseUrl = (): string => {
-  // Check for explicit backend URL (set during build for production)
   const envApiUrl = import.meta.env.VITE_API_URL;
   if (envApiUrl) {
-    // If it ends with /api, strip it to get the base
     return envApiUrl.replace(/\/api\/?$/, '');
   }
-
-  // For Cloud Run deployments, use HTTPS and backend service
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    // If running on Cloud Run (*.run.app domain)
-    if (hostname.includes('.run.app')) {
-      // Replace 'frontend' with 'backend' in the hostname
-      const backendHost = hostname.replace('frontend', 'backend');
-      return `https://${backendHost}`;
-    }
-    // If accessed from local network IP (not localhost)
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `http://${hostname}:8000`;
-    }
-  }
-  // Default to localhost for development
-  return 'http://localhost:8000';
+  return 'http://localhost:8000'; // local-only fallback
 };
 
 const BACKEND_URL = getBackendBaseUrl();
@@ -48,7 +29,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Required for HttpOnly cookies
+  withCredentials: false,
 });
 
 // Add a request interceptor to attach the Bearer token as a fallback for browsers that block 3rd party cookies

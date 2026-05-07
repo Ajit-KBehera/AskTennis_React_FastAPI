@@ -307,6 +307,29 @@ Workflow: `.github/workflows/deploy-frontend.yml`
 - Set `BACKEND_URL` GitHub secret and redeploy frontend to bake in the correct API URL
 - **CORS**: Backend allows Cloud Run frontend origins matching `https://asktennis-frontend-*.run.app`. For custom domains, update `ALLOWED_ORIGINS` env var on backend Cloud Run service
 
+### Appwrite Option B Deployment (Single Project)
+
+This repository now includes an Appwrite-oriented split for a big-bang migration:
+
+- **Frontend**: Deploy `frontend/` to Appwrite Sites
+  - Install: `npm ci`
+  - Build: `npm run build`
+  - Output: `dist`
+  - Required env: `VITE_API_URL=https://<your-functions-domain>/api`
+- **Backend functions**:
+  - `backend/functions/auth/main.py` for `/auth/*`
+  - `backend/functions/data/main.py` for `/api/filters`, `/api/matches`, `/api/stats/*`
+  - `backend/functions/query/main.py` for `/api/query*`
+
+Required backend env vars for Appwrite functions:
+
+- `APPWRITE=true`
+- `ENVIRONMENT=production`
+- `GOOGLE_API_KEY`
+- `JWT_SECRET_KEY`
+- DB connection vars (`DB_TYPE` + database credentials)
+- `REDIS_URL` (mandatory in production/Appwrite runtime)
+
 ## 🗄️ Database Configuration
 
 The application supports multiple database backends via a factory pattern and differentiates between **Tennis Data** (stats/matches) and **Auth Data** (users/sessions).
