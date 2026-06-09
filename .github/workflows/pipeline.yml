@@ -5,9 +5,9 @@ env:
 
 on:
   push:
-    branches: ["main"]
+    branches: ["vertex-ai"]
   pull_request:
-    branches: ["main"]
+    branches: ["vertex-ai"]
   workflow_dispatch:
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
 
   deploy-backend:
     needs: [changes, backend-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.backend == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/vertex-ai' && needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -159,7 +159,7 @@ jobs:
 
   deploy-frontend:
     needs: [changes, frontend-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.frontend == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/vertex-ai' && needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
