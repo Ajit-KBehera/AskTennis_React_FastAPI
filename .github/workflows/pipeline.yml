@@ -184,7 +184,7 @@ jobs:
           IMAGE_TAG="${IMAGE_NAME}:${{ github.sha }}"
           IMAGE_LATEST="${IMAGE_NAME}:latest"
           docker build \
-            --build-arg VITE_API_URL=${{ secrets.BACKEND_URL }}/api \
+            --build-arg VITE_API_URL="${{ secrets.BACKEND_URL }}/api" \
             -t ${IMAGE_TAG} -t ${IMAGE_LATEST} .
           docker push ${IMAGE_TAG}
           docker push ${IMAGE_LATEST}
