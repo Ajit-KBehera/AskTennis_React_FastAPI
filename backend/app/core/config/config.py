@@ -34,7 +34,7 @@ class Config:
 
         # Vertex AI / GCP configuration
         self.gcp_project_id = os.getenv("GCP_PROJECT_ID")
-        self.gcp_location = os.getenv("GCP_LOCATION", "us-central1")
+        self.gcp_location = os.getenv("GCP_LOCATION", "global")
 
         self.api_key = self._get_api_key()
 

@@ -105,7 +105,7 @@ class LLMFactory:
             return ChatVertexAI(
                 model=model,
                 project=gcp_project_id,
-                location=gcp_location or "us-central1",
+                location=gcp_location or "global",
                 temperature=temperature,
             )
         else:

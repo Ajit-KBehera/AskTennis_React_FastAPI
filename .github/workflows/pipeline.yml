@@ -128,7 +128,7 @@ jobs:
             --set-env-vars "RATE_LIMIT_PER_MINUTE=30" \
             --set-env-vars "QUERY_RATE_LIMIT_PER_MINUTE=10" \
             --set-env-vars "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" \
-            --set-env-vars "GCP_LOCATION=us-central1" \
+            --set-env-vars "GCP_LOCATION=global" \
             --set-secrets "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
             --set-secrets "JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
             --set-secrets "DEFAULT_MODEL=DEFAULT_MODEL:latest" \
