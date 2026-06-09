@@ -44,7 +44,7 @@ def get_cors_config() -> dict:
         "allow_origins": origins,
         "allow_credentials": credentials_allowed, # Required for HttpOnly cookies
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Set-Cookie", "Authorization", "Accept", "Origin", "X-Requested-With"], # Explicit headers required for allow_credentials=True
+        "allow_headers": ["*"], # Allows any browser preflight headers
         "expose_headers": [
             "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"
         ],
@@ -53,9 +53,8 @@ def get_cors_config() -> dict:
 
     # 3. Add Dynamic Cloud Run Previews for Production
     if is_prod:
-        # Match any frontend on Cloud Run to support dynamic previews/service subdomains.
-        # This is CRITICAL for credentials (cookies) to work across Cloud Run services.
-        config["allow_origin_regex"] = r"https://.*\.run\.app"
+        # Match both deployed Cloud Run frontends and local localhost for testing
+        config["allow_origin_regex"] = r"https://.*\.run\.app|http://localhost(:\d+)?|http://127.0.0.1(:\d+)?"
         config["allow_credentials"] = True
         
         # If allow_all was set, the regex above is safer and more compatible with cookies.
