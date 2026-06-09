@@ -4,6 +4,7 @@ Extracted from agent_setup.py for better modularity.
 """
 
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_community.utilities import SQLDatabase
 from langchain_community.tools import (
     QuerySQLDatabaseTool,
@@ -40,8 +41,13 @@ class LLMFactory:
 
     @staticmethod
     def setup_llm_components(
-        api_key: str, db_config: DatabaseConfig, model: str, temperature: float
-    ) -> tuple[ChatGoogleGenerativeAI, SQLDatabase, List]:
+        api_key: str,
+        db_config: DatabaseConfig,
+        model: str,
+        temperature: float,
+        gcp_project_id: Optional[str] = None,
+        gcp_location: Optional[str] = None,
+    ) -> tuple[BaseChatModel, SQLDatabase, List]:
         """
         Setup all LLM components in one call.
 
@@ -50,13 +56,19 @@ class LLMFactory:
             db_config: DatabaseConfig instance (SQLiteConfig or CloudSQLConfig)
             model: Model name
             temperature: Temperature setting
+            gcp_project_id: Optional GCP project ID for Vertex AI
+            gcp_location: Optional GCP region/location for Vertex AI
 
         Returns:
             Tuple of (llm, db, tools)
         """
         # Create LLM
         llm = LLMFactory.create_llm(
-            api_key=api_key, model=model, temperature=temperature
+            api_key=api_key,
+            model=model,
+            temperature=temperature,
+            gcp_project_id=gcp_project_id,
+            gcp_location=gcp_location,
         )
 
         # Create database connection from app.core.config
@@ -69,22 +81,37 @@ class LLMFactory:
 
     @staticmethod
     def create_llm(
-        api_key: str, model: str, temperature: float
-    ) -> ChatGoogleGenerativeAI:
+        api_key: str,
+        model: str,
+        temperature: float,
+        gcp_project_id: Optional[str] = None,
+        gcp_location: Optional[str] = None,
+    ) -> BaseChatModel:
         """
-        Create a ChatGoogleGenerativeAI instance.
+        Create a ChatGoogleGenerativeAI or ChatVertexAI instance.
 
         Args:
             api_key: Google API key
             model: Model name
             temperature: Temperature setting
+            gcp_project_id: Optional GCP project ID for Vertex AI
+            gcp_location: Optional GCP region/location for Vertex AI
 
         Returns:
-            Configured ChatGoogleGenerativeAI instance
+            Configured ChatGoogleGenerativeAI or ChatVertexAI instance
         """
-        return ChatGoogleGenerativeAI(
-            model=model, google_api_key=api_key, temperature=temperature
-        )
+        if gcp_project_id:
+            from langchain_google_vertexai import ChatVertexAI
+            return ChatVertexAI(
+                model=model,
+                project=gcp_project_id,
+                location=gcp_location or "us-central1",
+                temperature=temperature,
+            )
+        else:
+            return ChatGoogleGenerativeAI(
+                model=model, google_api_key=api_key, temperature=temperature
+            )
 
     @staticmethod
     def create_database_connection_from_config(

@@ -1,0 +1,15 @@
+# cloudbuild.yaml for frontend
+steps:
+  # Build the Docker image with build arguments
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=${_VITE_API_URL}'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/asktennis/asktennis-frontend:latest'
+      - '.'
+
+# Push the built image to Artifact Registry
+images:
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/asktennis/asktennis-frontend:latest'

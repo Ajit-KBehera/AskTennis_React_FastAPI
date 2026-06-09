@@ -31,6 +31,11 @@ class Config:
         # LLM configuration
         self.model_name = DEFAULT_MODEL
         self.temperature = DEFAULT_TEMPERATURE
+
+        # Vertex AI / GCP configuration
+        self.gcp_project_id = os.getenv("GCP_PROJECT_ID")
+        self.gcp_location = os.getenv("GCP_LOCATION", "us-central1")
+
         self.api_key = self._get_api_key()
 
         # Database configuration - use factory to create appropriate config
@@ -39,12 +44,17 @@ class Config:
     def _get_api_key(self) -> str:
         """
         Get the Google API key from environment variables.
+        If GCP_PROJECT_ID is set, API key is optional.
         """
         # Fall back to environment variable
         # This works for both .env file (local dev) and Cloud Run environment variables
         api_key = os.getenv("GOOGLE_API_KEY")
         if api_key and api_key.strip():
             return api_key.strip()
+
+        # If GCP_PROJECT_ID is configured, API key is not required
+        if self.gcp_project_id:
+            return ""
 
         # Debug: Log available environment variables (for troubleshooting)
         env_vars = [
@@ -59,14 +69,18 @@ class Config:
         error_msg = (
             "❌ Google API key not found!\n\n"
             "Ensure GOOGLE_API_KEY is set as an environment variable.\n"
-            "For local development, create a .env file with GOOGLE_API_KEY=your_key_here."
+            "For local development, create a .env file with GOOGLE_API_KEY=your_key_here.\n"
+            "Alternatively, set GCP_PROJECT_ID to route requests via Vertex AI."
         )
         raise ValueError(error_msg)
 
     def validate_config(self) -> bool:
         """Validate that all required configuration is present."""
-        # Validate API key
-        agent_valid = self.api_key is not None and self.api_key.strip() != ""
+        # Validate API key if not using Vertex AI
+        if self.gcp_project_id:
+            agent_valid = True
+        else:
+            agent_valid = self.api_key is not None and self.api_key.strip() != ""
 
         # Validate database configuration
         database_valid = self.db_config.validate()

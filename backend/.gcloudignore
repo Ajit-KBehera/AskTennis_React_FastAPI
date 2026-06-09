@@ -1,0 +1,35 @@
+# .gcloudignore
+# This file specifies which files should be ignored when uploading code to Google Cloud Build.
+
+# Exclude large database files and directories
+data/
+*.db
+*.sqlite
+*.duckdb
+
+# Exclude local Python virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Exclude Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Exclude IDE and OS specific files
+.DS_Store
+.idea/
+.vscode/
+
+# Exclude local environment secrets
+.env
+.env.local
+.env.*.local
+
+# Exclude testing & coverage files
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/

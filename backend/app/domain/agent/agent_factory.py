@@ -32,12 +32,13 @@ def setup_langgraph_agent():
     if not config.validate_config():
         raise Exception("Invalid configuration detected!")
 
-    # Create LLM components
     llm, db, sql_tools = LLMFactory.setup_llm_components(
         api_key=config.api_key,
         db_config=config.db_config,
         model=config.model_name,
         temperature=config.temperature,
+        gcp_project_id=config.gcp_project_id,
+        gcp_location=config.gcp_location,
     )
 
     # Add tennis mapping tools (cached via @lru_cache on parent function)
