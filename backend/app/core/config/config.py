@@ -4,7 +4,12 @@ Consolidates all configuration logic into a single class.
 """
 
 import os
-from app.core.constants import DEFAULT_MODEL, DEFAULT_TEMPERATURE
+from app.core.constants import (
+    DEFAULT_MODEL,
+    DEFAULT_TEMPERATURE,
+    DEFAULT_LLM_PROVIDER,
+    OLLAMA_BASE_URL,
+)
 
 # Load environment variables from .env file (for local development)
 try:
@@ -23,13 +28,15 @@ class Config:
     """
     Unified configuration class for the AskTennis AI application.
     Handles all configuration including LLM settings, API keys, and database paths.
-    Supports both local SQLite and GCP Cloud SQL databases.
+    Supports both local SQLite and GCP Cloud SQL databases, as well as multiple LLM providers.
     """
 
     def __init__(self):
         """Initialize with default configuration."""
         # LLM configuration
-        self.model_name = DEFAULT_MODEL
+        self.llm_provider = os.getenv("LLM_PROVIDER", DEFAULT_LLM_PROVIDER).strip().lower()
+        self.ollama_base_url = os.getenv("OLLAMA_BASE_URL", OLLAMA_BASE_URL)
+        self.model_name = os.getenv("DEFAULT_MODEL", DEFAULT_MODEL)
         self.temperature = DEFAULT_TEMPERATURE
 
         # Vertex AI / GCP configuration
@@ -43,9 +50,13 @@ class Config:
 
     def _get_api_key(self) -> str:
         """
-        Get the Google API key from environment variables.
+        Get API key from environment variables.
+        Ollama does not require an API key.
         If GCP_PROJECT_ID is set, API key is optional.
         """
+        if self.llm_provider == "ollama":
+            return ""
+
         # Fall back to environment variable
         # This works for both .env file (local dev) and Cloud Run environment variables
         api_key = os.getenv("GOOGLE_API_KEY")
@@ -70,14 +81,15 @@ class Config:
             "❌ Google API key not found!\n\n"
             "Ensure GOOGLE_API_KEY is set as an environment variable.\n"
             "For local development, create a .env file with GOOGLE_API_KEY=your_key_here.\n"
-            "Alternatively, set GCP_PROJECT_ID to route requests via Vertex AI."
+            "Alternatively, run locally with Ollama (LLM_PROVIDER=ollama) or set GCP_PROJECT_ID."
         )
         raise ValueError(error_msg)
 
     def validate_config(self) -> bool:
         """Validate that all required configuration is present."""
-        # Validate API key if not using Vertex AI
-        if self.gcp_project_id:
+        if self.llm_provider == "ollama":
+            agent_valid = True
+        elif self.gcp_project_id:
             agent_valid = True
         else:
             agent_valid = self.api_key is not None and self.api_key.strip() != ""

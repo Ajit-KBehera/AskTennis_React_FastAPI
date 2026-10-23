@@ -35,12 +35,17 @@ AUTH_DB_USER = os.getenv("AUTH_DB_USER")
 AUTH_DB_PASSWORD = os.getenv("AUTH_DB_PASSWORD")
 
 # LLM Configuration
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-4o-mini")
+DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").lower()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+DEFAULT_MODEL = os.getenv(
+    "DEFAULT_MODEL",
+    "qwen2.5-coder:7b" if DEFAULT_LLM_PROVIDER == "ollama" else "gemini-1.5-flash",
+)
 DEFAULT_TEMPERATURE = 0
 
 # Application Configuration
 APP_TITLE = "🎾 AskTennis: The Advanced AI Engine"
-APP_SUBTITLE = "#### Powered by Gemini & LangGraph (Stateful Agent)"
+APP_SUBTITLE = "#### Powered by LangGraph & Advanced LLMs (Stateful Agent)"
 
 # Security Configuration
 # These are default production origins. If empty, the backend will rely on 

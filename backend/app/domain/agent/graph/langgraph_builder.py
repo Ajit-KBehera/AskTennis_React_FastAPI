@@ -83,10 +83,8 @@ class LangGraphBuilder:
                         try:
                             # Try to parse as a list to verify it's SQL results
                             parsed = ast.literal_eval(content_stripped)
-                            if isinstance(parsed, list) and len(parsed) > 0:
-                                # Check if it's a list of lists (typical SQL result format)
-                                if isinstance(parsed[0], list):
-                                    return True
+                            if isinstance(parsed, list):
+                                return True
                         except (ValueError, SyntaxError):
                             pass
         return False
@@ -127,10 +125,9 @@ class LangGraphBuilder:
                     ):
                         try:
                             parsed = ast.literal_eval(content_stripped)
-                            if isinstance(parsed, list) and len(parsed) > 0:
-                                if isinstance(parsed[0], list):
-                                    sql_result_msg = msg
-                                    break
+                            if isinstance(parsed, list):
+                                sql_result_msg = msg
+                                break
                         except (ValueError, SyntaxError):
                             pass
 
@@ -234,7 +231,17 @@ class LangGraphBuilder:
                 phase = state.get("phase", "query_generation")
 
             # Phase 2: Check for phase transition
-            if phase == "query_generation" and self._has_sql_results(messages):
+            sql_queries = state.get("sql_queries")
+            tool_turns = len(
+                [
+                    m
+                    for m in messages
+                    if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)
+                ]
+            )
+            if phase == "query_generation" and (
+                sql_queries or self._has_sql_results(messages) or tool_turns >= 3
+            ):
                 phase = "synthesis"
 
             # Phase 3: Act based on phase
@@ -265,10 +272,81 @@ class LangGraphBuilder:
                 prompt_template.format_prompt(messages=current_messages)
             )
 
+            # Auto-extract tool calls if the local model rendered them as text/JSON in content
+            self._extract_tool_calls_from_content(response)
+
             return_state["messages"] = cast(List[BaseMessage], [response])
             return return_state
 
         return call_agent
+
+    def _extract_tool_calls_from_content(self, message: Any) -> None:
+        """
+        Extract tool calls if the model outputted them as JSON/text in content
+        instead of the structured tool_calls field (common with open-weights/local models).
+        """
+        if not isinstance(message, AIMessage) or getattr(message, "tool_calls", None):
+            return
+        content = message.content
+        if not isinstance(content, str):
+            return
+        text = content.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+        elif text.startswith("```"):
+            text = text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+
+        if text.startswith("{") and not text.endswith("}"):
+            text += "}"
+
+        import json
+        import uuid
+        import re
+
+        data = None
+        if "{" in text and "}" in text:
+            try:
+                data = json.loads(text)
+            except Exception:
+                pass
+
+        if not data or not isinstance(data, dict) or "name" not in data:
+            # Fallback to regex pattern matching for {"name": "tool_name", ...}
+            m_name = re.search(r'"name":\s*"([^"]+)"', text)
+            if m_name:
+                tool_name = m_name.group(1)
+                m_query = re.search(r'"query":\s*"([^"]+)"', text)
+                m_terms = re.search(r'"terms":\s*(\[[^\]]*\]|"[^"]*")', text)
+                args: Dict[str, Any] = {}
+                if m_query:
+                    args = {"query": m_query.group(1)}
+                elif m_terms:
+                    try:
+                        args = {"terms": json.loads(m_terms.group(1))}
+                    except Exception:
+                        args = {"terms": m_terms.group(1)}
+                data = {"name": tool_name, "arguments": args}
+
+        if isinstance(data, dict) and "name" in data:
+            args = data.get("arguments", data.get("parameters", {}))
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except Exception:
+                    args = {"query": args}
+            message.tool_calls = [
+                {
+                    "name": data["name"],
+                    "args": args if isinstance(args, dict) else {"query": args},
+                    "id": f"call_{uuid.uuid4().hex[:8]}",
+                }
+            ]
 
     def create_tool_node(self):
         """
@@ -443,8 +521,27 @@ class LangGraphBuilder:
 
         def should_continue(state: AgentState):
             """Decide whether to continue with tools or finish."""
+            # Stop if synthesis or complete phase
+            if state.get("phase") in ["synthesis", "complete"]:
+                return "end"
+
+            messages = state.get("messages", [])
+            if not messages:
+                return "end"
+
+            # Max iterations guard: never loop more than 3 tool turns
+            tool_turns = len(
+                [
+                    m
+                    for m in messages
+                    if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)
+                ]
+            )
+            if tool_turns >= 3:
+                return "end"
+
             # The ReAct agent returns an AIMessage with tool_calls if it needs to act.
-            last_message = state["messages"][-1]
+            last_message = messages[-1]
             if (
                 isinstance(last_message, AIMessage)
                 and hasattr(last_message, "tool_calls")

@@ -12,7 +12,12 @@ class TennisPromptBuilder:
         """
         Create a system prompt for SQL query generation phase with pruned schema.
         """
-        return f"""You are a high-performance tennis AI. Translate user intent into precise SQL.
+        return f"""You are a high-performance tennis AI with live access to a tennis database. Translate user intent into precise SQL.
+
+### CRITICAL DIRECTIVES
+- NEVER refuse a user request, claim inability, or state that you lack real-time or post-October-2023 data.
+- You are connected to a database of tennis history. You MUST ALWAYS query the database using `sql_db_query` to verify if data exists.
+- Even if a question asks about years like 2024, 2025, 2026, or recent tournaments, NEVER refuse. Formulate a SQL query on `atp_matches` and `wta_matches` and run `sql_db_query`. If 0 rows return, the synthesis phase will state that no records were found in the database.
 
 ### EXECUTION WORKFLOW
 1. **MAPPING:** Use `resolve_tennis_terms(['term1', 'term2'])` for all surfaces, rounds, tournaments, etc. in one batch. Handles fuzzy matching.

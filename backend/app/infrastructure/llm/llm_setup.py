@@ -41,23 +41,27 @@ class LLMFactory:
 
     @staticmethod
     def setup_llm_components(
-        api_key: str,
+        api_key: Optional[str],
         db_config: DatabaseConfig,
         model: str,
         temperature: float,
         gcp_project_id: Optional[str] = None,
         gcp_location: Optional[str] = None,
+        provider: str = "gemini",
+        base_url: Optional[str] = None,
     ) -> tuple[BaseChatModel, SQLDatabase, List]:
         """
         Setup all LLM components in one call.
 
         Args:
-            api_key: Google API key
+            api_key: Google API key (optional if using Ollama or Vertex AI)
             db_config: DatabaseConfig instance (SQLiteConfig or CloudSQLConfig)
             model: Model name
             temperature: Temperature setting
             gcp_project_id: Optional GCP project ID for Vertex AI
             gcp_location: Optional GCP region/location for Vertex AI
+            provider: LLM provider ("ollama" or "gemini")
+            base_url: Base URL for Ollama service
 
         Returns:
             Tuple of (llm, db, tools)
@@ -69,6 +73,8 @@ class LLMFactory:
             temperature=temperature,
             gcp_project_id=gcp_project_id,
             gcp_location=gcp_location,
+            provider=provider,
+            base_url=base_url,
         )
 
         # Create database connection from app.core.config
@@ -81,27 +87,43 @@ class LLMFactory:
 
     @staticmethod
     def create_llm(
-        api_key: str,
-        model: str,
-        temperature: float,
+        api_key: Optional[str] = None,
+        model: str = "qwen2.5-coder:7b",
+        temperature: float = 0.0,
         gcp_project_id: Optional[str] = None,
         gcp_location: Optional[str] = None,
+        provider: str = "gemini",
+        base_url: Optional[str] = None,
     ) -> BaseChatModel:
         """
-        Create a ChatGoogleGenerativeAI or ChatVertexAI instance.
+        Create a BaseChatModel instance (Ollama, Gemini, or Vertex AI).
 
         Args:
-            api_key: Google API key
-            model: Model name
+            api_key: Google API key (if using Gemini)
+            model: Model name (e.g., qwen2.5-coder:7b or gemini-1.5-flash)
             temperature: Temperature setting
             gcp_project_id: Optional GCP project ID for Vertex AI
             gcp_location: Optional GCP region/location for Vertex AI
+            provider: LLM provider name ("ollama", "gemini")
+            base_url: Optional host URL for Ollama (defaults to http://localhost:11434)
 
         Returns:
-            Configured ChatGoogleGenerativeAI or ChatVertexAI instance
+            Configured BaseChatModel instance
         """
-        if gcp_project_id:
+        if provider == "ollama":
+            try:
+                from langchain_ollama import ChatOllama
+            except ImportError:
+                from langchain_community.chat_models import ChatOllama
+
+            return ChatOllama(
+                model=model,
+                base_url=base_url or "http://localhost:11434",
+                temperature=temperature,
+            )
+        elif gcp_project_id:
             from langchain_google_vertexai import ChatVertexAI
+
             return ChatVertexAI(
                 model=model,
                 project=gcp_project_id,

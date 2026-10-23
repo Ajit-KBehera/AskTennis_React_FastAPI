@@ -23,10 +23,12 @@ def setup_langgraph_agent():
     Returns:
         Compiled LangGraph agent ready for use
     """
-    print("--- Initializing LangGraph Agent with Gemini ---")
-
     # Load unified application configuration (includes database setup)
     config = Config()
+
+    print(
+        f"--- Initializing LangGraph Agent with {config.llm_provider.capitalize()} ({config.model_name}) ---"
+    )
 
     # Validate configuration
     if not config.validate_config():
@@ -39,6 +41,8 @@ def setup_langgraph_agent():
         temperature=config.temperature,
         gcp_project_id=config.gcp_project_id,
         gcp_location=config.gcp_location,
+        provider=config.llm_provider,
+        base_url=config.ollama_base_url,
     )
 
     # Add tennis mapping tools (cached via @lru_cache on parent function)
@@ -64,5 +68,7 @@ def setup_langgraph_agent():
     # Build the runnable LangGraph agent with all dependencies
     runnable_graph = graph_builder.build_graph()
 
-    print("--- LangGraph Agent Compiled Successfully with Gemini ---")
+    print(
+        f"--- LangGraph Agent Compiled Successfully with {config.llm_provider.capitalize()} ({config.model_name}) ---"
+    )
     return runnable_graph
