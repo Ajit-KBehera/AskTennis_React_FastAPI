@@ -207,49 +207,50 @@ class LangGraphBuilder:
             """Calls the LLM to decide the next step with pruned schema."""
             messages = state["messages"]
 
-            # Phase 1: Determine user_query and phase
-            user_query = state.get("user_query")
-            if not user_query:
-                # First time, extract user query and set phase
-                for msg in reversed(messages):
-                    if isinstance(msg, HumanMessage):
-                        content = msg.content
-                        if isinstance(content, str):
-                            user_query = content
-                        elif isinstance(content, list) and len(content) > 0:
-                            user_query = (
-                                str(content[0].get("text", ""))
-                                if isinstance(content[0], dict)
-                                else str(content[0])
-                            )
-                        else:
-                            user_query = str(content)
-                        break
-                phase = "query_generation"
-            else:
-                # Subsequent calls, get phase from state, default to query_generation
-                phase = state.get("phase", "query_generation")
+            # Phase 1: Determine user_query from the most recent HumanMessage
+            last_human_index = -1
+            user_query = ""
+            for i, msg in enumerate(messages):
+                if isinstance(msg, HumanMessage):
+                    last_human_index = i
+                    content = msg.content
+                    if isinstance(content, str):
+                        user_query = content
+                    elif isinstance(content, list) and len(content) > 0:
+                        user_query = (
+                            str(content[0].get("text", ""))
+                            if isinstance(content[0], dict)
+                            else str(content[0])
+                        )
+                    else:
+                        user_query = str(content)
 
-            # Phase 2: Check for phase transition
-            sql_queries = state.get("sql_queries")
-            tool_turns = len(
+            current_turn_messages = (
+                messages[last_human_index:] if last_human_index >= 0 else messages
+            )
+
+            # Phase 2: Check for phase transition based on current turn messages
+            has_sql = self._has_sql_results(current_turn_messages)
+            current_tool_turns = len(
                 [
                     m
-                    for m in messages
+                    for m in current_turn_messages
                     if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)
                 ]
             )
-            if phase == "query_generation" and (
-                sql_queries or self._has_sql_results(messages) or tool_turns >= 3
-            ):
+
+            # If SQL query results are present or max tool turns reached, transition to synthesis
+            if has_sql or current_tool_turns >= 3:
                 phase = "synthesis"
+            else:
+                phase = "query_generation"
 
             # Phase 3: Act based on phase
-            return_state: Dict[str, Any] = {"user_query": user_query}  # always preserve user_query
+            return_state: Dict[str, Any] = {"user_query": user_query}
 
             if phase == "synthesis":
-                # Use synthesis prompt with trimmed messages
-                trimmed_messages = self._trim_messages_for_synthesis(messages)
+                # Use synthesis prompt with trimmed messages from current turn
+                trimmed_messages = self._trim_messages_for_synthesis(current_turn_messages)
                 system_prompt = TennisPromptBuilder.create_synthesis_system_prompt()
 
                 return_state["phase"] = "complete"  # Next state is 'complete'
@@ -261,7 +262,7 @@ class LangGraphBuilder:
 
                 return_state["phase"] = "query_generation"
                 return_state["pruned_schema"] = pruned_schema
-                current_messages = messages
+                current_messages = current_turn_messages
 
             # Create and invoke prompt
             prompt_template = ChatPromptTemplate.from_messages(
@@ -347,6 +348,8 @@ class LangGraphBuilder:
                     "id": f"call_{uuid.uuid4().hex[:8]}",
                 }
             ]
+            # Clear raw tool call JSON from text content so it is not treated as final text answer
+            message.content = ""
 
     def create_tool_node(self):
         """
@@ -521,26 +524,10 @@ class LangGraphBuilder:
 
         def should_continue(state: AgentState):
             """Decide whether to continue with tools or finish."""
-            # Stop if synthesis or complete phase
-            if state.get("phase") in ["synthesis", "complete"]:
-                return "end"
-
             messages = state.get("messages", [])
             if not messages:
                 return "end"
 
-            # Max iterations guard: never loop more than 3 tool turns
-            tool_turns = len(
-                [
-                    m
-                    for m in messages
-                    if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)
-                ]
-            )
-            if tool_turns >= 3:
-                return "end"
-
-            # The ReAct agent returns an AIMessage with tool_calls if it needs to act.
             last_message = messages[-1]
             if (
                 isinstance(last_message, AIMessage)
